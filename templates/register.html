@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <form action="/register" method="post" class="form">
+        <div class="row">
+            <div class="input-group input-group-sm float-left">
+                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name" type="text"  id="first_name" size="30">
+                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name" type="text"  id="last_name" size="40">
+            </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    <input autocomplete="off" class="form-control m-2" name="street" placeholder="Address" type="text"  id="street" size="100">
+                </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    <input autocomplete="off"  class="form-control m-2" name="city" placeholder="City" type="text"  id="city" size="40">
+
+                    <input autocomplete="off"  class="form-control m-2" name="state" placeholder="State" type="text"  id="state" size="2">
+
+                    <input autocomplete="off"  class="form-control m-2" name="zip" placeholder="Zip" type="text"  id="zip" size="10">
+                </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100">
+                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date"  id="dob">
+                <select name="level" id="level" class="m-2">
+                    <option value="Level" disabled>Membersip Level</option>
+                    <option value="standard">Standard</option>
+                    <option value="family">Family</option>
+                    <option value="joad">JOAD</option>
+                    <option value="senior">Senior</option>
+                </select>
+                <label></label>
+            </div>
+        </div>
+
+        <div class="row">
+            <input class="form-control m-2" name="benefactor" type="checkbox" id="benefactor"> 
+            <label for="benefactor">Benefactor</label>
+        </div>
+
+        <div class="row">
+            <input class="form-control m-2" name="terms" type="checkbox" id="terms"> 
+            <label for="terms">I agree to the terms and conditions</label>
+        </div>
+
+<!--add checkboxes here for benefactor and terms and conditions-->
+<!--            </div>
+        </div>-->
+
+        <div class="row">
+            <!--<div class="input-group input-group-md">-->
+                <button class="btn btn-primary m-2" type="submit" id="reg" onload="register_onload()">Register</button>
+            <!--</div>-->
+        </div>
+    </form>
+
+
+{% endblock %}
+
+
+onload="register_onload()"

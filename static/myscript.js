@@ -1,60 +1,68 @@
-function lookup_price(val) {
-    if(val != "") {
-        $.get('/price?symbol=' + val, function(data) {
-            document.getElementById("price").innerHTML = "Price: " + data;
-        });
+function allnumeric(inputtxt) {
+    var numbers = /^[0-9]+$/;
+    if(inputtxt.value.match(numbers)) {
+//        document.form1.text1.focus();
+        return true;
+    }
+    else {
+        alert('Please input numeric characters only');
+//        document.form1.text1.focus();
+        return false;
     }
 }
 
-function username_function(val) {
-    // alert("The input value has changed. The new value is: " + val);
-    if(val == "") {
-        alert("username cannot be blank.");
-        document.getElementById("username").style = "border:2px solid Tomato;";
-        document.getElementById("reg").disabled = true;
+function checkValidation() {
+    let v = true;
+    let l = ["first_name", "last_name", "street", "city", "state"]
+    for (var i = 0; i < l.length; i++) {
+        if(reg_check(l[i]) == false) {
+            v = false;
+        }
     }
-    else {
-        // document.getElementById("username").style = "border:2px solid Green;";
-        $.get('/check?username=' + val, function(data) {
-            if(data){
-                document.getElementById("username").style = "border:2px solid Green;";
-                document.getElementById("usernameDiv").style.visibility = "hidden";
-            }
-            else{
-                document.getElementById("username").style = "border: 2px solid Tomato;";
-                document.getElementById("usernameDiv").style.visibility = "visible";
-                // alert("This username has been taken. Please select another.")
-            }
-        });
+    if(allnumeric(document.form1.zip) == false) {
+        v = false;
     }
+    if(ValidateEmail(document.form1.email) == false) {
+        v = false;
+    }
+    if(phoneNumber(document.form1.phone) == false){
+        v = false;
+    }
+    return v
+
 }
+
 function reg_check(input) {
     let i = document.getElementById(input);
     if(i.value == "") {
-        i.style = "border: 2px solid Tomato;";
+        i.style = "border: 3px solid Tomato;";
     }
     else {
-        i.style = "border: 2px solid Green;";
+        i.style = "border: 3px solid Green;";
     }
 }
-function reg_pass() {
-    let p1 = document.getElementById("password");
-    let p2 = document.getElementById("confirmation");
 
-    if(p1.value != "" && p2.value != "") {
-        if(p1.value != p2.value) {
-            p1.style = "border: 2px solid Tomato;";
-            p2.style = "border: 2px solid Tomato;";
-            document.getElementById("passDiv").style.visibility = "visible";
-            document.getElementById("reg").disabled = true;
-
-        }
-        else {
-            p1.style = "border: 2px solid Green;";
-            p2.style = "border: 2px solid Green;";
-            document.getElementById("passDiv").style.visibility = "hidden";
-            document.getElementById("reg").disabled = false;
-
-        }
+function ValidateEmail(inputText) {
+    var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if(inputText.value.match(mailformat)) {
+        inputText.style = "border: 3px solid Green;";
+        return true;
+    }
+    else {
+        alert("You have entered an invalid email address!");
+        inputText.style = "border: 3px solid Tomato;";
+        document.form1.email.focus();
+        return false;
+    }
+}
+function phoneNumber(inputText)
+{
+    var phoneno = /^\d{10}$/;
+    if((inputText.value.match(phoneno)) {
+        return true;
+    }
+    else {
+        alert("Please enter a valid phone number");
+        return false;
     }
 }

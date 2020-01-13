@@ -6,16 +6,20 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, ses
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
-from werkzeug.security import check_password_hash, generate_password_hash
-from DbHelper import DbHelper
+# from werkzeug.security import check_password_hash, generate_password_hash
+# from DbHelper import DbHelper
+from CurrentRegistration import CurrentRegistration
 
 from helpers import apology, login_required
+from MemberDb import MemberDb
+from FamilyClass import FamilyClass
 
 # Configure application
 app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
 
 # Ensure responses aren't cached
 @app.after_request
@@ -28,22 +32,27 @@ def after_request(response):
 # # Custom filter
 # app.jinja_env.filters["usd"] = usdx
 
+
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
-#db = SQL("sqlite:///data.db")
-db = DbHelper("data.db")
+
+# Configure to use SQLite database
+dbfile = "data.db"
+
+
+current_reg = CurrentRegistration()
+family = FamilyClass(dbfile)
 
 
 @app.route("/")
-@login_required
+# @login_required
 def index():
-    """Show portfolio of stocks"""
-    return apology("TODO")
+    return render_template("register.html")
+
 
 @app.route("/add")
 @login_required
@@ -51,57 +60,79 @@ def add():
     """Add member to database"""
     return apology("TODO")
 
-@app.route("/check", methods=["GET"])
-def check():
-    """Return true if username available, else false, in JSON format"""
-    return jsonify("TODO")
+
+@app.route("/email_verify", methods=["GET", "POST"])
+def email_verify():
+    """verify the users email address with a code"""
+    def check(email, vcode):
+        mem = MemberDb("data.db")
+        rows = mem.find_by_email(email)
+        v = True
+        for row in rows:
+            v = mem.email_verify(row, vcode) and v
+        return v
+
+    if(request.method == "GET"):
+        # print(request.args, len(request.args), file=sys.stdout)
+
+        try:
+            email = request.args["e"]
+        except:
+            email = ""
+        try:
+            vcode = request.args["c"]
+        except:
+            vcode = ""
+
+        if(email is not "" and vcode is not ""):
+            if(check(email, vcode)):
+                return render_template("email_verified.html")
+        return render_template("email_verify.html", email=email, code=vcode)
+    else:  #method is POST
+        if (check(request.form.get('email'), request.form.get('vcode'))):
+            return render_template("email_verified.html")
+        else:
+            return apology("Invalid Code")
 
 
-@app.route("/history")
-@login_required
-def history():
-    """Show history of transactions"""
-    return apology("TODO")
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    """Log user in"""
-    
-    print("This is error output", file=sys.stderr)
-    print("This is standard output", file=sys.stdout)
-
-    # Forget any user_id
-    session.clear()
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return apology("must provide password", 403)
-
-        # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
-
-        # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
-
-        # Redirect user to home page
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("login.html")
+# @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     """Log user in"""
+#
+#     print("This is error output", file=sys.stderr)
+#     print("This is standard output", file=sys.stdout)
+#
+#     # Forget any user_id
+#     session.clear()
+#
+#     # User reached route via POST (as by submitting a form via POST)
+#     if request.method == "POST":
+#
+#         # Ensure username was submitted
+#         if not request.form.get("username"):
+#             return apology("must provide username", 403)
+#
+#         # Ensure password was submitted
+#         elif not request.form.get("password"):
+#             return apology("must provide password", 403)
+#
+#         # Query database for username
+#         rows = db.execute("SELECT * FROM users WHERE username = :username",
+#                           username=request.form.get("username"))
+#
+#         # Ensure username exists and password is correct
+#         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+#             return apology("invalid username and/or password", 403)
+#
+#         # Remember which user has logged in
+#         session["user_id"] = rows[0]["id"]
+#
+#         # Redirect user to home page
+#         return redirect("/")
+#
+#     # User reached route via GET (as by clicking a link or via redirect)
+#     else:
+#         return render_template("login.html")
 
 
 @app.route("/logout")
@@ -115,51 +146,92 @@ def logout():
     return redirect("/")
 
 
+@app.route("/reg_values", methods=["GET"])
+def reg_values():
+    return jsonify(current_reg.get_registration())
+
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
 
     if(request.method == "GET"):
         return render_template("register.html")
-    else: #  method is POST
-        try:
-            #TODO check for sql injection on inputs
-            z = int(request.form.get("zip"))
-            l = request.form.get('level')
-            
-            s = "INSERT INTO users (first_name, last_name, street, city, state, zip, phone, email, dob, level, family) VALUES ("
-            s += "{}, ".format(request.form.get('first_name'))
-            s += "{}, ".format(request.form.get('last_name'))
-            s += "{}, ".format(request.form.get('street'))
-            s += "{}, ".format(request.form.get('city'))
-            s += "{}, ".format(request.form.get('state'))
-            s += "{}, ".format(int(request.form.get('zip')))
-            s += "{}, ".format(request.form.get('phone'))
-            s += "{}, ".format(request.form.get('email'))
-            s += "{}, ".format(request.form.get('dob'))
-            s += "{}, ".format(request.form.get('level'))
-            if(l.value == "family"):
-                id = db.exectue("SELECT MAX(fam_id) from family")[0]["fam_id"] 
-                s += "{})".format(id += 1)
+    else:  # method is POST
+        mem = MemberDb("data.db")
+        reg = {"first_name": request.form.get('first_name'),
+             "last_name": request.form.get('last_name'),
+             "street": request.form.get('street'),
+             "city": request.form.get('city'),
+             "state": request.form.get('state'),
+             "zip": request.form.get('zip'),
+             "phone": request.form.get('phone'),
+             "email": request.form.get('email'),
+             "dob": request.form.get('dob'),
+             "level": request.form.get('level'),
+             "benefactor": request.form.get('benefactor'),
+             "fam": family.fam_id}
+
+        current_reg.set_registration(reg)
+        mem.setbyDict(reg)
+        if(mem.checkInput()):
+            reg["id"] = mem.add(family)
+            if(family.fam_id is None):  # not a family registration
+                current_reg.set_registration(None)
+                return redirect("/")
             else:
-                s += "NULL)"
-                
-            print(s, file=sys.stderr)
-            db.execute(s)
-            if()
-            
-        except:
-            return apology("Inproper entry")
-        memberId = db.execute(s);
+                # family.add_member(reg)
+                reg["first_name"] = ""
+                reg["last_name"] = ""
+                reg["dob"] = ""
+                current_reg.set_registration(reg)
+                print(family.members, file=sys.stdout)
+                return render_template("register.html", rows=family.members)
+        else:
+            return render_template("register.html", rows=family.members)
 
 
+@app.route("/renew", methods=["GET", "POST"])
+def renew():
+    if(request.method == "GET"):
+        return render_template("renew.html")
+    else:  #  method is POST
+        mem = MemberDb("data.db")
+        if(mem.isValidEmail(request.form.get('email'))):
+            rows = mem.find_by_email(request.form.get('email'))
+            if(len(rows) == 0):
+                return apology("Email not found")
+            elif(len(rows) == 1):
+                current_reg.set_registration(rows[0])
+                return render_template("register.html")
+            else:
+                return render_template("renew_list.html", rows=rows)
+        else:
+            return apology("Invalid email")
 
 
-@app.route("/sell", methods=["GET", "POST"])
-@login_required
-def sell():
-    """Sell shares of stock"""
-    return apology("TODO")
+@app.route("/renew_id", methods=["GET"])
+def renew_id():
+    n = request.args["id"]
+    print(n, file=sys.stdout)
+    if(n is not None):
+        mem = MemberDb("data.db")
+        m = mem.find_by_id(n)
+        current_reg.set_registration(m)
+        if(m["fam"] is None):
+            return render_template("register.html")
+        else:
+            rows = mem.find_by_fam(m["fam"])
+            return render_template("register.html", rows=rows)
+
+
+@app.route("/reset", methods=["GET", "POST"])
+def reset():
+    family.clear()
+    current_reg.set_registration(None)
+    # Redirect user to home page
+    return redirect("/")
 
 
 def errorhandler(e):

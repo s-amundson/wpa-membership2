@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Renew
+{% endblock %}
+
+{% block main %}
+    <form action="/renew" method="post" class="form" name="form1" onsubmit="return checkValidation()">
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
+<!--                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20" onchange="phone_check(document.form1.phone)">-->
+            </div>
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
+<!--                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20" onchange="phone_check(document.form1.phone)">-->
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="renew">Find </button>
+        </div>
+    </form>
+
+{% endblock %}

@@ -5,42 +5,46 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post" class="form">
+    <form action="/register" method="post" class="form" name="form1" onsubmit="return checkValidation()">
         <div class="row">
-            <div class="input-group input-group-sm float-left">
-                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name" type="text"  id="first_name" size="30">
-                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name" type="text"  id="last_name" size="40">
+            <div class="input-group input-group-md">
+                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name"
+                       type="text" onchange="reg_check('first_name')" id="first_name">
+                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name"
+                       type="text" onchange="reg_check('last_name')" id="last_name">
             </div>
         </div>
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <input autocomplete="off" class="form-control m-2" name="street" placeholder="Address" type="text"  id="street" size="100">
+                    <input autocomplete="off" class="form-control m-2" name="street" placeholder="Address"
+                           type="text" onchange="reg_check('street')" id="street" size="100" >
                 </div>
         </div>
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <input autocomplete="off"  class="form-control m-2" name="city" placeholder="City" type="text"  id="city" size="40">
+                    <input autocomplete="off"  class="form-control m-2" name="city" placeholder="City"
+                           type="text"  id="city" size="40" onchange="reg_check('city')">
 
-                    <input autocomplete="off"  class="form-control m-2" name="state" placeholder="State" type="text"  id="state" size="2">
+                    <input autocomplete="off"  class="form-control m-2" name="state" placeholder="State" type="text"  id="state" maxlength="2" onchange="reg_check('state')">
 
-                    <input autocomplete="off"  class="form-control m-2" name="zip" placeholder="Zip" type="text"  id="zip" size="10">
+                    <input autocomplete="off"  class="form-control m-2" name="zip" placeholder="Zip" type="text"  id="zip" size="10" onchange="zip_check(document.form1.zip)">
                 </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100">
-                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
+                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20" onchange="phone_check(document.form1.phone)">
             </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date"  id="dob">
-                <select name="level" id="level" class="m-2">
-                    <option value="Level" disabled>Membersip Level</option>
+                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date" id="dob" onchange="reg_check('dob')">
+                <select name="level" id="level" class="m-2" onchange="select_check(document.form1.level)">
+                    <option value="level" selected disabled>Membership Level</option>
                     <option value="standard">Standard</option>
                     <option value="family">Family</option>
                     <option value="joad">JOAD</option>
@@ -51,28 +55,50 @@
         </div>
 
         <div class="row">
-            <input class="form-control m-2" name="benefactor" type="checkbox" id="benefactor"> 
+            <input class="form-control m-2" name="benefactor" type="checkbox" id="benefactor">
             <label for="benefactor">Benefactor</label>
         </div>
 
         <div class="row">
-            <input class="form-control m-2" name="terms" type="checkbox" id="terms"> 
+            <input class="form-control m-2" name="terms" type="checkbox" id="terms" onchange="checkValidation()">
             <label for="terms">I agree to the terms and conditions</label>
         </div>
 
-<!--add checkboxes here for benefactor and terms and conditions-->
-<!--            </div>
-        </div>-->
-
         <div class="row">
-            <!--<div class="input-group input-group-md">-->
-                <button class="btn btn-primary m-2" type="submit" id="reg" onload="register_onload()">Register</button>
-            <!--</div>-->
+                <button class="btn btn-primary m-2" type="submit" id="reg">Register </button>
+        </div>
+    </form>
+
+    <form action="/reset" method="post" class="form" name="form2"">
+        <div class="row">
+            <h2>When done adding family members click the "Done" button below.</h2>
+        </div>
+        <div class="row">
+            <table style="width:100%">
+                <tr>
+                    <th>ID</th>
+                    <th>Firstname</th>
+                    <th>Lastname</th>
+                </tr>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{row["id"]}}</td>
+                        <td>{{row["first_name"]}}</td>
+                        <td>{{row["last_name"]}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="fam_done">Done </button>
         </div>
     </form>
 
 
+
+<script src="static/reg_script.js"></script>
+
 {% endblock %}
 
 
-onload="register_onload()"
+<!--onload="register_onload()"-->

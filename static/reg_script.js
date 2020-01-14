@@ -1,4 +1,7 @@
 document.getElementById("reg").disabled = true;
+if(document.form1.level != "family") {
+    document.form2.style.display = "none"
+}
 
 function allnumeric(inputtxt) {
     var numbers = /^[0-9]+$/;

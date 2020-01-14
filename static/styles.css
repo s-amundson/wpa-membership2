@@ -3,7 +3,6 @@ nav .navbar-brand
     /* size for brand */
     font-size: xx-large;
 
-    background-color:Black
 }
 
 /* colors for brand */
@@ -47,16 +46,16 @@ main img
     /* constrain images on small screens */
     max-width: 100%;
 }
-body
+/*body
 {
     background-color:Black;
-}
+}*/
 /*.collapse*/
 /*{*/
 /*    background-color:Black;*/
 /*    color:White;*/
 /*}*/
-.navbar
+/*.navbar
 {
     background-color:Black;
     color:White;
@@ -71,4 +70,4 @@ body
 .form-left
 {
     float:left;
-}
+}*/

@@ -1,5 +1,6 @@
 import os
 import sys
+import configparser
 
 #from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
@@ -24,7 +25,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 # Ensure responses aren't cached
 @app.after_request
 def after_request(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Cache-Control"] = "no-cache, no-store, must-re-validate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
@@ -67,14 +68,21 @@ def email_verify():
     def check(email, vcode):
         mem = MemberDb("data.db")
         rows = mem.find_by_email(email)
+        fam_email = ""
         v = True
         for row in rows:
-            v = mem.email_verify(row, vcode) and v
+            mem.setbyDict(row)
+            v = mem.check_email_code(row, vcode) and v
+            fam_email += "{}'s membersip ID is {:06d} <br>".format(row["first_name"], row["id"])
+        if v:
+            print("email_verify fam={}".format(rows[0]["fam"]), file=sys.stdout)
+            if rows[0]["fam"] is None:
+                mem.send_email("email_templates/join.html")
+            else:
+                mem.send_email("email_templates/familyjoin.html", fam_email)
         return v
 
     if(request.method == "GET"):
-        # print(request.args, len(request.args), file=sys.stdout)
-
         try:
             email = request.args["e"]
         except:
@@ -83,16 +91,18 @@ def email_verify():
             vcode = request.args["c"]
         except:
             vcode = ""
-
+        print("email={} vcode={}".format(email, vcode), file=sys.stdout)
         if(email is not "" and vcode is not ""):
             if(check(email, vcode)):
                 return render_template("email_verified.html")
+            else:
+                return apology("Invalid Code")  # or email already validated
         return render_template("email_verify.html", email=email, code=vcode)
     else:  #method is POST
         if (check(request.form.get('email'), request.form.get('vcode'))):
             return render_template("email_verified.html")
         else:
-            return apology("Invalid Code")
+            return apology("Invalid Code")  # or email already validated
 
 
 # @app.route("/login", methods=["GET", "POST"])
@@ -173,7 +183,7 @@ def register():
              "benefactor": request.form.get('benefactor'),
              "fam": family.fam_id}
 
-        current_reg.set_registration(reg)
+        # current_reg.set_registration(reg)
         mem.setbyDict(reg)
         if(mem.checkInput()):
             reg["id"] = mem.add(family)
@@ -181,12 +191,14 @@ def register():
                 current_reg.set_registration(None)
                 return redirect("/")
             else:
-                # family.add_member(reg)
+                print("current_reg = {}".format(current_reg.get_registration()))
+                if current_reg.get_registration() is None:
+                    mem.send_email("email_templates/verify.html")
                 reg["first_name"] = ""
                 reg["last_name"] = ""
                 reg["dob"] = ""
                 current_reg.set_registration(reg)
-                print(family.members, file=sys.stdout)
+                print("family.members={}".format(family.members), file=sys.stdout)
                 return render_template("register.html", rows=family.members)
         else:
             return render_template("register.html", rows=family.members)

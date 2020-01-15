@@ -2,14 +2,15 @@ import sys
 import sqlite3 as sql
 import string
 import random
-from datetime import datetime
+from Email import Email
 
 
 # CREATE TABLE "member" ( `id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `first_name` varchar ( 100 ) NOT NULL,
 # `last_name` varchar ( 100 ) NOT NULL, `street` varchar ( 150 ) NOT NULL, `city` varchar ( 100 ) NOT NULL,
 # `state` varchar ( 3 ) NOT NULL, `zip` varchar ( 10 ), `phone` varchar ( 20 ), `email` varchar ( 150 ) NOT NULL,
 # `dob` date NOT NULL, `level` varchar ( 20 ) NOT NULL, `reg_date` date NOT NULL DEFAULT CURRENT_DATE,
-# `exp_date` date NOT NULL DEFAULT CURRENT_DATE, `fam` INTEGER DEFAULT NULL, `benefactor` BOOLEAN DEFAULT 'FALSE' )
+# `exp_date` date NOT NULL DEFAULT CURRENT_DATE, `fam` INTEGER DEFAULT NULL, `benefactor` BOOLEAN DEFAULT 'FALSE',
+# `val_code` varchar (20) )
 
 # CREATE TABLE `family` ( `id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, `fam_id` INTEGER NOT NULL,
 # `mem_id` INTEGER )
@@ -22,89 +23,79 @@ class MemberDb:
         self.con.row_factory = sql.Row
         self.cur = self.con.cursor()
 
-        self.uid = None
-        self.first_name = None
-        self.last_name = None
-        self.street = None
-        self.city = None
-        self.state = None
-        self.zip = None
-        self.phone = None
-        self.email = None
-        self.dob = None
-        self.level = None
-        self.reg_date = None
-        self.exp_date = None
-        self.fam = None
-        self.benefactor = False
-
-        self.mem_dict = {}
+        self.mem = {}
+        self.email_sent = False
 
     def add(self, family):
 
         # consider checking to see if the member exists.
-        if (self.level == "family"):
-            # family.add_member(self.mem_dict)
-            if (self.fam is None):
-                self.fam = self.execute("SELECT MAX(fam_id) as fid from family")[0]["fid"]
-                if (self.fam is None):
-                    self.fam = 0
-                self.fam += 1
-                self.mem_dict['fam'] = self.fam
-                self.mem_dict["val_code"] = self.randomString()
+        if (self.mem["level"] == "family"):
+            # family.add_member(self.mem)
+            if (self.mem["fam"] is None):
+                self.mem["fam"] = self.execute("SELECT MAX(fam_id) as fid from family")[0]["fid"]
+                if (self.mem["fam"] is None):
+                    self.mem["fam"] = 0
+                self.mem["fam"] += 1
+                self.mem['fam'] = self.mem["fam"]
+                self.mem["val_code"] = self.randomString()
             else:
-                print(self.fam, file=sys.stdout)
-                self.mem_dict["val_code"] = self.execute("SELECT * from member where fam = ?",
-                                                         (self.fam,))[0]["val_code"]
+                self.mem["val_code"] = self.execute("SELECT * from member where fam = ?",
+                                                    (self.mem["fam"],))[0]["val_code"]
         else:
-            self.mem_dict["val_code"] = self.randomString()
+            self.mem["val_code"] = self.randomString()
         s = "INSERT INTO member (first_name, last_name, street, city, state, zip, phone, email, dob, level, " \
             "benefactor, fam, val_code) VALUES ( "
         self.execute("{} ?,?,?,?,?,?,?,?,?,?,?,?,?)".format(s),
-                     (self.first_name, self.last_name, self.street, self.city, self.state, self.zip, self.phone,
-                      self.email, self.dob, self.level, self.benefactor, self.fam, self.mem_dict["val_code"]))
+                     (self.mem["first_name"], self.mem["last_name"], self.mem["street"], self.mem["city"],
+                      self.mem["state"], self.mem["zip"], self.mem["phone"], self.mem["email"], self.mem["dob"],
+                      self.mem["level"], self.mem["benefactor"], self.mem["fam"], self.mem["val_code"]))
 
-        self.uid = self.execute("SELECT id from member where last_name =? and first_name =?",
-                                (self.last_name, self.first_name))
-        self.uid = self.uid[len(self.uid) - 1]["id"]
-        print(self.uid, file=sys.stdout)
-        print(self.fam, file=sys.stdout)
-        self.mem_dict['id'] = self.uid
-        if (self.level == "family"):
-            print(self.fam, file=sys.stdout)
-            self.execute("INSERT into family (fam_id, mem_id) values (?,?)", (self.fam, self.uid))
-            family.add_member(self.mem_dict)
-            # self.execute("UPDATE `member` SET `fam`=? WHERE _rowid_=?", (self.fam, self.uid))
+        self.mem["id"] = self.execute("SELECT id from member where last_name =? and first_name =?",
+                                      (self.mem["last_name"], self.mem["first_name"]))
+        self.mem["id"] = self.mem["id"][len(self.mem["id"]) - 1]["id"]
+        print(self.mem["id"], file=sys.stdout)
+        print(self.mem["fam"], file=sys.stdout)
+        if (self.mem["level"] == "family"):
+            self.execute("INSERT into family (fam_id, mem_id) values (?,?)", (self.mem["fam"], self.mem["id"]))
+            family.add_member(self.mem)
+            # if not self.email_sent:
+            #     self.send_email("email_templates/verify.html")
+            # # TODO send family email - Put in spplication.py
 
-        return self.uid
+        else:
+            self.send_email("email_templates/verify.html")
 
+        return self.mem["id"]
 
     def checkInput(self):
-        """ Check input for sterilization issues returns sterilized input"""
+        """ Check input for values"""
         v = True
-        print("first: {}, Last: {}".format(self.first_name, self.last_name), file=sys.stdout)
-        if (self.first_name == "" or self.last_name == ""):
+        if (self.mem["first_name"] == "" or self.mem["last_name"] == ""):
             print("name issue", file=sys.stdout)
             v = False
-        if (self.street == "" or self.city == "" or self.state == "" or self.zip == ""):
+        if (self.mem["street"] == "" or self.mem["city"] == "" or self.mem["state"] == "" or self.mem["zip"] == ""):
             print("address issue", file=sys.stdout)
             v = False
-        if not (self.isValidEmail(self.email)):
+        if not (self.isValidEmail(self.mem["email"])):
             print("email issue", file=sys.stdout)
+            v = False
+        if not self.isValidPhone(self.mem["phone"]):
             v = False
         return v
 
-    def email_verify(self, row, code):
-        print(row["exp_date"], file=sys.stdout)
+    def check_email_code(self, row, code):
+        print(row["val_code"], file=sys.stdout)
         if (row["val_code"] is not None and row["val_code"] == code):
             if (row["exp_date"] == row["reg_date"]):
                 # date and datetime is not working fromisoformat not found
                 d = row["exp_date"].split('-')
                 d = "{}-{}-{}".format(int(d[0]) + 1, d[1], d[2])
                 self.execute("UPDATE member SET `exp_date` = ?, `val_code` = ? WHERE `id` = ?", (d, None, row["id"]))
+
             else:
                 self.execute("UPDATE member SET `val_code` = ? WHERE `id` = ?", (None, row["id"]))
             return True
+        print("check_email_code False", file=sys.stdout)
         return False  # invalid code
 
     def execute(self, statement, args=None):
@@ -118,7 +109,6 @@ class MemberDb:
         return self.cur.fetchall()
 
     def find_by_email(self, email):
-        print(email, file=sys.stdout)
         return self.execute("SELECT * from member where email = ?", (email,))
 
     def find_by_fam(self, fam):
@@ -139,32 +129,34 @@ class MemberDb:
 
             return False
 
-    @staticmethod
-    def isValidPhone(phone):
-        phone = phone.strip(['(', ')', '-', '.', ','])
+
+    def isValidPhone(self, phone):
+        print(phone, file=sys.stdout)
+        for c in ['(', ')', '-', '.', ',']:
+            phone = phone.strip(c)
         print(phone, file=sys.stdout)
         return (len(phone) > 9)
 
 
-    @staticmethod
-    def randomString(stringLength=16):
+    def randomString(self, stringLength=16):
         """Generate a random string with the combination of lowercase and uppercase letters """
         # from https://pynative.com/python-generate-random-string/
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(stringLength))
 
+
+    def send_email(self, file, fam=""):  # TODO update for family
+        with open(file) as f:
+            msg = f.read()
+
+        msg = msg.replace("NAME", self.mem["first_name"])
+        msg = msg.replace("USERID", "{:06d}".format(self.mem["id"]))
+        msg = msg.replace("EMAIL", self.mem["email"])
+        msg = msg.replace("CODE", self.mem["val_code"])
+        msg = msg.replace("FAMILY", fam)
+
+        # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
+        Email().send_mail("sam.amundson@gmailcom", "Woodley Park Archers email verification", msg)
+
     def setbyDict(self, mydict):
-        self.mem_dict = mydict
-        self.first_name = mydict["first_name"]
-        self.last_name = mydict["last_name"]
-        self.street = mydict["street"]
-        self.city = mydict["city"]
-        self.state = mydict["state"]
-        self.zip = mydict["zip"]
-        self.phone = mydict["phone"]
-        self.email = mydict["email"]
-        self.dob = mydict["dob"]
-        self.level = mydict["level"]
-        # self.reg_date = mydict["reg_date"]
-        # self.exp_date = mydict["exp_date"]
-        self.fam = mydict["fam"]
+        self.mem = mydict

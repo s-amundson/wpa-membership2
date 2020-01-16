@@ -4,6 +4,33 @@
     Register
 {% endblock %}
 
+{% block left %}
+        <form action="/reset" method="post" class="form" name="form2">
+        <div class="row">
+            <h6>When done adding family members click the "Done" button below.</h6>
+        </div>
+        <div class="row">
+            <table style="width:100%">
+                <tr>
+                    <th>ID</th>
+                    <th>Firstname</th>
+                    <th>Lastname</th>
+                </tr>
+                {% for row in rows %}
+                    <tr>
+                        <td>{{row["id"]}}</td>
+                        <td>{{row["first_name"]}}</td>
+                        <td>{{row["last_name"]}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="fam_done">Done </button>
+        </div>
+    </form>
+{% endblock %}
+
 {% block main %}
     <form action="/register" method="post" class="form" name="form1" onsubmit="return checkValidation()">
         <div class="row">
@@ -55,13 +82,17 @@
         </div>
 
         <div class="row">
-            <input class="form-control m-2" name="benefactor" type="checkbox" id="benefactor">
-            <label for="benefactor">Benefactor</label>
+            <div class="custom-control custom-checkbox m-3">
+                <input class="form-control m-2 custom-control-input" name="benefactor" type="checkbox" id="benefactor" onchange="checkValidation()">
+                <label class="custom-control-label" for="benefactor">Benefactor</label>
+            </div>
         </div>
 
         <div class="row">
-            <input class="form-control m-2" name="terms" type="checkbox" id="terms" onchange="checkValidation()">
-            <label for="terms">I agree to the terms and conditions</label>
+            <div class="custom-control custom-checkbox m-3">
+                <input class="form-control m-2 custom-control-input" name="terms" type="checkbox" id="terms" onchange="checkValidation()">
+                <label class="custom-control-label" for="terms">I agree to the terms and conditions</label>
+            </div>
         </div>
 
         <div class="row">
@@ -69,30 +100,7 @@
         </div>
     </form>
 
-    <form action="/reset" method="post" class="form" name="form2"">
-        <div class="row">
-            <h2>When done adding family members click the "Done" button below.</h2>
-        </div>
-        <div class="row">
-            <table style="width:100%">
-                <tr>
-                    <th>ID</th>
-                    <th>Firstname</th>
-                    <th>Lastname</th>
-                </tr>
-                {% for row in rows %}
-                    <tr>
-                        <td>{{row["id"]}}</td>
-                        <td>{{row["first_name"]}}</td>
-                        <td>{{row["last_name"]}}</td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </div>
-        <div class="row">
-                <button class="btn btn-primary m-2" type="submit" id="fam_done">Done </button>
-        </div>
-    </form>
+
 
 
 

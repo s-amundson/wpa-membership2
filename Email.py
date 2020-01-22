@@ -64,7 +64,7 @@ class Email:
         s.login(self.user, self.password)
 
         # sending the mail
-        s.sendmail(toaddr, self.user, msg.as_string() )
+        s.sendmail(toaddr, self.user, msg.as_string())
 
         # terminating the session
         s.quit()

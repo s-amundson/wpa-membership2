@@ -4,9 +4,9 @@ import sqlite3 as sql
 
 class FamilyClass:
     def __init__(self, file):
-        self.con = sql.connect(file)
-        self.con.row_factory = sql.Row
-        self.cur = self.con.cursor()
+        # self.con = sql.connect(file)
+        # self.con.row_factory = sql.Row
+        # self.cur = self.con.cursor()
         self.members = []
         self.fam_id = None
     # def add_family(self, fam_id, mem_id):
@@ -23,12 +23,12 @@ class FamilyClass:
         self.fam_id = None
     def get_members(self):
         return self.members
-    def execute(self, statement, args=None):
-        # try:
-        if(args == None):
-            self.cur.execute(statement)
-        else:
-            self.cur.execute(statement, args)
-        self.con.commit()
-
-        return self.cur.fetchall()
+    # def execute(self, statement, args=None):
+    #     # try:
+    #     if(args == None):
+    #         self.cur.execute(statement)
+    #     else:
+    #         self.cur.execute(statement, args)
+    #     self.con.commit()
+    #
+    #     return self.cur.fetchall()

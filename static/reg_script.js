@@ -1,7 +1,8 @@
 document.getElementById("reg").disabled = true;
-if(document.form1.level != "family") {
-    document.form2.style.display = "none"
-}
+document.getElementById("debugtext").innerHTML = document.form1.benefactor.checked
+//if(document.form1.level.value != "family") {
+document.form2.style.display = "none"
+//}
 
 function allnumeric(inputtxt) {
     var numbers = /^[0-9]+$/;
@@ -38,11 +39,12 @@ function checkValidation() {
     if(select_check(document.form1.level) == false){
         v = false;
     }
+
     if(v){
         document.getElementById("reg").disabled = false;
     }
     else{
-        document.form1.terms.value = 0;
+        document.form1.terms.checked = false;
     }
     return v;
 }
@@ -105,13 +107,28 @@ function zip_check(in_zip) {
 }
 
 $.get('/reg_values', function(data) {
-            if(data != null){
-                let l = ["first_name", "last_name", "street", "city", "state", "zip", "email", "phone", "dob", "level", "benefactor"];
-                    for (var i = 0; i < l.length; i++) {
-                        document.getElementById(l[i]).value = data[l[i]];
-//                        if(l[i] == "level" && data[l[i]] == "family"){
-//                            document.getElementById(l[i]).disabled = true;
-//                        }
+        if(data != null){
+            let l = ["first_name", "last_name", "street", "city", "state", "zip", "email", "phone", "dob", "level", "benefactor"];
+                for (var i = 0; i < l.length; i++) {
+                    if(l[i] == "level") {
+                        if(data[l[i]] == "family"){
+                            document.getElementById("terms").checked = true;
+                            $("select[name='level']").find('option').remove().end().append(
+                                "<option value='family'>Family</option>");
+//                                document.getElementById("level").remove().append(
+//                                    "<option value='family'>Family</option>");
+                            document.form2.style.display = "initial";
+                        }
+                        else{
+                            document.form2.style.display = "none";
+                        }
+
                     }
-            }
-        });
+                    if(data[l[i]] == "benefactor"){
+                        document.getElementById("debugtext").innerHTML = document.form1.benefactor.value
+                    }
+                    document.getElementById(l[i]).value = data[l[i]];
+
+                }
+        }
+    });

@@ -5,21 +5,35 @@
 {% endblock %}
 
 {% block main %}
+    <h3>If you already have a renewal code:</h3>
     <form action="/renew" method="post" class="form" name="form1" onsubmit="return checkValidation()">
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
-<!--                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20" onchange="phone_check(document.form1.phone)">-->
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100"  onchange="ValidateEmail(document.form1.email)" value={{ email }}>
             </div>
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
-<!--                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"  id="phone" size="20" onchange="phone_check(document.form1.phone)">-->
+                <input autocomplete="off"  class="form-control m-2" name="rcode" placeholder="Code" type="text"  id="rcode" size="100" onchange="reg_check('rcode')" value={{ renew_code }}>
             </div>
         </div>
 
         <div class="row">
-                <button class="btn btn-primary m-2" type="submit" id="renew">Find </button>
+                <button class="btn btn-primary m-2" type="submit" id="renew">Submit </button>
         </div>
     </form>
 
+<div class="row m-3" id="debug"> <br> </div>
+    <h3>If you need a renewal code:</h3>
+    <form action="/renew_code" method="post" class="form" name="form2" onsubmit="return checkValidation()">
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email2" placeholder="Email" type="text"  id="email2" size="100"  onchange="ValidateEmail(document.form2.email2)">
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="renew2">Request </button>
+        </div>
+    </form>
+
+<script src="static/renew_script.js"></script>
 {% endblock %}

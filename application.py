@@ -8,7 +8,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 # from werkzeug.security import check_password_hash, generate_password_hash
-# from DbHelper import DbHelper
+from DbHelper import DbHelper
 from CurrentRegistration import CurrentRegistration
 
 from helpers import apology, login_required
@@ -43,6 +43,7 @@ Session(app)
 
 # Configure to use SQLite database
 dbfile = "data.db"
+db = DbHelper()
 
 
 current_reg = CurrentRegistration()
@@ -66,7 +67,7 @@ def add():
 def email_verify():
     """verify the users email address with a code"""
     def check(email, vcode):
-        mem = MemberDb("data.db")
+        mem = MemberDb(db)
         rows = mem.find_by_email(email)
         fam_email = ""
         v = True
@@ -91,7 +92,7 @@ def email_verify():
             vcode = request.args["c"]
         except:
             vcode = ""
-        print("email={} vcode={}".format(email, vcode), file=sys.stdout)
+
         if(email is not "" and vcode is not ""):
             if(check(email, vcode)):
                 return render_template("email_verified.html")
@@ -169,7 +170,7 @@ def register():
     if(request.method == "GET"):
         return render_template("register.html")
     else:  # method is POST
-        mem = MemberDb("data.db")
+        mem = MemberDb(db)
         reg = {"first_name": request.form.get('first_name'),
              "last_name": request.form.get('last_name'),
              "street": request.form.get('street'),
@@ -206,10 +207,12 @@ def register():
 
 @app.route("/renew", methods=["GET", "POST"])
 def renew():
+    # to request a renewal code by entering email address. Also to provide renewal verification with email address and code
     if(request.method == "GET"):
         return render_template("renew.html")
     else:  #  method is POST
-        mem = MemberDb("data.db")
+        mem = MemberDb(db)
+        #  TODO add renew table to track renewals (id, mem_id, renew_date)
         if(mem.isValidEmail(request.form.get('email'))):
             rows = mem.find_by_email(request.form.get('email'))
             if(len(rows) == 0):
@@ -222,13 +225,24 @@ def renew():
         else:
             return apology("Invalid email")
 
-
+@app.route("/renew_code", methods=["POST"])
+def renew_code():
+    """ send an email to the member in the database with a renewal code if that email exists.
+        If valid email address is not in database do nothing."""
+    mem = MemberDb(db)
+    if (mem.isValidEmail(request.form.get('email2'))):
+        rows = mem.find_by_email(request.form.get('email2'))
+        if (len(rows) > 0):
+            mem.send_renewal(rows[0])
+        return redirect("/")
+    else:
+        return apology("Invalid email")
 @app.route("/renew_id", methods=["GET"])
 def renew_id():
     n = request.args["id"]
     print(n, file=sys.stdout)
     if(n is not None):
-        mem = MemberDb("data.db")
+        mem = MemberDb(db)
         m = mem.find_by_id(n)
         current_reg.set_registration(m)
         if(m["fam"] is None):

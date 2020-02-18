@@ -6,24 +6,23 @@ class Config:
         self.cfg.read('static/settings.cfg')
         self.sections = self.cfg.sections()
 
-        self.database = {}
-        for key in self.cfg["database"]:
-            self.database[key] = self.cfg["database"][key]
-
-        self.email = {}
-        for key in self.cfg["smtp"]:
-            self.database[key] = self.cfg["smtp"][key]
-
-        # {"user": self.cfg["smtp"]["user"], "password": self.cfg["smtp"]["password"],
-        #               "server": self.cfg["smtp"]["server"]}
-
     def get_database(self):
-        return self.database
-
+        database = {}
+        for key in self.cfg["database"]:
+            database[key] = self.cfg["database"][key]
+        return database
 
     def get_smtp(self):
-        return self.email
+        email = {}
+        for key in self.cfg["smtp"]:
+            email[key] = self.cfg["smtp"][key]
+        return email
 
+    def get_square(self):
+        square = {}
+        for key in self.cfg["square"]:
+            square[key] = self.cfg["square"][key]
+        return square
 
 if __name__ == '__main__':
     Config()

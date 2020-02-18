@@ -2,7 +2,7 @@ import os
 import sys
 import configparser
 
-#from cs50 import SQL
+
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -14,6 +14,8 @@ from CurrentRegistration import CurrentRegistration
 from helpers import apology, login_required
 from MemberDb import MemberDb
 from FamilyClass import FamilyClass
+from square_handler import square_handler
+from PayLogHelper import PayLogHelper
 
 # Configure application
 app = Flask(__name__)
@@ -40,8 +42,9 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+app.logger.error(f"sys.prefix {sys.prefix}")
 
-# Configure to use SQLite database
+# Configure to use database
 dbfile = "data.db"
 db = DbHelper()
 
@@ -49,6 +52,7 @@ db = DbHelper()
 current_reg = CurrentRegistration()
 family = FamilyClass(dbfile)
 
+square = square_handler()
 
 @app.route("/")
 # @login_required
@@ -63,104 +67,74 @@ def add():
     return apology("TODO")
 
 
-@app.route("/email_verify", methods=["GET", "POST"])
+@app.route("/email_verify", methods=["GET", "POST"]) # TODO update this to patch
 def email_verify():
     """verify the users email address with a code"""
-    def check(email, vcode):
-        mem = MemberDb(db)
-        rows = mem.find_by_email(email)
-        fam_email = ""
-        v = True
-        for row in rows:
-            mem.setbyDict(row)
-            v = mem.check_email_code(row, vcode) and v
-            fam_email += "{}'s membersip ID is {:06d} <br>".format(row["first_name"], row["id"])
-        if v:
-            print("email_verify fam={}".format(rows[0]["fam"]), file=sys.stdout)
-            if rows[0]["fam"] is None:
-                mem.send_email("email_templates/join.html")
-            else:
-                mem.send_email("email_templates/familyjoin.html", fam_email)
-        return v
 
     if(request.method == "GET"):
-        try:
+        print(request.args)
+        if "e" in request.args:
             email = request.args["e"]
-        except:
-            email = ""
-        try:
+        if "c" in request.args:
             vcode = request.args["c"]
-        except:
-            vcode = ""
-
-        if(email is not "" and vcode is not ""):
-            if(check(email, vcode)):
-                return render_template("email_verified.html")
-            else:
-                return apology("Invalid Code")  # or email already validated
-        return render_template("email_verify.html", email=email, code=vcode)
+        # try:
+        #     email = request.args["e"]
+        # except:
+        #     email = ""
+        # try:
+        #     vcode = request.args["c"]
+        # except:
+        #     vcode = ""
+        # This does not comply with GET
+        # if(email is not "" and vcode is not ""):
+        #     if(check(email, vcode)):
+        #         return render_template("email_verified.html")
+        #     else:
+        #         return apology("Invalid Code")  # or email already validated
+        return render_template("email_verify.html", code=vcode, email=email)
     else:  #method is POST
-        if (check(request.form.get('email'), request.form.get('vcode'))):
-            return render_template("email_verified.html")
+        mdb = MemberDb(db)
+        mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
+        if mem is not None:
+            # TODO do payment with ik as idempotency_key
+            print(f"payment level = {mem['level']}, ik = {mem['email_code']}, benefactor = {mem['benefactor']}")
+            p = square.purchase_membership(mem)
+
+            if p is not None:
+                mdb.square_payment(p)
+                return redirect(p["checkout"]['checkout_page_url'])
+                #render_template("email_verified.html")
+            else:
+                return apology("payment problem")  # or email already validated
         else:
             return apology("Invalid Code")  # or email already validated
 
 
-# @app.route("/login", methods=["GET", "POST"])
-# def login():
-#     """Log user in"""
-#
-#     print("This is error output", file=sys.stderr)
-#     print("This is standard output", file=sys.stdout)
-#
-#     # Forget any user_id
-#     session.clear()
-#
-#     # User reached route via POST (as by submitting a form via POST)
-#     if request.method == "POST":
-#
-#         # Ensure username was submitted
-#         if not request.form.get("username"):
-#             return apology("must provide username", 403)
-#
-#         # Ensure password was submitted
-#         elif not request.form.get("password"):
-#             return apology("must provide password", 403)
-#
-#         # Query database for username
-#         rows = db.execute("SELECT * FROM users WHERE username = :username",
-#                           username=request.form.get("username"))
-#
-#         # Ensure username exists and password is correct
-#         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-#             return apology("invalid username and/or password", 403)
-#
-#         # Remember which user has logged in
-#         session["user_id"] = rows[0]["id"]
-#
-#         # Redirect user to home page
-#         return redirect("/")
-#
-#     # User reached route via GET (as by clicking a link or via redirect)
-#     else:
-#         return render_template("login.html")
+@app.route("/pay_success", methods=["GET"])
+def pay_success():
 
+    # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
+    # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
-@app.route("/logout")
-def logout():
-    """Log user out"""
+    l = PayLogHelper(db).update_square_payment(request.args)
+    l = l['members'].split(',')
+    mdb = MemberDb(db)
+    mem = mdb.find_by_id(l[0])
+    if (mem["fam"] is None):
+        fam = ""
+    else:
+        rows = mdb.find_by_fam(mem["fam"])
+        fam = ""
+        for row in rows:
+            fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+    mdb.send_email('email_templates/join.html', fam)
 
-    # Forget any user_id
-    session.clear()
-
-    # Redirect user to login form
-    return redirect("/")
+    return render_template("pay_success.html")
 
 
 @app.route("/reg_values", methods=["GET"])
 def reg_values():
     return jsonify(current_reg.get_registration())
-
 
 
 @app.route("/register", methods=["GET", "POST"])

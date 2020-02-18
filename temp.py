@@ -71,9 +71,11 @@
 #             # print("enter to continue")
 #             # sys.stdin.readline()
 
-from datetime import date
+# import hashlib
+# hash_obj = hashlib.md5(b'fTNNi2gLPqPQq4ZO3GQZ')
+# print(hash_obj.hexdigest())
+import dateutil.parser
+from datetime import datetime
 
-d = date.today()
-print(d)
-d = d.replace(year=d.year + 1)
+d = dateutil.parser.parse("2020-02-16T16:19:38.685Z")
 print(d.isoformat())

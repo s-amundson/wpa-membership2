@@ -2,6 +2,8 @@ import sys
 import string
 import random
 from Email import Email
+from PayLogHelper import PayLogHelper
+import uuid
 
 
 class MemberDb:
@@ -25,12 +27,12 @@ class MemberDb:
 
                 self.mem["fam"] += 1
                 self.mem['fam'] = self.mem["fam"]
-                self.mem["val_code"] = self.randomString()
+                self.mem["email_code"] = self.randomString()
             else:
-                self.mem["val_code"] = self.db.execute("SELECT * from member where fam = {}".format(
-                                                    self.mem["fam"]))[0]["val_code"]
+                self.mem["email_code"] = self.db.execute("SELECT * from member where fam = {}".format(
+                    self.mem["fam"]))[0]["email_code"]
         else:
-            self.mem["val_code"] = self.randomString()
+            self.mem["email_code"] = self.randomString()
         print("Bennefactor {}".format(self.mem["benefactor"]))
         if self.mem["benefactor"] is None:
             self.mem["benefactor"] = 0
@@ -42,15 +44,15 @@ class MemberDb:
             fam = self.mem["fam"]
 
         s = "INSERT INTO member (first_name, last_name, street, city, state, zip, phone, email, dob, level, " \
-            "benefactor, fam, val_code, reg_date, exp_date) VALUES ( "
+            "benefactor, fam, email_code, reg_date, exp_date) VALUES ( "
         self.db.execute("{} '{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{},{},'{}', CURDATE(), CURDATE())".format(
-                      s, self.mem["first_name"],
-                      self.mem["last_name"], self.mem["street"], self.mem["city"],
-                      self.mem["state"], self.mem["zip"], self.mem["phone"], self.mem["email"], self.mem["dob"],
-                      self.mem["level"], self.mem["benefactor"], fam, self.mem["val_code"]))
+            s, self.mem["first_name"],
+            self.mem["last_name"], self.mem["street"], self.mem["city"],
+            self.mem["state"], self.mem["zip"], self.mem["phone"], self.mem["email"], self.mem["dob"],
+            self.mem["level"], self.mem["benefactor"], fam, self.mem["email_code"]))
 
         r = self.db.execute("SELECT id from member where last_name = '{}' and first_name = '{}'".format(
-                                      self.mem["last_name"], self.mem["first_name"]))
+            self.mem["last_name"], self.mem["first_name"]))
         self.mem["id"] = r[len(r) - 1]["id"]
 
         if (self.mem["level"] == "family"):
@@ -79,23 +81,39 @@ class MemberDb:
             v = False
         return v
 
-    def check_email_code(self, row, code):
-        print(row["val_code"], file=sys.stdout)
-        if (row["val_code"] is not None and row["val_code"] == code):
-            if (row["exp_date"] == row["reg_date"]):
-                d = row["exp_date"]
-                d = d.replace(year=d.year + 1)
+    def check_email(self, email, vcode):
 
-                self.db.execute("UPDATE member SET `exp_date` = '{}', `val_code` = NULL WHERE `id` = {}".format(
-                    d.isoformat(), row["id"]))
+        rows = self.db.execute(f"SELECT * from member where `email` = '{email}' and `email_code` = '{vcode}' ORDER BY `id`")
+        if len(rows) > 0:
+            self.setbyDict(rows[0])
+            #  get uuid for payment with square
+            #self.mem['pay_code'] = "0a832c41-ab4a-4d39-b7c8-d61bb10e916d"
+            if self.mem['pay_code'] == "NULL":
+                self.mem['pay_code'] = uuid.uuid4()
+            self.set_member_pay_code_status(self.mem['pay_code'], 'payment')
+            return self.mem
+        else:
+            return None
 
-            else:
-                self.db.execute("UPDATE member SET `val_code` = NULL WHERE `id` = {}".format(row["id"]))
-            return True
-        print("check_email_code False", file=sys.stdout)
-        return False  # invalid code
-
-
+    # def check_email_code(self, row, code):
+    #     print(row["code"], file=sys.stdout)
+    #     if (row["code"] is not None and row["code"] == code):
+    #         # Need to get payment before updating expiration.
+    #         # if (row["exp_date"] == row["reg_date"]):
+    #         #     self.expire_update(row)
+    #         #
+    #         # else:
+    #         #     self.db.execute("UPDATE member SET `code` = NULL WHERE `id` = {}".format(row["id"]))
+    #         return True
+    #     print("check_email_code False", file=sys.stdout)
+    #     return False  # invalid code
+    def expire_update(self, row):
+        """ Update the expiration date of the row."""
+        d = row["exp_date"]
+        d = d.replace(year=d.year + 1)
+        # consider removing the renew date and running solely off of expire date.
+        self.db.execute("UPDATE member SET `exp_date` = '{}', `code` = NULL, `renew_email_date` = {}  \
+            WHERE `id` = {}".format(d.isoformat(), d.replace(month=d.month - 1).isoformat(), row["id"]))
     def find_by_email(self, email):
         return self.db.execute("SELECT * from member where email = '{}'".format(email))
 
@@ -107,7 +125,6 @@ class MemberDb:
         self.setbyDict(r)
         return r
 
-
     @staticmethod
     def isValidEmail(x):
         a = x.split('@')
@@ -118,7 +135,6 @@ class MemberDb:
 
             return False
 
-
     def isValidPhone(self, phone):
         print(phone, file=sys.stdout)
         for c in ['(', ')', '-', '.', ',']:
@@ -126,13 +142,11 @@ class MemberDb:
         print(phone, file=sys.stdout)
         return (len(phone) > 9)
 
-
     def randomString(self, stringLength=16):
         """Generate a random string with the combination of lowercase and uppercase letters """
         # from https://pynative.com/python-generate-random-string/
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(stringLength))
-
 
     def send_email(self, file, fam=""):
         with open(file) as f:
@@ -141,20 +155,51 @@ class MemberDb:
         msg = msg.replace("NAME", self.mem["first_name"])
         msg = msg.replace("USERID", "{:06d}".format(self.mem["id"]))
         msg = msg.replace("EMAIL", self.mem["email"])
-        msg = msg.replace("CODE", self.mem["val_code"])
-        msg = msg.replace("RENEW", self.mem["renew_code"])
+        msg = msg.replace("CODE", self.mem["email_code"])
+        if "renew_code" in self.mem:
+            msg = msg.replace("RENEW", self.mem["renew_code"])
         msg = msg.replace("FAMILY", fam)
 
         # TODO change this back
         # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
         Email().send_mail("sam.amundson@gmailcom", "Woodley Park Archers email verification", msg)
 
-
     def send_renewal(self, row):
         row["renew_code"] = self.randomString()
         self.mem = row
         self.send_email("email_templates/renew_code_email.html")
 
-
     def setbyDict(self, mydict):
         self.mem = mydict
+
+    def set_member_pay_code_status(self, code, status):
+        if self.mem['fam'] is not None:
+            s = f"UPDATE member SET `pay_code` = '{code}', `status` = {status} WHERE `fam` = {self.mem['fam']}"
+        else:
+            s = f"UPDATE member SET `pay_code` = '{code}', `status` = 'payment' WHERE `id` = {self.mem['id']}"
+        self.db.execute(s)
+
+    def square_payment(self, square_result):
+        members = ""
+        print(self.mem['fam'])
+        if self.mem['fam'] != "null":
+            rows = self.find_by_fam(self.mem['fam'])
+            for row in rows:
+                members += f"{row['id']}"
+        else:
+            members += f"{self.mem['id']}"
+
+        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members)
+        if pay_status == "OPEN":
+            self.set_member_pay_code_status(self.mem['pay_code'], 'payment pending')
+        elif pay_status == 'COMPLETED':
+            self.set_member_pay_code_status('NULL', 'member')
+            if self.mem['fam'] != "null":
+                rows = self.find_by_fam(self.mem['fam'])
+                for row in rows:
+                    self.expire_update(row)
+            else:
+                self.expire_update(self.mem)
+        elif pay_status == "CANCELED":
+            self.set_member_pay_code_status(self.mem['pay_code'], 'payment canceled')
+

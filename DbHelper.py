@@ -9,9 +9,8 @@ class DbHelper:
     def connect(self):
         # Open database connection
 
-        # self.db = pymysql.connect(self.cfg["server"], self.cfg["user"], self.cfg["password"], self.cfg["db"])
+        self.db = pymysql.connect(self.cfg["server"], self.cfg["user"], self.cfg["password"], self.cfg["db"])
 
-        self.db = pymysql.connect("192.168.1.71", "sam", "oiL4OmmozMsO3LpVxQl6", "mem2")
 
         # prepare a cursor object using cursor() method
         self.cursor = self.db.cursor(pymysql.cursors.DictCursor)

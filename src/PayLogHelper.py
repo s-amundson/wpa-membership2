@@ -7,16 +7,18 @@ class PayLogHelper:
     def add_square_payment(self, square_result, members):
         checkout = square_result["checkout"]
         order = checkout['order']
-        cd = dateutil.parser.parse(checkout['created_at']).strftime('%Y-%m-%d %H:%M:%S')
-        od = dateutil.parser.parse(order['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+        s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{order['id']}'"
+        if len(self.db.execute(s)) == 0:
+            cd = dateutil.parser.parse(checkout['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+            od = dateutil.parser.parse(order['created_at']).strftime('%Y-%m-%d %H:%M:%S')
 
-        s = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
-            "order_id, order_create_time, location_id, state, total_money) VALUES ( "
+            s = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
+                "order_id, order_create_time, location_id, state, total_money) VALUES ( "
 
-        s += f"'{members}', '{cd }', '{checkout['id']}', '{order['id']}', " \
-             f"'{od}', '{order['location_id']}', '{order['state']}', " \
-             f"'{order['total_money']['amount']}')"
-        self.db.execute(s)
+            s += f"'{members}', '{cd}', '{checkout['id']}', '{order['id']}', " \
+                 f"'{od}', '{order['location_id']}', '{order['state']}', " \
+                 f"'{order['total_money']['amount']}')"
+            self.db.execute(s)
         return(order['state'])
     def update_square_payment(self, args):
         #https: // wp3.amundsonca.com /?checkoutId = CBASEO3ShiHBS717uF3w9fMkzmE & page_id = 9 & referenceId = reference_id & transactionId = DotaTob7qJzQe1Ndj5jsUnmt3d4F

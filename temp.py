@@ -74,8 +74,5 @@
 # import hashlib
 # hash_obj = hashlib.md5(b'fTNNi2gLPqPQq4ZO3GQZ')
 # print(hash_obj.hexdigest())
-import dateutil.parser
-from datetime import datetime
-
-d = dateutil.parser.parse("2020-02-16T16:19:38.685Z")
-print(d.isoformat())
+members = "12, 13, "
+print(members.strip(", "))

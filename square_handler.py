@@ -61,9 +61,9 @@ class square_handler:
 
         location_id = self.cfg["location_id"]
         body = {}
-        body['idempotency_key'] = str(mem['code'])
+        body['idempotency_key'] = str(mem['pay_code'])
         body['order'] = {}
-        body['order']['reference_id'] = 'reference_id'
+        body['order']['reference_id'] = str(mem['pay_code'])
         body['order']['line_items'] = []
 
         body['order']['line_items'].append({})
@@ -73,6 +73,7 @@ class square_handler:
         body['order']['line_items'][0]['base_price_money']['amount'] = price * 100
         body['order']['line_items'][0]['base_price_money']['currency'] = 'USD'
 
+        body['pre_populate_buyer_email'] = mem['email']
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
         body['redirect_url'] = 'https://wp3.amundsonca.com/?page_id=9'
@@ -80,8 +81,6 @@ class square_handler:
         result = self.checkout_api.create_checkout(location_id, body)
 
         if result.is_success():
-            print(result.body)
-
             # mem.square_payment(self, result)
             return result.body
         elif result.is_error():
@@ -125,4 +124,36 @@ class square_handler:
 # body['pre_populate_shipping_address']['last_name'] = 'Doe'
 # body['redirect_url'] = 'https://wp3.amundsonca.com/?page_id=9'
 
-
+#
+# {'checkout': {
+#     'ask_for_shipping_address': False,
+#     'checkout_page_url': 'https://connect.squareupsandbox.com/v2/checkout?c=CBASEFoazxRYW5-AUqUSuzmnxnE&l=SVM1F73THA9W6',
+#     'created_at': '2020-02-19T01:29:22Z',
+#     'id': 'CBASEFoazxRYW5-AUqUSuzmnxnE',
+#     'merchant_support_email': 'wpa4membership@gmail.com',
+#     'order': {'created_at': '2020-02-19T01:29:22.163Z',
+#               'id': 'VVDIxW91FUY8U4nzgTb1uin9Mc4F',
+#               'line_items': [{
+#                   'base_price_money': {'amount': 2000, 'currency': 'USD'},
+#                   'gross_sales_money': {'amount': 2000, 'currency': 'USD'},
+#                   'name': 'standard Membership',
+#                   'quantity': '1',
+#                   'total_discount_money': {'amount': 0, 'currency': 'USD'},
+#                   'total_money': {'amount': 2000, 'currency': 'USD'},
+#                   'total_tax_money': {'amount': 0, 'currency': 'USD'},
+#                   'uid': 'fzdvzfDDHsglnujxtbZlbB',
+#                   'variation_total_price_money': {'amount': 2000, 'currency': 'USD'}}],
+#               'location_id': 'SVM1F73THA9W6',
+#               'net_amounts': {
+#                   'discount_money': {
+#                       'amount': 0,
+#                       'currency': 'USD'
+#                   },
+#                   'service_charge_money': {
+#                       'amount': 0,
+#                       'currency': 'USD'
+#                   },
+#                   'tax_money': {'amount': 0, 'currency': 'USD'},
+#                   'tip_money': {'amount': 0, 'currency': 'USD'},
+#                   'total_money': {'amount': 2000, 'currency': 'USD'}
+#               # }, 'reference_id': 'reference_id', 'source': {'name': 'Sandbox for sq0idp-HSmCO3CJMh-XD_fhwK6EFg'}, 'state': 'OPEN', 'total_discount_money': {'amount': 0, 'currency': 'USD'}, 'total_money': {'amount': 2000, 'currency': 'USD'}, 'total_service_charge_money': {'amount': 0, 'currency': 'USD'}, 'total_tax_money': {'amount': 0, 'currency': 'USD'}, 'total_tip_money': {'amount': 0, 'currency': 'USD'}, 'updated_at': '2020-02-19T01:29:22.163Z', 'version': 1}, 'redirect_url': 'https://wp3.amundsonca.com/?page_id=9'}}

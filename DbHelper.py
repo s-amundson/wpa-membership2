@@ -6,6 +6,11 @@ class DbHelper:
     def __init__(self):
         self.cfg = Config().get_database()
         self.connect()
+
+        # code = None
+        # status = 'member'
+        # s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '1'"
+        # self.execute(s, (code, status))
     def connect(self):
         # Open database connection
 
@@ -16,13 +21,16 @@ class DbHelper:
         self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
 
 
-    def execute(self, statement):
+    def execute(self, statement, args=None):
         try:
-            print("DbHelper " + statement)
-            self.cursor.execute(statement)
+            print(f"DbHelper {statement}, args={args}")
+            if args is None:
+                self.cursor.execute(statement)
+            else:
+                self.cursor.execute(statement, args)
             self.db.commit()
             rows = self.cursor.fetchall()
-            print(rows)
+            print(f"DBHelper {rows}")
         except pymysql.err.OperationalError as e:
             print("DbHelper Error: {}".format(e))
             if e[0] == 2006:

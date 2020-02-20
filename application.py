@@ -95,15 +95,24 @@ def email_verify():
     else:  #method is POST
         mdb = MemberDb(db)
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
+
+        # If email is verified, then process payment.
         if mem is not None:
-            # TODO do payment with ik as idempotency_key
-            print(f"payment level = {mem['level']}, ik = {mem['email_code']}, benefactor = {mem['benefactor']}")
+            if mem['status'] != 'member':
+                return apology("payment already processed")
             p = square.purchase_membership(mem)
 
             if p is not None:
                 mdb.square_payment(p)
+                s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
+                    f"&referenceId={p['checkout']['order']['reference_id']}" \
+                    f"&transactionId={p['checkout']['order']['id']}"
+                # "http://127.0.0.1:5000/pay_success?checkoutId=CBASEN-d-mmaXmYf838jRHGx_FU" \
+                # "&page_id=9&referenceId=60f5c3ae-9048-49ad-b767-c86de8272c2e" \
+                # "&transactionId=VxF6Bm05PNMvpGM6q7paNnsbTh4F"
+                print(s)
                 return redirect(p["checkout"]['checkout_page_url'])
-                #render_template("email_verified.html")
+
             else:
                 return apology("payment problem")  # or email already validated
         else:
@@ -116,17 +125,21 @@ def pay_success():
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
     # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
+
     l = PayLogHelper(db).update_square_payment(request.args)
     l = l['members'].split(',')
     mdb = MemberDb(db)
     mem = mdb.find_by_id(l[0])
+    mdb.set_member_pay_code_status(None, "member")
     if (mem["fam"] is None):
         fam = ""
+        mdb.expire_update(mem)
     else:
         rows = mdb.find_by_fam(mem["fam"])
         fam = ""
         for row in rows:
             fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+            mdb.expire_update(mem)
     mdb.send_email('email_templates/join.html', fam)
 
     return render_template("pay_success.html")
@@ -167,6 +180,7 @@ def register():
                 return redirect("/")
             else:
                 print("current_reg = {}".format(current_reg.get_registration()))
+                app.logger.info(f"current_reg = {current_reg.get_registration()}")
                 if current_reg.get_registration() is None:
                     mem.send_email("email_templates/verify.html")
                 reg["first_name"] = ""

@@ -87,33 +87,23 @@ class MemberDb:
         if len(rows) > 0:
             self.setbyDict(rows[0])
             #  get uuid for payment with square
-            #self.mem['pay_code'] = "0a832c41-ab4a-4d39-b7c8-d61bb10e916d"
-            if self.mem['pay_code'] == "NULL":
+            print(f"MemberDb.check_email pay_code = {self.mem['pay_code']}")
+            if self.mem['pay_code'] is None:
                 self.mem['pay_code'] = uuid.uuid4()
-            self.set_member_pay_code_status(self.mem['pay_code'], 'payment')
+            # elif self.mem['pay_code'] == "None":
+            #     self.mem['pay_code'] = uuid.uuid4()
+                self.set_member_pay_code_status(self.mem['pay_code'], 'start payment') # TODO why this happing twice
             return self.mem
         else:
             return None
 
-    # def check_email_code(self, row, code):
-    #     print(row["code"], file=sys.stdout)
-    #     if (row["code"] is not None and row["code"] == code):
-    #         # Need to get payment before updating expiration.
-    #         # if (row["exp_date"] == row["reg_date"]):
-    #         #     self.expire_update(row)
-    #         #
-    #         # else:
-    #         #     self.db.execute("UPDATE member SET `code` = NULL WHERE `id` = {}".format(row["id"]))
-    #         return True
-    #     print("check_email_code False", file=sys.stdout)
-    #     return False  # invalid code
     def expire_update(self, row):
         """ Update the expiration date of the row."""
         d = row["exp_date"]
         d = d.replace(year=d.year + 1)
-        # consider removing the renew date and running solely off of expire date.
-        self.db.execute("UPDATE member SET `exp_date` = '{}', `code` = NULL, `renew_email_date` = {}  \
-            WHERE `id` = {}".format(d.isoformat(), d.replace(month=d.month - 1).isoformat(), row["id"]))
+        s = f"UPDATE member SET `exp_date` = '{d.isoformat()}', `email_code` = %s, `pay_code` = %s  WHERE `id` = '{row['id']}'"
+        self.db.execute(s, (None, None))
+
     def find_by_email(self, email):
         return self.db.execute("SELECT * from member where email = '{}'".format(email))
 
@@ -136,10 +126,8 @@ class MemberDb:
             return False
 
     def isValidPhone(self, phone):
-        print(phone, file=sys.stdout)
         for c in ['(', ')', '-', '.', ',']:
-            phone = phone.strip(c)
-        print(phone, file=sys.stdout)
+            phone = phone.replace(c, '')
         return (len(phone) > 9)
 
     def randomString(self, stringLength=16):
@@ -173,28 +161,31 @@ class MemberDb:
         self.mem = mydict
 
     def set_member_pay_code_status(self, code, status):
-        if self.mem['fam'] is not None:
-            s = f"UPDATE member SET `pay_code` = '{code}', `status` = {status} WHERE `fam` = {self.mem['fam']}"
+        """ WHen email is verified status = start payment. When payment is in process = payment pending.
+        When payment successful member"""
+
+        if self.mem['fam'] is None:
+            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `id` = '{self.mem['id']}'"
         else:
-            s = f"UPDATE member SET `pay_code` = '{code}', `status` = 'payment' WHERE `id` = {self.mem['id']}"
-        self.db.execute(s)
+            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{self.mem['fam']}'"
+        self.db.execute(s, (code, status))
 
     def square_payment(self, square_result):
         members = ""
-        print(self.mem['fam'])
-        if self.mem['fam'] != "null":
+        print(f"MemberDb.square_payment fam = {self.mem['fam']} {self.mem['fam'] is None}")
+        if self.mem['fam'] is not None:
             rows = self.find_by_fam(self.mem['fam'])
             for row in rows:
-                members += f"{row['id']}"
+                members += f"{row['id']}, "
         else:
             members += f"{self.mem['id']}"
 
-        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members)
+        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members.strip(", "))
         if pay_status == "OPEN":
             self.set_member_pay_code_status(self.mem['pay_code'], 'payment pending')
         elif pay_status == 'COMPLETED':
-            self.set_member_pay_code_status('NULL', 'member')
-            if self.mem['fam'] != "null":
+            self.set_member_pay_code_status(None, 'member')
+            if self.mem['fam'] != None:
                 rows = self.find_by_fam(self.mem['fam'])
                 for row in rows:
                     self.expire_update(row)

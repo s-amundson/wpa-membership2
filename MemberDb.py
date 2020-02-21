@@ -61,7 +61,7 @@ class MemberDb:
             family.add_member(self.mem)
 
         else:
-            self.send_email("email_templates/verify.html")
+            self.send_email("email_templates/verify.html", "Email Verification Code")
 
         return self.mem["id"]
 
@@ -89,7 +89,7 @@ class MemberDb:
             #  get uuid for payment with square
             print(f"MemberDb.check_email pay_code = {self.mem['pay_code']}")
             if self.mem['pay_code'] is None:
-                self.mem['pay_code'] = uuid.uuid4()
+                self.mem['pay_code'] = str(uuid.uuid4())
             # elif self.mem['pay_code'] == "None":
             #     self.mem['pay_code'] = uuid.uuid4()
                 self.set_member_pay_code_status(self.mem['pay_code'], 'start payment') # TODO why this happing twice
@@ -130,13 +130,28 @@ class MemberDb:
             phone = phone.replace(c, '')
         return (len(phone) > 9)
 
+    def joad_register(self):  #, session):
+        """ Register a JOAD student and if session is not "None" register them for a joad session"""
+        s = f"SELECT `mem_id` from joad_registration where `mem_id` = {self.mem['id']}"
+        if len(self.db.execute(s)) == 0:
+            s = f"INSERT INTO joad_registration (mem_id) VALUES ({self.mem['id']})"
+            self.db.execute(s)
+            # if session is not "None":
+            #     pass # TODO register student for session and charge
+            # else:
+            #     return True
+        # else:
+        #     return True
+            # if session is "None":
+            #     return False
+
     def randomString(self, stringLength=16):
         """Generate a random string with the combination of lowercase and uppercase letters """
         # from https://pynative.com/python-generate-random-string/
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(stringLength))
 
-    def send_email(self, file, fam=""):
+    def send_email(self, file, subject, fam=""):
         with open(file) as f:
             msg = f.read()
         # TODO insert image into email
@@ -150,12 +165,12 @@ class MemberDb:
 
         # TODO change this back
         # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
-        Email().send_mail("sam.amundson@gmailcom", "Woodley Park Archers email verification", msg)
+        Email().send_mail("sam.amundson@gmailcom", subject, msg)
 
     def send_renewal(self, row):
         row["renew_code"] = self.randomString()
         self.mem = row
-        self.send_email("email_templates/renew_code_email.html")
+        self.send_email("email_templates/renew_code_email.html", "Membership Renewal Notice")
 
     def setbyDict(self, mydict):
         self.mem = mydict
@@ -170,7 +185,7 @@ class MemberDb:
             s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{self.mem['fam']}'"
         self.db.execute(s, (code, status))
 
-    def square_payment(self, square_result):
+    def square_payment(self, square_result, description):
         members = ""
         print(f"MemberDb.square_payment fam = {self.mem['fam']} {self.mem['fam'] is None}")
         if self.mem['fam'] is not None:
@@ -180,7 +195,7 @@ class MemberDb:
         else:
             members += f"{self.mem['id']}"
 
-        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members.strip(", "))
+        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members.strip(", "), description)
         if pay_status == "OPEN":
             self.set_member_pay_code_status(self.mem['pay_code'], 'payment pending')
         elif pay_status == 'COMPLETED':

@@ -1,7 +1,6 @@
-import os
 import sys
-import configparser
-
+import uuid
+from datetime import date
 
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
@@ -16,6 +15,7 @@ from MemberDb import MemberDb
 from FamilyClass import FamilyClass
 from square_handler import square_handler
 from PayLogHelper import PayLogHelper
+from JoadSessions import JoadSessions
 
 # Configure application
 app = Flask(__name__)
@@ -98,18 +98,18 @@ def email_verify():
 
         # If email is verified, then process payment.
         if mem is not None:
-            if mem['status'] != 'member':
+            if mem['status'] == 'member':
                 return apology("payment already processed")
             p = square.purchase_membership(mem)
 
             if p is not None:
-                mdb.square_payment(p)
+                mdb.square_payment(p, "membership")
+
+                # make link for testing purposes
                 s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
                     f"&referenceId={p['checkout']['order']['reference_id']}" \
                     f"&transactionId={p['checkout']['order']['id']}"
-                # "http://127.0.0.1:5000/pay_success?checkoutId=CBASEN-d-mmaXmYf838jRHGx_FU" \
-                # "&page_id=9&referenceId=60f5c3ae-9048-49ad-b767-c86de8272c2e" \
-                # "&transactionId=VxF6Bm05PNMvpGM6q7paNnsbTh4F"
+
                 print(s)
                 return redirect(p["checkout"]['checkout_page_url'])
 
@@ -118,6 +118,32 @@ def email_verify():
         else:
             return apology("Invalid Code")  # or email already validated
 
+@app.route("/joad_registration", methods=["GET", "POST"])
+def joad_registration():
+    if(request.method == "GET"):
+        js = JoadSessions(db).list_open()
+        return render_template("joad_registration.html", rows=js)
+    else:
+        mdb = MemberDb(db)
+        if not mdb.isValidEmail(request.form.get('email')):
+            return apology("invalid email")
+        joad_session = request.form.get('session')
+        rows = mdb.find_by_email(request.form.get('email'))
+        for row in rows:
+            if row["first_name"] == request.form.get('first_name') and row["last_name"] == request.form.get('last_name'):
+                d = row['dob']
+                print(f"application.joad_registration dob = {d} 21yo = {d.replace(year=d.year + 21)}")
+                # check to see if the student is to old (over 20)
+                if d.replace(year=d.year + 21) > date.today(): # student is not to old.
+                    mdb.setbyDict(row)
+                    mdb.joad_register()
+                    if(joad_session is not "None"):
+                        reg = JoadSessions(db).session_registration()
+                    p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                    #purchase_joad_sesion(self, idempotency_key, date, email):
+                    # if mdb.joad_register(js):
+                    #     return render_template("success.html", message="Thank you for registering")  # TODO change this
+        return render_template(("joad_registration.html"))
 
 @app.route("/pay_success", methods=["GET"])
 def pay_success():
@@ -140,9 +166,9 @@ def pay_success():
         for row in rows:
             fam += f"{row['first_name']}'s membership number is {row['id']} \n"
             mdb.expire_update(mem)
-    mdb.send_email('email_templates/join.html', fam)
+    mdb.send_email('email_templates/join.html', "Welcome To Wooldley Park Archers", fam)
 
-    return render_template("pay_success.html")
+    return render_template("success.html", message="Your payment has been received, Thank You.")
 
 
 @app.route("/reg_values", methods=["GET"])
@@ -177,12 +203,14 @@ def register():
             reg["id"] = mem.add(family)
             if(family.fam_id is None):  # not a family registration
                 current_reg.set_registration(None)
+                # if(mem['level'] == "joad"):
+                #     return render_template("joad_add.html")
                 return redirect("/")
             else:
                 print("current_reg = {}".format(current_reg.get_registration()))
                 app.logger.info(f"current_reg = {current_reg.get_registration()}")
                 if current_reg.get_registration() is None:
-                    mem.send_email("email_templates/verify.html")
+                    mem.send_email("email_templates/verify.html", "Email Verification Code")
                 reg["first_name"] = ""
                 reg["last_name"] = ""
                 reg["dob"] = ""

@@ -43,6 +43,34 @@ class square_handler:
     #         for key, value in error.items():
     #             print(f"{key} : {value}")
     #         print("\n")
+    def purchase_joad_sesion(self, idempotency_key, date, email):
+        location_id = self.cfg["location_id"]
+        body = {}
+        body['idempotency_key'] = str(idempotency_key)
+        body['order'] = {}
+        body['order']['reference_id'] = str(idempotency_key)
+        body['order']['line_items'] = []
+
+        body['order']['line_items'].append({})
+        body['order']['line_items'][0]['name'] = f"JOAD Session {date}"
+        body['order']['line_items'][0]['quantity'] = '1'
+        body['order']['line_items'][0]['base_price_money'] = {}
+        body['order']['line_items'][0]['base_price_money']['amount'] = 95 * 100
+        body['order']['line_items'][0]['base_price_money']['currency'] = 'USD'
+
+        body['pre_populate_buyer_email'] = email
+        body['merchant_support_email'] = 'wpa4membership@gmail.com'
+        # TODO change redirect.
+        body['redirect_url'] = 'https://wp3.amundsonca.com/?page_id=9'
+
+        result = self.checkout_api.create_checkout(location_id, body)
+
+        if result.is_success():
+            # mem.square_payment(self, result)
+            return result.body
+        elif result.is_error():
+            print(result.errors)
+        return None
     def purchase_membership(self, mem):
         if mem['benefactor']:
             price = 100

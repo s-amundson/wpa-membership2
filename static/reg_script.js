@@ -1,43 +1,54 @@
 document.getElementById("reg").disabled = true;
-document.getElementById("debugtext").innerHTML = document.form1.benefactor.checked
+//document.getElementById("debugtext").innerHTML = document.form1.benefactor.checked
 //if(document.form1.level.value != "family") {
-document.form2.style.display = "none"
+try {
+    document.form2.style.display = "none"
+}
+catch(err) {}
 //}
 
-function allnumeric(inputtxt) {
-    var numbers = /^[0-9]+$/;
-    if(inputtxt.value.match(numbers)) {
-        return true;
-    }
-    else {
-//                alert('Please input numeric characters only');
-        return false;
-    }
-}
+//function allnumeric(inputtxt) {
+//    var numbers = /^[0-9]+$/;
+//    if(inputtxt.value.match(numbers)) {
+//        return true;
+//    }
+//    else {
+////                alert('Please input numeric characters only');
+//        return false;
+//    }
+//}
 
-function checkValidation() {
+function checkValidation(reg_type) {
+    document.getElementById("debugtext").innerHTML = reg_type;
     let v = true;
     let l = ["first_name", "last_name", "street", "city", "state"];
+    if(reg_type == "joad") {
+        l = ["first_name", "last_name"];
+    }
+
 //    alert("DOB = " + document.form1.dob.value +"\n level " + document.form1.level.value)
     for (var i = 0; i < l.length; i++) {
         if(reg_check(l[i]) == false) {
             v = false;
         }
     }
-    if(allnumeric(document.form1.zip) == false) {
-        v = false;
-    }
+
     if(ValidateEmail(document.form1.email) == false) {
         v = false;
     }
-    if(phone_check(document.form1.phone) == false){
-        v = false;
-    }
-    if(zip_check(document.form1.zip) == false) {
-        v = false;
-    }
-    if(select_check(document.form1.level) == false){
-        v = false;
+    if(reg_type != "joad") {
+//        if(allnumeric(document.form1.zip) == false) {
+//            v = false;
+//        }
+        if(phone_check(document.form1.phone) == false){
+            v = false;
+        }
+        if(zip_check(document.form1.zip) == false) {
+            v = false;
+        }
+        if(select_check(document.form1.level) == false){
+            v = false;
+        }
     }
 
     if(v){
@@ -79,6 +90,7 @@ function select_check(in_select){
         return false;
     }
     else {
+        // TODO add joad reg checkbox to register for a joad session and show or enable here.
         in_select.style = "border: 3px solid Green;";
         return true;
     }

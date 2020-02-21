@@ -7,10 +7,7 @@ class DbHelper:
         self.cfg = Config().get_database()
         self.connect()
 
-        # code = None
-        # status = 'member'
-        # s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '1'"
-        # self.execute(s, (code, status))
+
     def connect(self):
         # Open database connection
 

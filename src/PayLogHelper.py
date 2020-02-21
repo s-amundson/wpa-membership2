@@ -4,7 +4,7 @@ class PayLogHelper:
     def __init__(self, db):
         self.db = db
 
-    def add_square_payment(self, square_result, members):
+    def add_square_payment(self, square_result, members, description):
         checkout = square_result["checkout"]
         order = checkout['order']
         s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{order['id']}'"

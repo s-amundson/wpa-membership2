@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block left %}
+
+{% endblock %}
+
+{% block main %}
+    <form action="/joad_registration" method="post" class="form" name="form1" onsubmit="return checkValidation('joad')">
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name"
+                       type="text" onchange="reg_check('first_name')" id="first_name">
+                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name"
+                       type="text" onchange="reg_check('last_name')" id="last_name">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100" onchange="ValidateEmail(document.form1.email)">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+
+                <select name="session" id="session" class="m-2">
+                    <option value="None" selected >None</option>
+                    {% for row in rows %}
+                        <option value={{row["start_date"]}}>{{row["start_date"]}}</option>
+                    {% endfor %}
+                </select>
+                <label></label>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="custom-control custom-checkbox m-3">
+                <input class="form-control m-2 custom-control-input" name="terms" type="checkbox" id="terms" onchange="checkValidation('joad')">
+                <label class="custom-control-label" for="terms">I agree to the terms and conditions</label>
+            </div>
+        </div>
+
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="reg">Register </button>
+        </div>
+    </form>
+    <div name="debugtext" id="debugtext">
+
+
+
+
+
+<script src="static/reg_script.js"></script>
+
+{% endblock %}
+
+
+<!--onload="register_onload()"-->

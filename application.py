@@ -121,7 +121,8 @@ def email_verify():
 @app.route("/joad_registration", methods=["GET", "POST"])
 def joad_registration():
     if(request.method == "GET"):
-        js = JoadSessions(db).list_open()
+        jsdb = JoadSessions(db)
+        js = jsdb.list_open()
         return render_template("joad_registration.html", rows=js)
     else:
         mdb = MemberDb(db)
@@ -138,11 +139,20 @@ def joad_registration():
                     mdb.setbyDict(row)
                     mdb.joad_register()
                     if(joad_session is not "None"):
-                        reg = JoadSessions(db).session_registration()
-                    p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
-                    #purchase_joad_sesion(self, idempotency_key, date, email):
-                    # if mdb.joad_register(js):
-                    #     return render_template("success.html", message="Thank you for registering")  # TODO change this
+                        reg = JoadSessions(db).session_registration(row['id'])
+                        p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                        PayLogHelper(db).add_square_payment(p, row['id'], f"joad session {joad_session}")
+
+                        # make link for testing purposes
+                        s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
+                            f"&referenceId={p['checkout']['order']['reference_id']}" \
+                            f"&transactionId={p['checkout']['order']['id']}"
+
+                        print(s)
+                        return redirect(p["checkout"]['checkout_page_url'])
+                        #purchase_joad_sesion(self, idempotency_key, date, email):
+                        # if mdb.joad_register(js):
+                        #     return render_template("success.html", message="Thank you for registering")  # TODO change this
         return render_template(("joad_registration.html"))
 
 @app.route("/pay_success", methods=["GET"])
@@ -153,20 +163,23 @@ def pay_success():
 
 
     l = PayLogHelper(db).update_square_payment(request.args)
-    l = l['members'].split(',')
-    mdb = MemberDb(db)
-    mem = mdb.find_by_id(l[0])
-    mdb.set_member_pay_code_status(None, "member")
-    if (mem["fam"] is None):
-        fam = ""
-        mdb.expire_update(mem)
-    else:
-        rows = mdb.find_by_fam(mem["fam"])
-        fam = ""
-        for row in rows:
-            fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+    if l['description'] == "membership":
+        l = l['members'].split(',')
+        mdb = MemberDb(db)
+        mem = mdb.find_by_id(l[0])
+        mdb.set_member_pay_code_status(None, "member")
+        if (mem["fam"] is None):
+            fam = ""
             mdb.expire_update(mem)
-    mdb.send_email('email_templates/join.html', "Welcome To Wooldley Park Archers", fam)
+        else:
+            rows = mdb.find_by_fam(mem["fam"])
+            fam = ""
+            for row in rows:
+                fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+                mdb.expire_update(mem)
+        mdb.send_email('email_templates/join.html', "Welcome To Wooldley Park Archers", fam)
+    elif l['description'][0:len("joad session")] == "joad session":
+        JoadSessions(db).update_registration(l["members"], "paid", None)
 
     return render_template("success.html", message="Your payment has been received, Thank You.")
 

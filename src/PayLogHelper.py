@@ -13,11 +13,11 @@ class PayLogHelper:
             od = dateutil.parser.parse(order['created_at']).strftime('%Y-%m-%d %H:%M:%S')
 
             s = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
-                "order_id, order_create_time, location_id, state, total_money) VALUES ( "
+                "order_id, order_create_time, location_id, state, total_money, description) VALUES ( "
 
             s += f"'{members}', '{cd}', '{checkout['id']}', '{order['id']}', " \
                  f"'{od}', '{order['location_id']}', '{order['state']}', " \
-                 f"'{order['total_money']['amount']}')"
+                 f"'{order['total_money']['amount']}', '{description}')"
             self.db.execute(s)
         return(order['state'])
     def update_square_payment(self, args):
@@ -26,7 +26,7 @@ class PayLogHelper:
         s = f"UPDATE payment_log SET `state` = 'COMPLETED' WHERE `checkout_id` = '{args['checkoutId']}' and " \
             f"order_id = '{args['transactionId']}'"
         self.db.execute(s)
-        s = f"SELECT members from payment_log WHERE `checkout_id` = '{args['checkoutId']}' and " \
+        s = f"SELECT * from payment_log WHERE `checkout_id` = '{args['checkoutId']}' and " \
             f"order_id = '{args['transactionId']}'"
         return self.db.execute(s)[0]
 

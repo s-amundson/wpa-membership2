@@ -1,8 +1,7 @@
 import sys
-import uuid
 from datetime import date
 
-from flask import Flask, flash, jsonify, redirect, render_template, request, session
+from flask import Flask, jsonify, redirect, render_template, request
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
@@ -42,7 +41,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-app.logger.error(f"sys.prefix {sys.prefix}")
+#app.logger.error(f"sys.prefix {sys.prefix}")
 
 # Configure to use database
 dbfile = "data.db"
@@ -135,24 +134,25 @@ def joad_registration():
                 d = row['dob']
                 print(f"application.joad_registration dob = {d} 21yo = {d.replace(year=d.year + 21)}")
                 # check to see if the student is to old (over 20)
-                if d.replace(year=d.year + 21) > date.today(): # student is not to old.
-                    mdb.setbyDict(row)
-                    mdb.joad_register()
-                    if(joad_session is not "None"):
-                        reg = JoadSessions(db).session_registration(row['id'])
-                        p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
-                        PayLogHelper(db).add_square_payment(p, row['id'], f"joad session {joad_session}")
+                if d.replace(year=d.year + 21) < date.today(): # student is to old.
+                    return apology("Must be younger then 21 to register")
+                mdb.setbyDict(row)
+                mdb.joad_register()
+                if(joad_session is not "None"):
+                    reg = JoadSessions(db).session_registration(row['id'])
+                    p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                    PayLogHelper(db).add_square_payment(p, row['id'], f"joad session {joad_session}")
 
-                        # make link for testing purposes
-                        s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
-                            f"&referenceId={p['checkout']['order']['reference_id']}" \
-                            f"&transactionId={p['checkout']['order']['id']}"
+                    # make link for testing purposes
+                    s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
+                        f"&referenceId={p['checkout']['order']['reference_id']}" \
+                        f"&transactionId={p['checkout']['order']['id']}"
 
-                        print(s)
-                        return redirect(p["checkout"]['checkout_page_url'])
-                        #purchase_joad_sesion(self, idempotency_key, date, email):
-                        # if mdb.joad_register(js):
-                        #     return render_template("success.html", message="Thank you for registering")  # TODO change this
+                    print(s)
+                    return redirect(p["checkout"]['checkout_page_url'])
+                    #purchase_joad_sesion(self, idempotency_key, date, email):
+                    # if mdb.joad_register(js):
+                    #     return render_template("success.html", message="Thank you for registering")  # TODO change this
         return render_template(("joad_registration.html"))
 
 @app.route("/pay_success", methods=["GET"])

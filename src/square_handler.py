@@ -61,7 +61,7 @@ class square_handler:
         body['pre_populate_buyer_email'] = email
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
-        body['redirect_url'] = 'https://wp3.amundsonca.com/?page_id=9'
+        body['redirect_url'] = 'http://127.0.0.1:5000/pay_success'
 
         result = self.checkout_api.create_checkout(location_id, body)
 
@@ -104,7 +104,7 @@ class square_handler:
         body['pre_populate_buyer_email'] = mem['email']
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
-        body['redirect_url'] = 'https://wp3.amundsonca.com/?page_id=9'
+        body['redirect_url'] = 'http://127.0.0.1:5000/pay_success'
 
         result = self.checkout_api.create_checkout(location_id, body)
 

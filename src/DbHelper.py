@@ -18,7 +18,8 @@ class DbHelper:
         self.cursor = self.db.cursor(pymysql.cursors.DictCursor)
 
 
-    def execute(self, statement, args=None):
+    def execute(self, statement, args=None):  # to pass None as args use (None,)
+        rows = []
         try:
             print(f"DbHelper {statement}, args={args}")
             if args is None:
@@ -35,8 +36,8 @@ class DbHelper:
                     self.connect()
                 except:
                     raise e
-        #     self.db.rollback()
-        #     rows = None
+        except pymysql.err.ProgrammingError as e:
+            print("DbHelper Error: {}".format(e))
         return rows
 
 

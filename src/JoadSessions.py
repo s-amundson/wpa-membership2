@@ -17,8 +17,8 @@ class JoadSessions:
             row = self.db.execute(select)[0]
         return row
     def update_registration(self, mem_id, status, pay_code):
-        s = f"UPDATE joad_session_registration SET `pay_status` = '{status}', `pay_code` = %s"
-        self.db.execute(s, pay_code)
+        s = f"UPDATE joad_session_registration SET `pay_status` = '{status}', `pay_code` = %s WHERE `mem_id` = {mem_id}"
+        self.db.execute(s, args=(pay_code,))
 
   # `id` INT NOT NULL AUTO_INCREMENT,
   # `mem_id` int(11) NOT NULL,

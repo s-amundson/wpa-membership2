@@ -1,4 +1,5 @@
 import sys
+import os
 import string
 import random
 from Email import Email
@@ -11,6 +12,9 @@ class MemberDb:
         self.db = db
         self.mem = {}
         self.email_sent = False
+        d = os.path.dirname(os.path.realpath(__file__))
+        self.project_directory = os.path.dirname(d)
+
 
     def add(self, family):
 
@@ -61,7 +65,9 @@ class MemberDb:
             family.add_member(self.mem)
 
         else:
-            self.send_email("email_templates/verify.html", "Email Verification Code")
+
+            path = os.path.join(self.project_directory, "email_templates", "verify.html")
+            self.send_email(path, "Email Verification Code")
 
         return self.mem["id"]
 
@@ -92,7 +98,7 @@ class MemberDb:
                 self.mem['pay_code'] = str(uuid.uuid4())
             # elif self.mem['pay_code'] == "None":
             #     self.mem['pay_code'] = uuid.uuid4()
-                self.set_member_pay_code_status(self.mem['pay_code'], 'start payment') # TODO why this happing twice
+                self.set_member_pay_code_status(self.mem['pay_code'], 'start payment')
             return self.mem
         else:
             return None
@@ -136,14 +142,7 @@ class MemberDb:
         if len(self.db.execute(s)) == 0:
             s = f"INSERT INTO joad_registration (mem_id) VALUES ({self.mem['id']})"
             self.db.execute(s)
-            # if session is not "None":
-            #     pass # TODO register student for session and charge
-            # else:
-            #     return True
-        # else:
-        #     return True
-            # if session is "None":
-            #     return False
+
 
     def randomString(self, stringLength=16):
         """Generate a random string with the combination of lowercase and uppercase letters """
@@ -170,7 +169,7 @@ class MemberDb:
     def send_renewal(self, row):
         row["renew_code"] = self.randomString()
         self.mem = row
-        self.send_email("email_templates/renew_code_email.html", "Membership Renewal Notice")
+        self.send_email("../email_templates/renew_code_email.html", "Membership Renewal Notice")
 
     def setbyDict(self, mydict):
         self.mem = mydict

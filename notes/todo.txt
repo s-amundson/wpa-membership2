@@ -1,7 +1,12 @@
 ToDo
+integrate with wordpress perhaps sub-folder
+periodic checks
+renewal
+joad registration on membership registration with a checkbox
+
 
 
 
 Wish Lists:
-    JOAD registration
+    cart shopping
     JOAD attendance

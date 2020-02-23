@@ -5,6 +5,8 @@ class PayLogHelper:
         self.db = db
 
     def add_square_payment(self, square_result, members, description):
+        """Adds a record for a square payment if not already present. Returns the state of the payment.
+        This is used to prevent double payment. """
         checkout = square_result["checkout"]
         order = checkout['order']
         s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{order['id']}'"
@@ -20,9 +22,9 @@ class PayLogHelper:
                  f"'{order['total_money']['amount']}', '{description}')"
             self.db.execute(s)
         return(order['state'])
-    def update_square_payment(self, args):
-        #https: // wp3.amundsonca.com /?checkoutId = CBASEO3ShiHBS717uF3w9fMkzmE & page_id = 9 & referenceId = reference_id & transactionId = DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
+    def update_square_payment(self, args):
+        """Updates a record in the database"""
         s = f"UPDATE payment_log SET `state` = 'COMPLETED' WHERE `checkout_id` = '{args['checkoutId']}' and " \
             f"order_id = '{args['transactionId']}'"
         self.db.execute(s)

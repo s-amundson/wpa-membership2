@@ -74,5 +74,8 @@
 # import hashlib
 # hash_obj = hashlib.md5(b'fTNNi2gLPqPQq4ZO3GQZ')
 # print(hash_obj.hexdigest())
-members = "12, 13, "
-print(members.strip(", "))
+import os
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+d = os.path.dirname(dir_path)
+print(os.path.join(d, "email_templates", "join.html"))

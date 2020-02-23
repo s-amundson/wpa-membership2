@@ -2,28 +2,26 @@
 
 #wid=`xdotool search --name "Membership Project: Register"`
 xdotool windowactivate 50331651
-xdotool type "Christopher"
+xdotool type "Ellen"
 xdotool key Tab
-xdotool type "Scoles"
+xdotool type "Riviera"
 xdotool key Tab
-xdotool type "3388"
+xdotool type "2125"
 xdotool key space
-xdotool type "Still"
+xdotool type "Mayo"
 xdotool key space
-xdotool type "Pastures"
-xdotool key space
-xdotool type "Drive"
+xdotool type "Street"
 xdotool key space
 xdotool key Tab
-xdotool type "North Sumter"
+xdotool type "Richmond"
 xdotool key Tab
-xdotool type "SC"
+xdotool type "KY"
 xdotool key Tab
-xdotool type "29150"
+xdotool type "40475"
 xdotool key Tab
-xdotool type "ChristopherPScoles@rhyta.com"
+xdotool type "EllenJRiviera@einrot.com"
 xdotool key Tab
-xdotool type "803-433-8031"
+xdotool type "859-622-4597"
 xdotool key Tab
-xdotool type "03151973"
+xdotool type "05201966"
 xdotool key Tab

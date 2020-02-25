@@ -157,7 +157,8 @@ class MemberDb:
         msg = msg.replace("NAME", self.mem["first_name"])
         msg = msg.replace("USERID", "{:06d}".format(self.mem["id"]))
         msg = msg.replace("EMAIL", self.mem["email"])
-        msg = msg.replace("CODE", self.mem["email_code"])
+        if self.mem["email_code"] is not None:
+            msg = msg.replace("CODE", self.mem["email_code"])
         if "renew_code" in self.mem:
             msg = msg.replace("RENEW", self.mem["renew_code"])
         msg = msg.replace("FAMILY", fam)
@@ -169,7 +170,8 @@ class MemberDb:
     def send_renewal(self, row):
         row["renew_code"] = self.randomString()
         self.mem = row
-        self.send_email("../email_templates/renew_code_email.html", "Membership Renewal Notice")
+        path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
+        self.send_email(path, "Membership Renewal Notice")
 
     def setbyDict(self, mydict):
         self.mem = mydict

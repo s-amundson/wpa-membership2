@@ -1,7 +1,9 @@
-document.getElementById("renew").disabled = true;
-document.getElementById("renew2").disabled = true;
+//document.getElementById("renew").disabled = true;
+//document.getElementById("renew2").disabled = true;
 
-
+function checkValidation(form) {
+    // TODO get form elemets and check
+}
 function reg_check(input) {
     let i = document.getElementById(input);
     if(i.value == "") {

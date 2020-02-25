@@ -258,11 +258,11 @@ def renew():
 def renew_code():
     """ send an email to the member in the database with a renewal code if that email exists.
         If valid email address is not in database do nothing."""
-    mem = MemberDb(db)
-    if (mem.isValidEmail(request.form.get('email2'))):
-        rows = mem.find_by_email(request.form.get('email2'))
+    mdb = MemberDb(db)
+    if (mdb.isValidEmail(request.form.get('email2'))):
+        rows = mdb.find_by_email(request.form.get('email2'))
         if (len(rows) > 0):
-            mem.send_renewal(rows[0])
+            mdb.send_renewal(rows[0])
         return redirect("/")
     else:
         return apology("Invalid email")

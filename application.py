@@ -8,6 +8,7 @@ from werkzeug.exceptions import default_exceptions, HTTPException, InternalServe
 # from werkzeug.security import check_password_hash, generate_password_hash
 from DbHelper import DbHelper
 from CurrentRegistration import CurrentRegistration
+from PinShoot import PinShoot
 
 from helpers import apology, login_required
 from MemberDb import MemberDb
@@ -184,6 +185,21 @@ def pay_success():
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
 
+@app.route("/pin_shoot", methods=["GET", "POST"])
+def pin_shoot():
+    if(request.method == "GET"):
+        return render_template("pin_shoot.html")
+    else:
+        ps = PinShoot(db)
+        psd = ps.get_dict()
+        for k,v in psd.items():
+            psd[k] = request.form.get(k)
+
+        psd["stars"] = ps.calculate_pins(psd['category'], psd['bow'], psd['target'], psd['distance'], psd['score'])
+        ps.set_dict(psd)
+        ps.record_shoot()
+        return apology(f"Stars = {psd['stars']}", 200)
+
 @app.route("/reg_values", methods=["GET"])
 def reg_values():
     return jsonify(current_reg.get_registration())
@@ -266,6 +282,7 @@ def renew_code():
         return redirect("/")
     else:
         return apology("Invalid email")
+
 @app.route("/renew_id", methods=["GET"])
 def renew_id():
     n = request.args["id"]

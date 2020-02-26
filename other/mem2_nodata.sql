@@ -90,7 +90,7 @@ CREATE TABLE `pin_shoot` (
   `shoot_date` date DEFAULT NULL,
   `distance` int(11) DEFAULT NULL,
   `target` int(11) DEFAULT NULL,
-  `star_achievement` int(11) DEFAULT NULL,
+  `stars` int(11) DEFAULT NULL,
   `wpa_membership_number` int(11) DEFAULT NULL,
   `score` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)

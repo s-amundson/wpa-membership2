@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block left %}
+    <div name="debugtext" id="debugtext">
+
+    </div>
+{% endblock %}
+
+{% block main %}
+    <form action="/pin_shoot" method="post" class="form" name="form1" onsubmit="return checkValidation()">
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name"
+                       type="text" onchange="reg_check('first_name')" id="first_name">
+                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name"
+                       type="text" onchange="reg_check('last_name')" id="last_name">
+            </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    <input autocomplete="off" class="form-control m-2" name="club" placeholder="Club"
+                           type="text" onchange="reg_check('club')" id="street" size="45" >
+                    <input autocomplete="off" class="form-control m-2" name="shoot_date" placeholder="Shoot Date"
+                           type="date" id="shoot_date" onchange="reg_check('shoot_date')">
+                </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    <select name="category" id="category" class="m-2" onchange="select_check(document.form1.category)">
+                        <option value="joad_indoor" selected>JOAD Indoor</option>
+                        <option value="joad_outdoor">JOAD Outdoor</option>
+<!--                        <option value="adult_indoor">Adult Indoor</option>-->
+<!--                        <option value="adult_outdoor">Adult Outdoor</option>-->
+                    </select>
+
+                    <select name="bow" id="bow" class="m-2" onchange="select_check(document.form1.bow)">
+                        <option value="barebow" selected>Barebow/Basic Compound/Traditional</option>
+                        <option value="olympic">Olympic Recurve</option>
+                        <option value="compound">Compound</option>
+                    </select>
+                </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <select name="distance" id="distance" class="m-2" onchange="select_check(document.form1.distance)">
+                    <option value="60" selected>60 Centimeter</option>
+                    <option value="40">40 Centimeter</option>
+                </select>
+
+                <select name="target" id="target" class="m-2" onchange="select_check(document.form1.target)">
+                    <option value="9" selected>9 Meter</option>
+                    <option value="18">18 Meter</option>
+                </select>
+
+                <select name="stars" id="stars" class="m-2" onchange="select_check(document.form1.stars)">
+                    <option value=0 selected disabled>Pins Earned</option>
+                    <option value=1>1</option>
+                    <option value=2>2</option>
+                    <option value=3>3</option>
+                    <option value=4>4</option>
+                    <option value=5>5</option>
+                    <option value=6>6</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="wpa_membership_number" placeholder="Membership Number"
+                       type="text"  id="wpa_membership_number" maxlength="6" onchange="reg_check('wpa_membership_number')">
+                <input autocomplete="off"  class="form-control m-2" name="score" placeholder="Score" type="text"
+                       id="score" size="10" onchange="zip_check(document.form1.score)">
+            </div>
+        </div>
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="submit">Submit </button>
+        </div>
+    </form>
+
+<!--<script src="static/reg_script.js"></script>-->
+
+{% endblock %}

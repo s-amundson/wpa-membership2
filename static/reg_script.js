@@ -120,8 +120,18 @@ function zip_check(in_zip) {
 
 $.get('/reg_values', function(data) {
         if(data != null){
+            let dob = new Date(data["dob"])
+            document.getElementById("debugtext").innerHTML = dob.toISOString().substring(0,10);
             let l = ["first_name", "last_name", "street", "city", "state", "zip", "email", "phone", "dob", "level", "benefactor"];
                 for (var i = 0; i < l.length; i++) {
+                    if(data[l[i]] == "benefactor"){
+//                        document.getElementById("debugtext").innerHTML = document.form1.benefactor.value
+                        document.getElementById("benefactor").checked = document.form1.benefactor.value
+                    }
+                    if(data[l[i]] == "dob") {
+//                        document.getElementById("debugtext").innerHTML = dob.toISOString().substring(0,10);
+                        document.getElementById("dob").value = dob.toISOString().substring(0,10);
+                    }
                     if(l[i] == "level") {
                         if(data[l[i]] == "family"){
                             document.getElementById("terms").checked = true;
@@ -136,9 +146,8 @@ $.get('/reg_values', function(data) {
                         }
 
                     }
-                    if(data[l[i]] == "benefactor"){
-                        document.getElementById("debugtext").innerHTML = document.form1.benefactor.value
-                    }
+
+                    // TODO add for DOB
                     document.getElementById(l[i]).value = data[l[i]];
 
                 }

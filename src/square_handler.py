@@ -6,7 +6,10 @@ class square_handler:
 
     def __init__(self):
         # Get config settings
-        self.cfg = Config().get_square()
+        c = Config()
+        self.cfg = c.get_square()
+        self.site = c.get_site()
+
 
         # Create an instance of the API Client
         # and initialize it with the credentials
@@ -61,7 +64,7 @@ class square_handler:
         body['pre_populate_buyer_email'] = email
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
-        body['redirect_url'] = 'http://127.0.0.1:5000/pay_success'
+        body['redirect_url'] = f'{self.site}/pay_success'
 
         result = self.checkout_api.create_checkout(location_id, body)
 
@@ -104,7 +107,7 @@ class square_handler:
         body['pre_populate_buyer_email'] = mem['email']
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
-        body['redirect_url'] = 'http://127.0.0.1:5000/pay_success'
+        body['redirect_url'] = f'{self.site}/pay_success'
 
         result = self.checkout_api.create_checkout(location_id, body)
 

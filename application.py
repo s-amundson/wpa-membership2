@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import date
 
@@ -52,6 +53,7 @@ current_reg = CurrentRegistration()
 family = FamilyClass(dbfile)
 
 square = square_handler()
+project_directory = os.path.dirname(os.path.realpath(__file__))
 
 @app.route("/")
 # @login_required
@@ -177,7 +179,8 @@ def pay_success():
             for row in rows:
                 fam += f"{row['first_name']}'s membership number is {row['id']} \n"
                 mdb.expire_update(mem)
-        mdb.send_email('email_templates/join.html', "Welcome To Wooldley Park Archers", fam)
+        path = os.path.join(project_directory, "email_templates", "join.html")
+        mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
     elif l['description'][0:len("joad session")] == "joad session":
         JoadSessions(db).update_registration(l["members"], "paid", None)
 
@@ -186,7 +189,8 @@ def pay_success():
 
 @app.route("/reg_values", methods=["GET"])
 def reg_values():
-    return jsonify(current_reg.get_registration())
+    reg = jsonify(current_reg.get_registration())
+    return reg
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -223,7 +227,8 @@ def register():
                 print("current_reg = {}".format(current_reg.get_registration()))
                 app.logger.info(f"current_reg = {current_reg.get_registration()}")
                 if current_reg.get_registration() is None:
-                    mem.send_email("email_templates/verify.html", "Email Verification Code")
+                    path = os.path.join(project_directory, "email_templates", "verify.html")
+                    mem.send_email(path, "Email Verification Code")
                 reg["first_name"] = ""
                 reg["last_name"] = ""
                 reg["dob"] = ""
@@ -238,7 +243,13 @@ def register():
 def renew():
     # to request a renewal code by entering email address. Also to provide renewal verification with email address and code
     if(request.method == "GET"):
-        return render_template("renew.html")
+        print(request.args)
+        email = rc = ""
+        if "e" in request.args:
+            email = request.args["e"]
+        if "c" in request.args:
+            rc = request.args["c"]
+        return render_template("renew.html", email=email, renew_code=rc)
     else:  #  method is POST
         mem = MemberDb(db)
         #  TODO add renew table to track renewals (id, mem_id, renew_date)

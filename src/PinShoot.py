@@ -5,13 +5,19 @@ class PinShoot:
                         'shoot_date': '', 'distance': '', 'target': '', 'star_achievement': '',
                         'wpa_membership_number': '', 'score': 0}
         if self.db is None:
-            print(self.calculate_pins('joad_indoor', 'barebow', 60, 9, 120))
+            print(self.calculate_pins())
 
-    def calculate_pins(self, category, bow, target, distance, score):
-        print(f"target = {target} {type(target)}, distance = {distance} {type(distance)}")
+    def calculate_pins(self):
+        distance = int(self.ps_dict['distance'])
+        target = int(self.ps_dict['target'])
+        score = int(self.ps_dict['score'])
+
+        print(f"target = {target} {type(target)}, distance = {distance} {type(distance)}, "
+              f"category = {self.ps_dict['category']}, bow = {self.ps_dict['bow']} score = {score}")
+
         star_achievement = 0
-        if category == 'joad_indoor':
-            if bow == 'barebow':
+        if self.ps_dict['category'] == 'joad_indoor':
+            if self.ps_dict['bow'] == 'barebow':
                 if distance == 9 and target == 60:
                     if score >= 40:
                         star_achievement = 1
@@ -55,9 +61,7 @@ class PinShoot:
                         star_achievement = 10
                     if score >= 270:
                         star_achievement = 11
-                # else:
-                # form.errors.distance = "not distance and target combination"
-            elif bow == 'olympic':
+            elif self.ps_dict['bow'] == 'olympic':
                 if distance == 9 and target == 60:
                     if score >= 50:
                         star_achievement = 1
@@ -67,6 +71,7 @@ class PinShoot:
                         star_achievement = 3
                     if score >= 200:
                         star_achievement = 4
+
                 elif distance == 18 and target == 60:
                     if score >= 30:
                         star_achievement = 2
@@ -88,6 +93,7 @@ class PinShoot:
                         star_achievement = 10
                     if score >= 295:
                         star_achievement = 11
+
                 elif distance == 18 and target == 40:
                     if score >= 190:
                         star_achievement = 6
@@ -101,9 +107,7 @@ class PinShoot:
                         star_achievement = 10
                     if score >= 290:
                         star_achievement = 11
-                # else:
-                # form.errors.distance = "not distance and target combination"
-            elif bow == 'compound':
+            elif self.ps_dict['bow'] == 'compound':
                 if distance == 9 and target == 40:
                     if score >= 50:
                         star_achievement = 1
@@ -134,15 +138,8 @@ class PinShoot:
                         star_achievement = 10
                     if score >= 295:
                         star_achievement = 11
-                # else:
-                # form.errors.distance = "not distance and target combination"
-            # else:
-            # form.errors.bow = 'Not Valid Bow'
-            # form.errors.catagory = 'JOAD Indoor'
-        elif category == 'adult_indoor':
-            # if distance == 9: form.errors.distance = 'Invalid Distance'
-            # if target == 60: form.errors.target = 'Invalid Target'
-            if bow == 'barebow':
+        elif self.ps_dict['category'] == 'adult_indoor':
+            if self.ps_dict['bow'] == 'barebow':
                 if score >= 70:
                     star_achievement = 1
                 if score >= 100:
@@ -165,7 +162,7 @@ class PinShoot:
                     star_achievement = 10
                 if score >= 270:
                     star_achievement = 11
-            elif bow == 'olympic':
+            elif self.ps_dict['bow'] == 'olympic':
                 if score >= 90: star_achievement = 1
                 if score >= 140: star_achievement = 2
                 if score >= 190: star_achievement = 3
@@ -177,7 +174,7 @@ class PinShoot:
                 if score >= 285: star_achievement = 9
                 if score >= 290: star_achievement = 10
                 if score >= 295: star_achievement = 11
-            elif bow == 'compound':
+            elif self.ps_dict['bow'] == 'compound':
                 if score >= 125:
                     star_achievement = 2  # TODO check this is it supposed to be 1?
                 if score >= 150:
@@ -200,8 +197,8 @@ class PinShoot:
                     star_achievement = 10
                 if score >= 290:
                     star_achievement = 11
-        # else:
-        # form.errors.catagory = 'Not Indoor'
+
+        self.ps_dict['stars'] = star_achievement
         return star_achievement
 
     def get_dict(self):

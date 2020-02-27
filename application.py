@@ -164,14 +164,13 @@ def pay_success():
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
     # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
-
     l = PayLogHelper(db).update_square_payment(request.args)
     if l['description'] == "membership":
         l = l['members'].split(',')
         mdb = MemberDb(db)
         mem = mdb.find_by_id(l[0])
         mdb.set_member_pay_code_status(None, "member")
-        if (mem["fam"] is None):
+        if mem["fam"] is None:
             fam = ""
             mdb.expire_update(mem)
         else:
@@ -193,14 +192,15 @@ def pin_shoot():
     if(request.method == "GET"):
         return render_template("pin_shoot.html")
     else:
+        """ Get values, caculate pins, """
         ps = PinShoot(db)
         psd = ps.get_dict()
         for k,v in psd.items():
             psd[k] = request.form.get(k)
-
-        psd["stars"] = ps.calculate_pins(psd['category'], psd['bow'], psd['target'], psd['distance'], psd['score'])
         ps.set_dict(psd)
+        psd["stars"] = ps.calculate_pins()
         ps.record_shoot()
+
         return apology(f"Stars = {psd['stars']}", 200)
 
 @app.route("/reg_values", methods=["GET"])

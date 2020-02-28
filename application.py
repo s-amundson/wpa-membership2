@@ -164,7 +164,7 @@ def pay_success():
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
     # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
-    l = PayLogHelper(db).update_square_payment(request.args)
+    l = PayLogHelper(db).update_payment_state(request.args)
     if l['description'] == "membership":
         l = l['members'].split(',')
         mdb = MemberDb(db)
@@ -200,8 +200,11 @@ def pin_shoot():
         ps.set_dict(psd)
         psd["stars"] = ps.calculate_pins()
         ps.record_shoot()
-
-        return apology(f"Stars = {psd['stars']}", 200)
+        plh = PayLogHelper(db)
+        pay_log = plh.create_entry("", "Pin Shoot")
+        p = square_handler.purchase_joad_pin_shoot(str(pay_log['idempotency_key']), psd["date"], None, psd["stars"])
+        plh.update_payment(p, pay_log["id"])
+        return redirect(p["checkout"]['checkout_page_url'])
 
 @app.route("/reg_values", methods=["GET"])
 def reg_values():

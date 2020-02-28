@@ -10,7 +10,6 @@ class square_handler:
         self.cfg = c.get_square()
         self.site = c.get_site()
 
-
         # Create an instance of the API Client
         # and initialize it with the credentials
         # for the Square account whose assets you want to manage
@@ -46,34 +45,55 @@ class square_handler:
     #         for key, value in error.items():
     #             print(f"{key} : {value}")
     #         print("\n")
-    def purchase_joad_sesion(self, idempotency_key, date, email):
+    def order(self, idempotency_key, line_items, email, redirect_url):
         location_id = self.cfg["location_id"]
         body = {}
         body['idempotency_key'] = str(idempotency_key)
         body['order'] = {}
         body['order']['reference_id'] = str(idempotency_key)
-        body['order']['line_items'] = []
-
-        body['order']['line_items'].append({})
-        body['order']['line_items'][0]['name'] = f"JOAD Session {date}"
-        body['order']['line_items'][0]['quantity'] = '1'
-        body['order']['line_items'][0]['base_price_money'] = {}
-        body['order']['line_items'][0]['base_price_money']['amount'] = 95 * 100
-        body['order']['line_items'][0]['base_price_money']['currency'] = 'USD'
-
-        body['pre_populate_buyer_email'] = email
+        body['order']['line_items'] = line_items
+        if email is not None:
+            body['pre_populate_buyer_email'] = email
         body['merchant_support_email'] = 'wpa4membership@gmail.com'
         # TODO change redirect.
-        body['redirect_url'] = f'{self.site}/pay_success'
+        body['redirect_url'] = redirect_url
 
         result = self.checkout_api.create_checkout(location_id, body)
-
         if result.is_success():
             # mem.square_payment(self, result)
             return result.body
         elif result.is_error():
             print(result.errors)
         return None
+
+    def purchase_joad_sesion(self, idempotency_key, date, email):
+        line_items = []
+        line_items.append({})
+        line_items[0]['name'] = f"JOAD Session {date}"
+        line_items[0]['quantity'] = '1'
+        line_items[0]['base_price_money'] = {}
+        line_items[0]['base_price_money']['amount'] = 95 * 100
+        line_items[0]['base_price_money']['currency'] = 'USD'
+        redirect_url = f'{self.site}/pay_success'
+        return self.order(idempotency_key, line_items, email,redirect_url)
+
+    def purchase_joad_pin_shoot(self, idempotency_key, date, email, qty):
+        line_items = [{}, {}]
+        # line_items.append({})
+        line_items[0]['name'] = f"JOAD Pin Shoot {date}"
+        line_items[0]['quantity'] = '1'  # string?
+        line_items[0]['base_price_money'] = {}
+        line_items[0]['base_price_money']['amount'] = 15 * 100
+        line_items[0]['base_price_money']['currency'] = 'USD'
+
+        line_items[1]['name'] = f"JOAD Pins {date}"
+        line_items[0]['quantity'] = qty  # string?
+        line_items[0]['base_price_money'] = {}
+        line_items[0]['base_price_money']['amount'] = 5 * 100
+        line_items[0]['base_price_money']['currency'] = 'USD'
+        redirect_url = f'{self.site}/pay_success'
+        return self.order(idempotency_key, line_items, email, redirect_url)
+
     def purchase_membership(self, mem):
         if mem['benefactor']:
             price = 100
@@ -90,36 +110,35 @@ class square_handler:
             else:
                 return None
 
-        location_id = self.cfg["location_id"]
-        body = {}
-        body['idempotency_key'] = str(mem['pay_code'])
-        body['order'] = {}
-        body['order']['reference_id'] = str(mem['pay_code'])
-        body['order']['line_items'] = []
+        # location_id = self.cfg["location_id"]
+        # body = {}
+        # body['idempotency_key'] = str(mem['pay_code'])
+        # body['order'] = {}
+        # body['order']['reference_id'] = str(mem['pay_code'])
+        line_items = []
 
-        body['order']['line_items'].append({})
-        body['order']['line_items'][0]['name'] = f"{mem['level']} Membership"
-        body['order']['line_items'][0]['quantity'] = '1'
-        body['order']['line_items'][0]['base_price_money'] = {}
-        body['order']['line_items'][0]['base_price_money']['amount'] = price * 100
-        body['order']['line_items'][0]['base_price_money']['currency'] = 'USD'
+        line_items.append({})
+        line_items[0]['name'] = f"{mem['level']} Membership"
+        line_items[0]['quantity'] = '1'
+        line_items[0]['base_price_money'] = {}
+        line_items[0]['base_price_money']['amount'] = price * 100
+        line_items[0]['base_price_money']['currency'] = 'USD'
 
-        body['pre_populate_buyer_email'] = mem['email']
-        body['merchant_support_email'] = 'wpa4membership@gmail.com'
-        # TODO change redirect.
-        body['redirect_url'] = f'{self.site}/pay_success'
-
-        result = self.checkout_api.create_checkout(location_id, body)
-
-        if result.is_success():
-            # mem.square_payment(self, result)
-            return result.body
-        elif result.is_error():
-            print(result.errors)
-        return None
-
-
-
+        # body['pre_populate_buyer_email'] = mem['email']
+        # body['merchant_support_email'] = 'wpa4membership@gmail.com'
+        # # TODO change redirect.
+        # body['redirect_url'] = f'{self.site}/pay_success'
+        #
+        # result = self.checkout_api.create_checkout(location_id, body)
+        #
+        # if result.is_success():
+        #     # mem.square_payment(self, result)
+        #     return result.body
+        # elif result.is_error():
+        #     print(result.errors)
+        # return None
+        redirect_url = f'{self.site}/pay_success'
+        return self.order(str(mem['pay_code']), line_items, mem['email'], redirect_url)
 
 # body['order']['line_items'][2]['discounts'].append({})
 # body['order']['line_items'][2]['discounts'][0]['name'] = '$11 off Customer Discount'

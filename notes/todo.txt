@@ -3,7 +3,7 @@ integrate with wordpress perhaps sub-folder
 periodic checks
 renewal
 joad registration on membership registration with a checkbox
-
+square payment order status and idempotency_key in pay log and insert pay log id in membership, JOAD Reg, and other tables
 
 
 

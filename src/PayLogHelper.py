@@ -1,4 +1,5 @@
 import dateutil.parser
+import uuid
 
 class PayLogHelper:
     def __init__(self, db):
@@ -23,7 +24,28 @@ class PayLogHelper:
             self.db.execute(s)
         return(order['state'])
 
-    def update_square_payment(self, args):
+    def create_entry(self, members, description):
+        uid = uuid.uuid4()
+        s = f"INSERT INTO payment_log (members, description, idempotency_key) VALUES " \
+            f"({members}, {description}, {str(uid)})"
+        self.db.execute(s)
+        r = self.db.execute(f"SELECT * FROM `payment_log` WHERE 'idempotency_key' = {str(uid)}")
+        return r
+
+    def update_payment(self, square_result, record_id):
+        checkout = square_result["checkout"]
+        order = checkout['order']
+
+        cd = dateutil.parser.parse(checkout['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+        od = dateutil.parser.parse(order['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+
+        s = f"UPDATE `payment_log` SET `checkout_created_time` = '{cd}', `checkout_id` = '{checkout['id']}', " \
+            f"`order_id` = '{order['id']}', `order_create_time` = '{od}', `location_id` = '{order['location_id']}', " \
+            f"`state` = '{order['state']}', `total_money` = '{order['total_money']['amount']}' WHERE `id` = {record_id}"
+
+        self.db.execute(s)
+
+    def update_payment_state(self, args):
         """Updates a record in the database"""
         s = f"UPDATE payment_log SET `state` = 'COMPLETED' WHERE `checkout_id` = '{args['checkoutId']}' and " \
             f"order_id = '{args['transactionId']}'"

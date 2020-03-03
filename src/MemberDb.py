@@ -94,10 +94,9 @@ class MemberDb:
             self.setbyDict(rows[0])
             #  get uuid for payment with square
             print(f"MemberDb.check_email pay_code = {self.mem['pay_code']}")
+
             if self.mem['pay_code'] is None:
-                self.mem['pay_code'] = str(uuid.uuid4())
-            # elif self.mem['pay_code'] == "None":
-            #     self.mem['pay_code'] = uuid.uuid4()
+                self.set_pay_code()
                 self.set_member_pay_code_status(self.mem['pay_code'], 'start payment')
             return self.mem
         else:
@@ -159,6 +158,7 @@ class MemberDb:
         msg = msg.replace("EMAIL", self.mem["email"])
         if self.mem["email_code"] is not None:
             msg = msg.replace("CODE", self.mem["email_code"])
+        # self.set_pay_code()
         if "renew_code" in self.mem:
             msg = msg.replace("RENEW", self.mem["renew_code"])
         msg = msg.replace("FAMILY", fam)
@@ -186,6 +186,14 @@ class MemberDb:
             s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{self.mem['fam']}'"
         self.db.execute(s, (code, status))
 
+    def set_pay_code(self):
+        if 'pay_code' in self.mem:
+            if self.mem['pay_code'] is None:
+                self.mem['pay_code'] = str(uuid.uuid4())
+        else:
+            self.mem['pay_code'] = str(uuid.uuid4())
+        return self.mem['pay_code']
+
     def square_payment(self, square_result, description):
         members = ""
         print(f"MemberDb.square_payment fam = {self.mem['fam']} {self.mem['fam'] is None}")
@@ -209,4 +217,27 @@ class MemberDb:
                 self.expire_update(self.mem)
         elif pay_status == "CANCELED":
             self.set_member_pay_code_status(self.mem['pay_code'], 'payment canceled')
+
+    def update_record(self, reg):
+        # s = "INSERT INTO member (first_name, last_name, street,  " \
+        #     "benefactor, fam, email_code, reg_date, exp_date) VALUES ( "
+        s = f"UPDATE member SET "
+        update_required = False
+        print(f"MemberDb.update_record s = {reg}")
+        for k, v in reg.items():
+            if self.mem[k] != v:
+                s += f"{k} = {v}, "
+                update_required = True
+        if update_required:
+            s = s[:-2] + f"WHERE id = {self.mem['id']}"
+            print(f"MemberDb.update_record s = {s}")
+
+
+        # `fist_name` = '{self.mem['first_name']}', `last_name` = '{self.mem['last_name']}', " \
+        #     f"`street` = {self.mem['street']}`city` = , `state`, `zip`, `phone`, `email`, `dob`, `level`,"
+        # self.db.execute("{} '{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{},{},'{}', CURDATE(), CURDATE())".format(
+        #     s, ,
+        #     , , self.mem['city'],
+        #     self.mem["state"], self.mem["zip"], self.mem["phone"], self.mem["email"], self.mem["dob"],
+        #     self.mem["level"], self.mem["benefactor"], fam, self.mem["email_code"]))
 

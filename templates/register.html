@@ -71,10 +71,13 @@
         </div>
 
         <div class="row">
-            <div class="input-group input-group-md">
+            <div class="input-group input-group-md" id="dob_div">
 
                 <label for="dob">Date of Birth:</label>
                 <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date" id="dob" onchange="reg_check('dob')">
+            </div>
+            <div class="input-group input-group-md">
+                <label for="level">Membersip Level:</label>
                 <select name="level" id="level" class="m-2" onchange="select_check(document.form1.level)">
                     <option value="level" selected disabled>Membership Level</option>
                     <option value="standard">Standard</option>

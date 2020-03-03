@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import date
 
-from flask import Flask, jsonify, redirect, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
@@ -79,14 +79,7 @@ def email_verify():
             email = request.args["e"]
         if "c" in request.args:
             vcode = request.args["c"]
-        # try:
-        #     email = request.args["e"]
-        # except:
-        #     email = ""
-        # try:
-        #     vcode = request.args["c"]
-        # except:
-        #     vcode = ""
+
         # This does not comply with GET
         # if(email is not "" and vcode is not ""):
         #     if(check(email, vcode)):
@@ -102,17 +95,13 @@ def email_verify():
         if mem is not None:
             if mem['status'] == 'member':
                 return apology("payment already processed")
-            p = square.purchase_membership(mem)
+            session['mem_id'] = mem['id']
+            session['renew'] = False
+            p = square.purchase_membership(mem, False)
 
             if p is not None:
                 mdb.square_payment(p, "membership")
 
-                # make link for testing purposes
-                s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
-                    f"&referenceId={p['checkout']['order']['reference_id']}" \
-                    f"&transactionId={p['checkout']['order']['id']}"
-
-                print(s)
                 return redirect(p["checkout"]['checkout_page_url'])
 
             else:
@@ -183,7 +172,7 @@ def pay_success():
         mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
     elif l['description'][0:len("joad session")] == "joad session":
         JoadSessions(db).update_registration(l["members"], "paid", None)
-
+    session.clear()
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
 
@@ -202,9 +191,11 @@ def pin_shoot():
         ps.record_shoot()
         plh = PayLogHelper(db)
         pay_log = plh.create_entry("", "Pin Shoot")
-        p = square_handler.purchase_joad_pin_shoot(str(pay_log['idempotency_key']), psd["date"], None, psd["stars"])
+        print(pay_log)
+        p = square.purchase_joad_pin_shoot(str(pay_log['idempotency_key']), psd["shoot_date"], '', psd["stars"])
         plh.update_payment(p, pay_log["id"])
         return redirect(p["checkout"]['checkout_page_url'])
+
 
 @app.route("/reg_values", methods=["GET"])
 def reg_values():
@@ -215,47 +206,65 @@ def reg_values():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-
+    def form_data():
+        reg = {"first_name": request.form.get('first_name'),
+               "last_name": request.form.get('last_name'),
+               "street": request.form.get('street'),
+               "city": request.form.get('city'),
+               "state": request.form.get('state'),
+               "zip": request.form.get('zip'),
+               "phone": request.form.get('phone'),
+               "email": request.form.get('email'),
+               "dob": request.form.get('dob'),
+               "level": request.form.get('level'),
+               "benefactor": request.form.get('benefactor'),
+               "fam": family.fam_id}
+        return reg
     if(request.method == "GET"):
         return render_template("register.html")
     else:  # method is POST
-        mem = MemberDb(db)
-        reg = {"first_name": request.form.get('first_name'),
-             "last_name": request.form.get('last_name'),
-             "street": request.form.get('street'),
-             "city": request.form.get('city'),
-             "state": request.form.get('state'),
-             "zip": request.form.get('zip'),
-             "phone": request.form.get('phone'),
-             "email": request.form.get('email'),
-             "dob": request.form.get('dob'),
-             "level": request.form.get('level'),
-             "benefactor": request.form.get('benefactor'),
-             "fam": family.fam_id}
+        mdb = MemberDb(db)
+        mem_id = session.get('mem_id', None)
+        if session.get('renew', False):  # renewal'
+            mem = mdb.find_by_id(mem_id)
+            mdb.update_record(form_data())
 
-        # current_reg.set_registration(reg)
-        mem.setbyDict(reg)
-        if(mem.checkInput()):
-            reg["id"] = mem.add(family)
-            if(family.fam_id is None):  # not a family registration
-                current_reg.set_registration(None)
-                # if(mem['level'] == "joad"):
-                #     return render_template("joad_add.html")
-                return redirect("/")
-            else:
-                print("current_reg = {}".format(current_reg.get_registration()))
-                app.logger.info(f"current_reg = {current_reg.get_registration()}")
-                if current_reg.get_registration() is None:
-                    path = os.path.join(project_directory, "email_templates", "verify.html")
-                    mem.send_email(path, "Email Verification Code")
-                reg["first_name"] = ""
-                reg["last_name"] = ""
-                reg["dob"] = ""
-                current_reg.set_registration(reg)
-                print("family.members={}".format(family.members), file=sys.stdout)
-                return render_template("register.html", rows=family.members)
+            mem['pay_code'] = mdb.set_pay_code()
+            p = square.purchase_membership(mem, session.get('renew', False))
+            if p is not None:
+                mdb.square_payment(p, "membership")
+                return redirect(p["checkout"]['checkout_page_url'])
+
+            print(f"session sid = {session.sid}, ")
+            current_reg.set_registration(None)
+            session.clear()
+            return redirect('/')
         else:
-            return render_template("register.html", rows=family.members)
+
+            reg = form_data()
+            # current_reg.set_registration(reg)
+            mdb.setbyDict(reg)
+            if(mdb.checkInput()):
+                reg["id"] = mdb.add(family)
+                if(family.fam_id is None):  # not a family registration
+                    current_reg.set_registration(None)
+                    # if(mem['level'] == "joad"):
+                    #     return render_template("joad_add.html")
+                    return redirect("/")
+                else:
+                    print("current_reg = {}".format(current_reg.get_registration()))
+                    app.logger.info(f"current_reg = {current_reg.get_registration()}")
+                    if current_reg.get_registration() is None:
+                        path = os.path.join(project_directory, "email_templates", "verify.html")
+                        mdb.send_email(path, "Email Verification Code")
+                    reg["first_name"] = ""
+                    reg["last_name"] = ""
+                    reg["dob"] = ""
+                    current_reg.set_registration(reg)
+                    print("family.members={}".format(family.members), file=sys.stdout)
+                    return render_template("register.html", rows=family.members)
+            else:
+                return render_template("register.html", rows=family.members)
 
 
 @app.route("/renew", methods=["GET", "POST"])
@@ -278,6 +287,9 @@ def renew():
                 return apology("Email not found")
             elif(len(rows) == 1):
                 current_reg.set_registration(rows[0])
+                session['mem_id'] = rows[0]['id']
+                session['renew'] = True
+                print(f"Session id = {session.sid}, mem_id = {session.get('mem_id')}, renew = {session.get('renew')}")
                 return render_template("register.html")
             else:
                 return render_template("renew_list.html", rows=rows)

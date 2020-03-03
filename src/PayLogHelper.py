@@ -27,10 +27,13 @@ class PayLogHelper:
     def create_entry(self, members, description):
         uid = uuid.uuid4()
         s = f"INSERT INTO payment_log (members, description, idempotency_key) VALUES " \
-            f"({members}, {description}, {str(uid)})"
+            f"('{members}', '{description}', '{str(uid)}')"
         self.db.execute(s)
-        r = self.db.execute(f"SELECT * FROM `payment_log` WHERE 'idempotency_key' = {str(uid)}")
-        return r
+        r = self.db.execute(f"SELECT * FROM `payment_log` WHERE `idempotency_key` = '{str(uid)}'")
+        if len(r) > 0:
+            return r[0]
+        else:
+            return None
 
     def update_payment(self, square_result, record_id):
         checkout = square_result["checkout"]

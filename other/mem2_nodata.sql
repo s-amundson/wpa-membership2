@@ -46,6 +46,7 @@ CREATE TABLE `payment_log` (
   `state` varchar(20) DEFAULT NULL,
   `total_money` varchar(45) DEFAULT NULL,
   `description` varchar(45) DEFAULT NULL,
+  `idempotency_key` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 

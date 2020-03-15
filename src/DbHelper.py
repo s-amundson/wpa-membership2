@@ -3,8 +3,8 @@ import pymysql
 from Config import Config
 
 class DbHelper:
-    def __init__(self):
-        self.cfg = Config().get_database()
+    def __init__(self, cfg):
+        self.cfg = cfg.get_database() #Config().get_database()
         self.connect()
 
 

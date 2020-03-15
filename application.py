@@ -17,9 +17,14 @@ from FamilyClass import FamilyClass
 from square_handler import square_handler
 from PayLogHelper import PayLogHelper
 from JoadSessions import JoadSessions
+from Config import Config
 
 # Configure application
 app = Flask(__name__)
+cfg = Config()
+subdir = cfg.get_site()['subdirectory']
+if subdir == 'None':
+    subdir = ''
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -47,7 +52,7 @@ Session(app)
 
 # Configure to use database
 dbfile = "data.db"
-db = DbHelper()
+db = DbHelper(cfg)
 
 
 current_reg = CurrentRegistration()
@@ -56,25 +61,27 @@ family = FamilyClass(dbfile)
 square = square_handler()
 project_directory = os.path.dirname(os.path.realpath(__file__))
 
-@app.route("/")
+
+@app.route(subdir + "/")
 # @login_required
 def index():
     return render_template("register.html")
 
 
-@app.route("/add")
+@app.route(subdir + "/add")
 @login_required
 def add():
     """Add member to database"""
     return apology("TODO")
 
 
-@app.route("/email_verify", methods=["GET", "POST"]) # TODO update this to patch
+@app.route(subdir + "/email_verify", methods=["GET", "POST"]) # TODO update this to patch
 def email_verify():
     """verify the users email address with a code"""
 
     if(request.method == "GET"):
         print(request.args)
+        email = vcode = ""
         if "e" in request.args:
             email = request.args["e"]
         if "c" in request.args:
@@ -109,7 +116,7 @@ def email_verify():
         else:
             return apology("Invalid Code")  # or email already validated
 
-@app.route("/joad_registration", methods=["GET", "POST"])
+@app.route(subdir + "/joad_registration", methods=["GET", "POST"])
 def joad_registration():
     if(request.method == "GET"):
         jsdb = JoadSessions(db)
@@ -147,7 +154,7 @@ def joad_registration():
                     #     return render_template("success.html", message="Thank you for registering")  # TODO change this
         return render_template(("joad_registration.html"))
 
-@app.route("/pay_success", methods=["GET"])
+@app.route(subdir + "/pay_success", methods=["GET"])
 def pay_success():
 
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
@@ -176,7 +183,7 @@ def pay_success():
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
 
-@app.route("/pin_shoot", methods=["GET", "POST"])
+@app.route(subdir + "/pin_shoot", methods=["GET", "POST"])
 def pin_shoot():
     if(request.method == "GET"):
         return render_template("pin_shoot.html")
@@ -197,13 +204,35 @@ def pin_shoot():
         return redirect(p["checkout"]['checkout_page_url'])
 
 
-@app.route("/reg_values", methods=["GET"])
+@app.route(subdir + "/process_payment", methods=["GET", "POST"])
+def process_payment():
+    print("process_payment")
+    square_cfg = cfg.get_square()
+    if(request.method == "GET"):
+
+        if square_cfg['environment'] == "production":
+            pay_url = "https://js.squareup.com/v2/paymentform"
+        else:
+            pay_url = "https://js.squareupsandbox.com/v2/paymentform"
+        app_id = square_cfg['application_id']
+        location_id = square_cfg['location_id']
+        # print(f"payment_form_url = {pay_url}, app_id = {app_id}}, location_id = {location_id}")
+        return render_template("square_pay.html", payment_form_url=pay_url, app_id=app_id, location_id=location_id)
+    elif request.method == 'POST':
+        nonce = request.form.get('nonce')
+        # environment = square_cfg['environment']
+        ik = str(uuid.uuid4())
+        # TODO figure out how best to get the order information and process it.
+        response = square_handler.nonce(ik, nonce)
+        return redirect('/pay_success')
+
+@app.route(subdir + "/reg_values", methods=["GET"])
 def reg_values():
     reg = jsonify(current_reg.get_registration())
     return reg
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route(subdir + "/register", methods=["GET", "POST"])
 def register():
     """Register user"""
     def form_data():
@@ -267,7 +296,7 @@ def register():
                 return render_template("register.html", rows=family.members)
 
 
-@app.route("/renew", methods=["GET", "POST"])
+@app.route(subdir + "/renew", methods=["GET", "POST"])
 def renew():
     # to request a renewal code by entering email address. Also to provide renewal verification with email address and code
     if(request.method == "GET"):
@@ -296,7 +325,7 @@ def renew():
         else:
             return apology("Invalid email")
 
-@app.route("/renew_code", methods=["POST"])
+@app.route(subdir + "/renew_code", methods=["POST"])
 def renew_code():
     """ send an email to the member in the database with a renewal code if that email exists.
         If valid email address is not in database do nothing."""
@@ -309,7 +338,7 @@ def renew_code():
     else:
         return apology("Invalid email")
 
-@app.route("/renew_id", methods=["GET"])
+@app.route(subdir + "/renew_id", methods=["GET"])
 def renew_id():
     n = request.args["id"]
     print(n, file=sys.stdout)
@@ -324,7 +353,7 @@ def renew_id():
             return render_template("register.html", rows=rows)
 
 
-@app.route("/reset", methods=["GET", "POST"])
+@app.route(subdir + "/reset", methods=["GET", "POST"])
 def reset():
     family.clear()
     current_reg.set_registration(None)

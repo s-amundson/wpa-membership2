@@ -1,5 +1,6 @@
 import configparser
 
+
 class Config:
     def __init__(self):
         self.cfg = configparser.ConfigParser()
@@ -21,7 +22,10 @@ class Config:
         return email
 
     def get_site(self):
-        return self.cfg["main"]["site"]
+        main = {}
+        for key in self.cfg["main"]:
+            main[key] = self.cfg["main"][key]
+        return main
 
     def get_square(self):
         square = {}

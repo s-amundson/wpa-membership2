@@ -8,7 +8,7 @@ class square_handler:
         # Get config settings
         c = Config()
         self.cfg = c.get_square()
-        self.site = c.get_site()
+        self.site = c.get_site()['site']
 
         # Create an instance of the API Client
         # and initialize it with the credentials
@@ -19,6 +19,30 @@ class square_handler:
             environment=self.cfg["environment"],
         )
         self.checkout_api = self.client.checkout
+    def nonce(self, idempotency_key, nonce):
+        # Every payment you process with the SDK must have a unique idempotency key.
+        # If you're unsure whether a particular payment succeeded, you can reattempt
+        # it with the same idempotency key without worrying about double charging
+        # the buyer.
+        # idempotency_key = str(uuid.uuid1())
+
+        # Monetary amounts are specified in the smallest unit of the applicable currency.
+        # This amount is in cents. It's also hard-coded for $1.00, which isn't very useful.
+        amount = {'amount': 100, 'currency': 'USD'}
+
+        # To learn more about splitting payments with additional recipients,
+        # see the Payments API documentation on our [developer site]
+        # (https://developer.squareup.com/docs/payments-api/overview).
+        body = {'idempotency_key': idempotency_key, 'source_id': nonce, 'amount_money': amount}
+
+        # The SDK throws an exception if a Connect endpoint responds with anything besides
+        # a 200-level HTTP code. This block catches any exceptions that occur from the request.
+        api_response = self.client.payments.create_payment(body)
+        if api_response.is_success():
+            res = api_response.body['payment']
+        elif api_response.is_error():
+            res = "Exception when calling PaymentsApi->create_payment: {}".format(api_response.errors)
+        print(res)
 
     def order(self, idempotency_key, line_items, email, redirect_url):
         location_id = self.cfg["location_id"]
@@ -70,7 +94,7 @@ class square_handler:
         line_items[1]['base_price_money']['amount'] = 5 * 100 * qty
         line_items[1]['base_price_money']['currency'] = 'USD'
         redirect_url = f'{self.site}/pay_success'
-        print(f"square_handler.purchase_joad_session line_items = {line_items}, date = {redirect_url}")
+        print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
         return self.order(idempotency_key, line_items, email, redirect_url)
 
     def purchase_membership(self, mem, renew):

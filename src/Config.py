@@ -1,11 +1,12 @@
 import configparser
-
+import os
 
 class Config:
-    def __init__(self):
+    def __init__(self, project_directory):
         self.cfg = configparser.ConfigParser()
-        self.cfg.read('static/settings.cfg')
+        self.cfg.read(os.path.join(project_directory, "static", "settings.cfg"))
         self.sections = self.cfg.sections()
+        print(self.sections)
 
 
     def get_database(self):
@@ -23,6 +24,7 @@ class Config:
 
     def get_site(self):
         main = {}
+        print(self.cfg["main"])
         for key in self.cfg["main"]:
             main[key] = self.cfg["main"][key]
         return main

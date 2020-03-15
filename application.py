@@ -21,7 +21,8 @@ from Config import Config
 
 # Configure application
 app = Flask(__name__)
-cfg = Config()
+project_directory = os.path.dirname(os.path.realpath(__file__))
+cfg = Config(project_directory)
 subdir = cfg.get_site()['subdirectory']
 if subdir == 'None':
     subdir = ''
@@ -58,8 +59,8 @@ db = DbHelper(cfg)
 current_reg = CurrentRegistration()
 family = FamilyClass(dbfile)
 
-square = square_handler()
-project_directory = os.path.dirname(os.path.realpath(__file__))
+square = square_handler(cfg)
+
 
 
 @app.route(subdir + "/")
@@ -223,7 +224,7 @@ def process_payment():
         # environment = square_cfg['environment']
         ik = str(uuid.uuid4())
         # TODO figure out how best to get the order information and process it.
-        response = square_handler.nonce(ik, nonce)
+        response = square.nonce(ik, nonce)
         return redirect('/pay_success')
 
 @app.route(subdir + "/reg_values", methods=["GET"])

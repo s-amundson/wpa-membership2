@@ -4,11 +4,10 @@ from Config import Config
 
 class square_handler:
 
-    def __init__(self):
+    def __init__(self, cfg):
         # Get config settings
-        c = Config()
-        self.cfg = c.get_square()
-        self.site = c.get_site()['site']
+        self.cfg = cfg.get_square()
+        self.site = cfg.get_site()['site']
 
         # Create an instance of the API Client
         # and initialize it with the credentials

@@ -207,7 +207,8 @@ def pin_shoot():
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
 def process_payment():
-    print("process_payment")
+    import uuid
+    print(f"process_payment method = {request.method}")
     square_cfg = cfg.get_square()
     if(request.method == "GET"):
 

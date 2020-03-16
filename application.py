@@ -60,7 +60,7 @@ current_reg = CurrentRegistration()
 family = FamilyClass(dbfile)
 
 square = square_handler(cfg)
-
+mdb = MemberDb(db, project_directory)
 
 
 @app.route(subdir + "/")
@@ -96,7 +96,7 @@ def email_verify():
         #         return apology("Invalid Code")  # or email already validated
         return render_template("email_verify.html", code=vcode, email=email)
     else:  #method is POST
-        mdb = MemberDb(db)
+        #  mdb = MemberDb(db, project_directory)
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
 
         # If email is verified, then process payment.
@@ -105,17 +105,27 @@ def email_verify():
                 return apology("payment already processed")
             session['mem_id'] = mem['id']
             session['renew'] = False
-            p = square.purchase_membership(mem, False)
+            session['line_items'] = square.purchase_membership(mem, False)
 
-            if p is not None:
-                mdb.square_payment(p, "membership")
 
-                return redirect(p["checkout"]['checkout_page_url'])
 
-            else:
-                return apology("payment problem")  # or email already validated
-        else:
-            return apology("Invalid Code")  # or email already validated
+                # line_items.append({})
+                # line_items[0]['name'] = f"JOAD Session {date}"
+                # line_items[0]['quantity'] = '1'
+                # line_items[0]['base_price_money'] = {}
+                # line_items[0]['base_price_money']['amount'] = 95 * 100
+                # line_items[0]['base_price_money']['currency'] = 'USD'
+            return redirect('process_payment')
+        #
+        #     if p is not None:
+        #         mdb.square_payment(p, "membership")
+        #
+        #         return redirect(p["checkout"]['checkout_page_url'])
+        #
+        #     else:
+        #         return apology("payment problem")  # or email already validated
+        # else:
+        #     return apology("Invalid Code")  # or email already validated
 
 @app.route(subdir + "/joad_registration", methods=["GET", "POST"])
 def joad_registration():
@@ -164,7 +174,7 @@ def pay_success():
     l = PayLogHelper(db).update_payment_state(request.args)
     if l['description'] == "membership":
         l = l['members'].split(',')
-        mdb = MemberDb(db)
+        # mdb = MemberDb(db)
         mem = mdb.find_by_id(l[0])
         mdb.set_member_pay_code_status(None, "member")
         if mem["fam"] is None:
@@ -210,16 +220,23 @@ def process_payment():
     import uuid
     print(f"process_payment method = {request.method}")
     square_cfg = cfg.get_square()
+    paydict = {}
     if(request.method == "GET"):
 
         if square_cfg['environment'] == "production":
-            pay_url = "https://js.squareup.com/v2/paymentform"
+            paydict['pay_url'] = "https://js.squareup.com/v2/paymentform"
         else:
-            pay_url = "https://js.squareupsandbox.com/v2/paymentform"
-        app_id = square_cfg['application_id']
-        location_id = square_cfg['location_id']
+            paydict['pay_url'] = "https://js.squareupsandbox.com/v2/paymentform"
+        paydict['app_id'] = square_cfg['application_id']
+        paydict['location_id'] = square_cfg['location_id']
         # print(f"payment_form_url = {pay_url}, app_id = {app_id}}, location_id = {location_id}")
-        return render_template("square_pay.html", payment_form_url=pay_url, app_id=app_id, location_id=location_id)
+        rows = []
+        if 'line_items' in session:
+            # line_items = session['line_items']
+            for row in session['line_items']:
+                d = {'name': row['name'], 'quantity': int(row['quantity']), 'amount': row['base_price_money']['amount']}
+                rows.append(d)
+        return render_template("square_pay.html", paydict=paydict, rows=rows)
     elif request.method == 'POST':
         nonce = request.form.get('nonce')
         # environment = square_cfg['environment']
@@ -254,7 +271,7 @@ def register():
     if(request.method == "GET"):
         return render_template("register.html")
     else:  # method is POST
-        mdb = MemberDb(db)
+        #mdb = MemberDb(db)
         mem_id = session.get('mem_id', None)
         if session.get('renew', False):  # renewal'
             mem = mdb.find_by_id(mem_id)
@@ -310,10 +327,10 @@ def renew():
             rc = request.args["c"]
         return render_template("renew.html", email=email, renew_code=rc)
     else:  #  method is POST
-        mem = MemberDb(db)
+        #mem = MemberDb(db)
         #  TODO add renew table to track renewals (id, mem_id, renew_date)
-        if(mem.isValidEmail(request.form.get('email'))):
-            rows = mem.find_by_email(request.form.get('email'))
+        if(mdb.isValidEmail(request.form.get('email'))):
+            rows = mdb.find_by_email(request.form.get('email'))
             if(len(rows) == 0):
                 return apology("Email not found")
             elif(len(rows) == 1):
@@ -331,7 +348,7 @@ def renew():
 def renew_code():
     """ send an email to the member in the database with a renewal code if that email exists.
         If valid email address is not in database do nothing."""
-    mdb = MemberDb(db)
+    # mdb = MemberDb(db)
     if (mdb.isValidEmail(request.form.get('email2'))):
         rows = mdb.find_by_email(request.form.get('email2'))
         if (len(rows) > 0):
@@ -345,13 +362,13 @@ def renew_id():
     n = request.args["id"]
     print(n, file=sys.stdout)
     if(n is not None):
-        mem = MemberDb(db)
-        m = mem.find_by_id(n)
+        #mem = MemberDb(db)
+        m = mdb.find_by_id(n)
         current_reg.set_registration(m)
         if(m["fam"] is None):
             return render_template("register.html")
         else:
-            rows = mem.find_by_fam(m["fam"])
+            rows = mdb.find_by_fam(m["fam"])
             return render_template("register.html", rows=rows)
 
 

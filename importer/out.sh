@@ -1,27 +1,27 @@
 #!/bin/sh
 
 #wid=`xdotool search --name "Membership Project: Register"`
-xdotool windowactivate 52428803
-xdotool type "Emily"
+xdotool windowactivate 71303171
+xdotool type "Edmond"
 xdotool key Tab
-xdotool type "Hernandez"
+xdotool type "Guthrie"
 xdotool key Tab
-xdotool type "1110"
+xdotool type "4854"
 xdotool key space
-xdotool type "Camden"
+xdotool type "Woodhill"
 xdotool key space
-xdotool type "Street"
+xdotool type "Avenue"
 xdotool key space
 xdotool key Tab
-xdotool type "Reno"
+xdotool type "Baltimore"
 xdotool key Tab
-xdotool type "NV"
+xdotool type "MD"
 xdotool key Tab
-xdotool type "89501"
+xdotool type "21201"
 xdotool key Tab
-xdotool type "EmilyCHernandez@dayrep.com"
+xdotool type "EdmondCGuthrie@fleckens.hu"
 xdotool key Tab
-xdotool type "775-297-2123"
+xdotool type "410-808-6996"
 xdotool key Tab
-xdotool type "02041984"
+xdotool type "06221984"
 xdotool key Tab

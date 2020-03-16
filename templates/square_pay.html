@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Sample Payment Form</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends "layout.html" %}
+{% block title %}
+    Payment Form
+{% endblock %}
 
+{% block script %}
     <!-- link to the SqPaymentForm library -->
-    <script type="text/javascript" src={{ payment_form_url }}></script>
+    <script type="text/javascript" src={{ paydict['pay_url'] }}></script>
 
     <script type="application/javascript">
-        window.applicationId = '{{ app_id }}';
-        window.locationId = '{{ location_id }}';
+        window.applicationId = '{{ paydict['app_id'] }}';
+        window.locationId = '{{ paydict['location_id'] }}';
     </script>
 
     <!-- link to the local SqPaymentForm initialization -->
@@ -19,9 +17,42 @@
 
     <!-- link to the custom styles for SqPaymentForm -->
     <link rel="stylesheet" type="text/css" href="static/sq-payment-form.css">
-  </head>
+{% endblock %}
 
-  <body>
+{% block main %}
+  <div class="row table_head border">
+    <div class="col-md">
+      <strong>Item</strong>
+    </div>
+    <div class="col-md">
+      Quanity
+    </div>
+    <div class="col-md">
+<!--        square takes payment as int of pennies-->
+      <strong>Amount each</strong>
+    </div>
+    <div class="col-md">
+      <strong>Amount</strong>
+    </div>
+  </div>
+
+  {% for row in rows %}
+    <div class="row table_row border border-top-0">
+      <div class="col-md">
+        {{ row['name'] }}
+      </div>
+      <div class="col-md">
+        {{ row['quantity'] }}
+      </div>
+      <div class="col-md">
+<!--        square takes payment as int of pennies-->
+        {{ row['amount']/100 }}
+      </div>
+      <div class="col-md">
+        {{ row['quantity'] * row['amount']/100 }}
+      </div>
+    </div>
+  {% endfor %}
     <!-- Begin Payment Form -->
     <div class="sq-payment-form">
       <!--
@@ -68,7 +99,7 @@
           </div>
           <div class="sq-field">
             <button id="sq-creditcard" class="sq-button" onclick="onGetCardNonce(event)">
-              Pay $1.00 Now
+              Pay Now
             </button>
           </div>
           <!--
@@ -80,5 +111,4 @@
       </div>
     </div>
     <!-- End Payment Form -->
-</body>
-</html>
+{% endblock %}

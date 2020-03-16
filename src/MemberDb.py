@@ -8,12 +8,13 @@ import uuid
 
 
 class MemberDb:
-    def __init__(self, db):
+    def __init__(self, db, project_directory):
         self.db = db
         self.mem = {}
         self.email_sent = False
-        d = os.path.dirname(os.path.realpath(__file__))
-        self.project_directory = os.path.dirname(d)
+        # d = os.path.dirname(os.path.realpath(__file__))
+        # self.project_directory = os.path.dirname(d)
+        self.project_directory = project_directory
 
 
     def add(self, family):
@@ -165,7 +166,7 @@ class MemberDb:
 
         # TODO change this back
         # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
-        Email().send_mail("sam.amundson@gmailcom", subject, msg)
+        Email(self.project_directory).send_mail("sam.amundson@gmailcom", subject, msg)
 
     def send_renewal(self, row):
         row["renew_code"] = self.randomString()

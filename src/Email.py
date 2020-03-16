@@ -8,8 +8,8 @@ from Config import Config
 
 
 class Email:
-    def __init__(self):
-        cfg = Config().get_smtp()
+    def __init__(self, project_directory):
+        cfg = Config(project_directory).get_smtp()
         self.server = cfg["server"]
         self.user = cfg["user"]
         self.password = cfg["password"]

@@ -123,7 +123,7 @@ class square_handler:
         line_items[0]['base_price_money'] = {}
         line_items[0]['base_price_money']['amount'] = price * 100
         line_items[0]['base_price_money']['currency'] = 'USD'
-
-        redirect_url = f'{self.site}/pay_success'
-        return self.order(str(mem['pay_code']), line_items, mem['email'], redirect_url)
+        return line_items
+        # redirect_url = f'{self.site}/pay_success'
+        # return self.order(str(mem['pay_code']), line_items, mem['email'], redirect_url)
 

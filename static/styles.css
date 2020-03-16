@@ -46,6 +46,10 @@ main img
     /* constrain images on small screens */
     max-width: 100%;
 }
+.table_head
+{
+
+}
 /*body
 {
     background-color:Black;

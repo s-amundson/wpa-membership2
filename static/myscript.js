@@ -12,7 +12,7 @@ function allnumeric(inputtxt) {
 }
 
 function checkValidation() {
-    let v = true;
+    let v = true
     let l = ["first_name", "last_name", "street", "city", "state"]
     for (var i = 0; i < l.length; i++) {
         if(reg_check(l[i]) == false) {

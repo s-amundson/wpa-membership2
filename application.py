@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import date
+import uuid
 
 from flask import Flask, jsonify, redirect, render_template, request, session
 from flask_session import Session
@@ -106,6 +107,7 @@ def email_verify():
             session['mem_id'] = mem['id']
             session['renew'] = False
             session['line_items'] = square.purchase_membership(mem, False)
+            session['description'] = 'membership'
 
 
 
@@ -150,18 +152,15 @@ def joad_registration():
                 mdb.joad_register()
                 if(joad_session is not "None"):
                     reg = JoadSessions(db).session_registration(row['id'])
-                    p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
-                    PayLogHelper(db).add_square_payment(p, row['id'], f"joad session {joad_session}")
+                    session['line_items'] = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                    session['description'] = 'JOAD Session' + joad_session
+                    return redirect('process_payment')
+                    # p = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                    # PayLogHelper(db).add_square_payment(p, row['id'], f"joad session {joad_session}")
+                    #
+                    # print(s)
+                    # return redirect(p["checkout"]['checkout_page_url'])
 
-                    # make link for testing purposes
-                    s = f"http://127.0.0.1:5000/pay_success?checkoutId={p['checkout']['id']}" \
-                        f"&referenceId={p['checkout']['order']['reference_id']}" \
-                        f"&transactionId={p['checkout']['order']['id']}"
-
-                    print(s)
-                    return redirect(p["checkout"]['checkout_page_url'])
-                    #purchase_joad_sesion(self, idempotency_key, date, email):
-                    # if mdb.joad_register(js):
                     #     return render_template("success.html", message="Thank you for registering")  # TODO change this
         return render_template(("joad_registration.html"))
 
@@ -207,17 +206,20 @@ def pin_shoot():
         ps.set_dict(psd)
         psd["stars"] = ps.calculate_pins()
         ps.record_shoot()
-        plh = PayLogHelper(db)
-        pay_log = plh.create_entry("", "Pin Shoot")
-        print(pay_log)
-        p = square.purchase_joad_pin_shoot(str(pay_log['idempotency_key']), psd["shoot_date"], '', psd["stars"])
-        plh.update_payment(p, pay_log["id"])
+        # plh = PayLogHelper(db)
+        # pay_log = plh.create_entry("", "Pin Shoot")
+        ik = str(uuid.uuid4())
+        # print(pay_log)
+
+        session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], '', psd["stars"])
+        session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
+        # plh.update_payment(p, pay_log["id"])
         return redirect(p["checkout"]['checkout_page_url'])
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
 def process_payment():
-    import uuid
+
     print(f"process_payment method = {request.method}")
     square_cfg = cfg.get_square()
     paydict = {}
@@ -243,6 +245,20 @@ def process_payment():
         ik = str(uuid.uuid4())
         # TODO figure out how best to get the order information and process it.
         response = square.nonce(ik, nonce)
+        if 'mem_id' in session:
+            mem = mdb.find_by_id(session['mem_id'])
+            if mem["fam"] is None:
+                members = session['mem_id']
+            else:
+                members = ""
+                rows = mdb.find_by_fam(mem["fam"])
+                for row in rows:
+                    members = members + row['id']
+        description = ""
+        if 'description' in session:
+            description = session['description']
+        PayLogHelper.add_square_payment(response, members, description, ik)
+
         return redirect('/pay_success')
 
 @app.route(subdir + "/reg_values", methods=["GET"])

@@ -5,24 +5,24 @@ class PayLogHelper:
     def __init__(self, db):
         self.db = db
 
-    def add_square_payment(self, square_result, members, description):
+    def add_square_payment(self, square_result, members, description, idempotency_key):
         """Adds a record for a square payment if not already present. Returns the state of the payment.
         This is used to prevent double payment. """
-        checkout = square_result["checkout"]
-        order = checkout['order']
-        s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{order['id']}'"
+
+        print(f"PayLogHelper idempotency_key= {idempotency_key}, order_id= {square_result['order_id']}")
+        s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{square_result['id']}'"
         if len(self.db.execute(s)) == 0:
-            cd = dateutil.parser.parse(checkout['created_at']).strftime('%Y-%m-%d %H:%M:%S')
-            od = dateutil.parser.parse(order['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+            cd = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+            #od = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
 
             s = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
-                "order_id, order_create_time, location_id, state, total_money, description) VALUES ( "
+                "order_id, location_id, state, total_money, description) VALUES ( "
 
-            s += f"'{members}', '{cd}', '{checkout['id']}', '{order['id']}', " \
-                 f"'{od}', '{order['location_id']}', '{order['state']}', " \
-                 f"'{order['total_money']['amount']}', '{description}')"
+            s += f"'{members}', '{cd}', '{square_result['id']}', '{square_result['order_id']}', " \
+                 f"'{square_result['location_id']}', '{square_result['status']}', " \
+                 f"'{square_result['amount_money']['amount']}', '{description}')"
             self.db.execute(s)
-        return(order['state'])
+        return(square_result['status'])
 
     def create_entry(self, members, description):
         uid = uuid.uuid4()

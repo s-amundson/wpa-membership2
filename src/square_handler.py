@@ -73,8 +73,9 @@ class square_handler:
         line_items[0]['base_price_money'] = {}
         line_items[0]['base_price_money']['amount'] = 95 * 100
         line_items[0]['base_price_money']['currency'] = 'USD'
-        redirect_url = f'{self.site}/pay_success'
-        return self.order(idempotency_key, line_items, email,redirect_url)
+        return line_items
+        # redirect_url = f'{self.site}/pay_success'
+        # return self.order(idempotency_key, line_items, email,redirect_url)
 
     def purchase_joad_pin_shoot(self, idempotency_key, date, email, qty):
         print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, email = {email}")
@@ -92,9 +93,10 @@ class square_handler:
         line_items[1]['base_price_money'] = {}
         line_items[1]['base_price_money']['amount'] = 5 * 100 * qty
         line_items[1]['base_price_money']['currency'] = 'USD'
-        redirect_url = f'{self.site}/pay_success'
-        print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
-        return self.order(idempotency_key, line_items, email, redirect_url)
+        return line_items
+        # redirect_url = f'{self.site}/pay_success'
+        # print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
+        # return self.order(idempotency_key, line_items, email, redirect_url)
 
     def purchase_membership(self, mem, renew):
         if mem['benefactor']:

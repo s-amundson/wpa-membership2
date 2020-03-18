@@ -215,7 +215,8 @@ def pin_shoot():
         session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], '', psd["stars"])
         session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
         # plh.update_payment(p, pay_log["id"])
-        return redirect(p["checkout"]['checkout_page_url'])
+        return redirect('process_payment')
+        #return redirect(p["checkout"]['checkout_page_url'])
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
@@ -246,12 +247,15 @@ def process_payment():
         ik = str(uuid.uuid4())
         # TODO figure out how best to get the order information and process it.
         response = square.nonce(ik, nonce)
+        print(f"payment response = {response}")
+        if response is None:
+            return apology("payment processing error")
+        members = ""
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])
             if mem["fam"] is None:
                 members = session['mem_id']
             else:
-                members = ""
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
                     members = members + row['id']

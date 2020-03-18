@@ -171,25 +171,26 @@ def pay_success():
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
     # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
-    l = pay_log.update_payment_state(request.args)
-    if l['description'] == "membership":
-        l = l['members'].split(',')
-        # mdb = MemberDb(db)
-        mem = mdb.find_by_id(l[0])
-        mdb.set_member_pay_code_status(None, "member")
-        if mem["fam"] is None:
-            fam = ""
-            mdb.expire_update(mem)
-        else:
-            rows = mdb.find_by_fam(mem["fam"])
-            fam = ""
-            for row in rows:
-                fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+    #l = pay_log.update_payment_state(request.args)
+    if 'description' in session:
+        if session['description'] == "membership":
+            l = session['members'].split(',')
+            # mdb = MemberDb(db)
+            mem = mdb.find_by_id(l[0])
+            mdb.set_member_pay_code_status(None, "member")
+            if mem["fam"] is None:
+                fam = ""
                 mdb.expire_update(mem)
-        path = os.path.join(project_directory, "email_templates", "join.html")
-        mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
-    elif l['description'][0:len("joad session")] == "joad session":
-        JoadSessions(db).update_registration(l["members"], "paid", None)
+            else:
+                rows = mdb.find_by_fam(mem["fam"])
+                fam = ""
+                for row in rows:
+                    fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+                    mdb.expire_update(mem)
+            path = os.path.join(project_directory, "email_templates", "join.html")
+            mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
+        elif session['description'][0:len("joad session")] == "joad session":
+            JoadSessions(db).update_registration(session["members"], "paid", None)
     session.clear()
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
@@ -262,6 +263,7 @@ def process_payment():
         description = ""
         if 'description' in session:
             description = session['description']
+        session['members'] = members
         pay_log.add_square_payment(response, members, description, ik)
 
         return redirect('/pay_success')

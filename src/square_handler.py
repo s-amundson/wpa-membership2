@@ -42,6 +42,7 @@ class square_handler:
         elif api_response.is_error():
             res = "Exception when calling PaymentsApi->create_payment: {}".format(api_response.errors)
         print(res)
+        return res
 
     def order(self, idempotency_key, line_items, email, redirect_url):
         location_id = self.cfg["location_id"]

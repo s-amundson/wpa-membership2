@@ -96,7 +96,7 @@ def email_verify():
         #         return render_template("email_verified.html")
         #     else:
         #         return apology("Invalid Code")  # or email already validated
-        return render_template("email_verify.html", code=vcode, email=email)
+        return render_template("email_verify.html", vcode=vcode, email=email)
     else:  #method is POST
         #  mdb = MemberDb(db, project_directory)
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))

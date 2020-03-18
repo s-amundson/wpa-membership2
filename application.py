@@ -255,7 +255,7 @@ def process_payment():
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])
             if mem["fam"] is None:
-                members = session['mem_id']
+                members = str(session['mem_id'])
             else:
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:

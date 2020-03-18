@@ -18,21 +18,31 @@ class square_handler:
             environment=self.cfg["environment"],
         )
         self.checkout_api = self.client.checkout
-    def nonce(self, idempotency_key, nonce):
+    def nonce(self, idempotency_key, nonce, line_items):
         # Every payment you process with the SDK must have a unique idempotency key.
         # If you're unsure whether a particular payment succeeded, you can reattempt
         # it with the same idempotency key without worrying about double charging
         # the buyer.
         # idempotency_key = str(uuid.uuid1())
 
+        # get the amount form the line items
+        amt = 0
+        for line in line_items:
+            amt += line['base_price_money']['amount']
+
         # Monetary amounts are specified in the smallest unit of the applicable currency.
         # This amount is in cents. It's also hard-coded for $1.00, which isn't very useful.
-        amount = {'amount': 100, 'currency': 'USD'}
+        amount = {'amount': amt, 'currency': 'USD'}
 
         # To learn more about splitting payments with additional recipients,
         # see the Payments API documentation on our [developer site]
         # (https://developer.squareup.com/docs/payments-api/overview).
         body = {'idempotency_key': idempotency_key, 'source_id': nonce, 'amount_money': amount}
+
+        # not sure if line items belongs in nonce
+        body['order'] = {}
+        body['order']['reference_id'] = idempotency_key
+        body['order']['line_items'] = line_items
 
         # The SDK throws an exception if a Connect endpoint responds with anything besides
         # a 200-level HTTP code. This block catches any exceptions that occur from the request.

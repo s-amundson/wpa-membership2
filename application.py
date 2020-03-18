@@ -62,6 +62,7 @@ family = FamilyClass(dbfile)
 
 square = square_handler(cfg)
 mdb = MemberDb(db, project_directory)
+pay_log = PayLogHelper(db)
 
 
 @app.route(subdir + "/")
@@ -170,7 +171,7 @@ def pay_success():
     # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
     # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
 
-    l = PayLogHelper(db).update_payment_state(request.args)
+    l = pay_log.update_payment_state(request.args)
     if l['description'] == "membership":
         l = l['members'].split(',')
         # mdb = MemberDb(db)
@@ -257,7 +258,7 @@ def process_payment():
         description = ""
         if 'description' in session:
             description = session['description']
-        PayLogHelper.add_square_payment(response, members, description, ik)
+        pay_log.add_square_payment(response, members, description, ik)
 
         return redirect('/pay_success')
 

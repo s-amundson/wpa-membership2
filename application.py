@@ -78,6 +78,11 @@ def add():
     return apology("TODO")
 
 
+@app.route(subdir + "/cost_values", methods=["GET"])
+def cost_values():
+    return jsonify(cfg.get_costs())
+
+
 @app.route(subdir + "/email_verify", methods=["GET", "POST"]) # TODO update this to patch
 def email_verify():
     """verify the users email address with a code"""
@@ -130,6 +135,7 @@ def email_verify():
         # else:
         #     return apology("Invalid Code")  # or email already validated
 
+
 @app.route(subdir + "/joad_registration", methods=["GET", "POST"])
 def joad_registration():
     if(request.method == "GET"):
@@ -165,6 +171,7 @@ def joad_registration():
                     #     return render_template("success.html", message="Thank you for registering")  # TODO change this
         return render_template(("joad_registration.html"))
 
+
 @app.route(subdir + "/pay_success", methods=["GET"])
 def pay_success():
 
@@ -198,26 +205,28 @@ def pay_success():
 @app.route(subdir + "/pin_shoot", methods=["GET", "POST"])
 def pin_shoot():
     if(request.method == "GET"):
-        return render_template("pin_shoot.html")
+        return render_template("pin_shoot.html", date=date.today())
     else:
-        """ Get values, caculate pins, """
+        """ Get values, calculate pins, """
         ps = PinShoot(db)
         psd = ps.get_dict()
         for k,v in psd.items():
             psd[k] = request.form.get(k)
         ps.set_dict(psd)
-        psd["stars"] = ps.calculate_pins()
+        stars = ps.calculate_pins() - int(psd['prev_stars'])
+        print(f"psd['stars'] = {psd['stars']}, stars = {stars}")
+        if stars < 0:
+            stars = 0
         ps.record_shoot()
         # plh = PayLogHelper(db)
         # pay_log = plh.create_entry("", "Pin Shoot")
         ik = str(uuid.uuid4())
         # print(pay_log)
 
-        session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], '', psd["stars"])
+        session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], stars)
         session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
         # plh.update_payment(p, pay_log["id"])
         return redirect('process_payment')
-        #return redirect(p["checkout"]['checkout_page_url'])
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
@@ -239,7 +248,9 @@ def process_payment():
         if 'line_items' in session:
             # line_items = session['line_items']
             for row in session['line_items']:
-                d = {'name': row['name'], 'quantity': int(row['quantity']), 'amount': row['base_price_money']['amount']}
+                d = {'name': row['name'], 'quantity': int(row['quantity']),
+                     'amount': int(row['base_price_money']['amount'])}
+                print(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
                 rows.append(d)
         return render_template("square_pay.html", paydict=paydict, rows=rows)
     elif request.method == 'POST':
@@ -292,7 +303,9 @@ def register():
                "fam": family.fam_id}
         return reg
     if(request.method == "GET"):
-        return render_template("register.html")
+        jsdb = JoadSessions(db)
+        js = jsdb.list_open()
+        return render_template("register.html", rows=js)
     else:  # method is POST
         #mdb = MemberDb(db)
         mem_id = session.get('mem_id', None)

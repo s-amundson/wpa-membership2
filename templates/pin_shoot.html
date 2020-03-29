@@ -1,4 +1,7 @@
 {% extends "layout.html" %}
+{% block script %}
+<!--    <script src="static/pin_shoot.js"></script>-->
+{% endblock %}
 
 {% block title %}
     Register
@@ -23,24 +26,27 @@
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <input autocomplete="off" class="form-control m-2" name="club" placeholder="Club"
-                           type="text" onchange="reg_check('club')" id="street" size="45" >
-                    <input autocomplete="off" class="form-control m-2" name="shoot_date" placeholder="Shoot Date"
+                    <input autocomplete="off" class="form-control m-2" name="club" placeholder="Club (optional)"
+                           type="text" id="club" size="45" >
+                    <label for="shoot_date">Shoot Date:</label>
+                    <input autocomplete="off" class="form-control m-2" name="shoot_date" placeholder={{date}}
                            type="date" id="shoot_date" onchange="reg_check('shoot_date')">
+
                 </div>
         </div>
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <select name="category" id="category" class="m-2" onchange="select_check(document.form1.category)">
+                    <select name="category" id="category" class="m-2">
                         <option value="joad_indoor" selected>JOAD Indoor</option>
-                        <option value="joad_outdoor">JOAD Outdoor</option>
+<!--                        <option value="joad_outdoor">JOAD Outdoor</option>-->
 <!--                        <option value="adult_indoor">Adult Indoor</option>-->
 <!--                        <option value="adult_outdoor">Adult Outdoor</option>-->
                     </select>
 
                     <select name="bow" id="bow" class="m-2" onchange="select_check(document.form1.bow)">
-                        <option value="barebow" selected>Barebow/Basic Compound/Traditional</option>
+                        <option value="invalid" selected disabled>Bow Class</option>
+                        <option value="barebow" >Barebow/Basic Compound/Traditional</option>
                         <option value="olympic">Olympic Recurve</option>
                         <option value="compound">Compound</option>
                     </select>
@@ -50,17 +56,20 @@
         <div class="row">
             <div class="input-group input-group-md">
                 <select name="target" id="target" class="m-2" onchange="select_check(document.form1.target)">
-                    <option value="60" selected>60 Centimeter</option>
+                    <option value="invalid" selected disabled>Target</option>
+                    <option value="60">60 Centimeter</option>
                     <option value="40">40 Centimeter</option>
                 </select>
 
                 <select name="distance" id="distance" class="m-2" onchange="select_check(document.form1.distance)">
-                    <option value="9" selected>9 Meter</option>
+                    <option value="invalid" selected disabled>Distance</option>
+                    <option value="9">9 Meter</option>
                     <option value="18">18 Meter</option>
                 </select>
 
-                <select name="stars" id="stars" class="m-2" onchange="select_check(document.form1.stars)">
-                    <option value=0 selected disabled>Pins Earned</option>
+                <select name="prev_stars" id="prev_stars" class="m-2" onchange="select_check(document.form1.prev_stars)">
+                    <option value="invalid" selected disabled>Pins Earned</option>
+                    <option value=0>0</option>
                     <option value=1>1</option>
                     <option value=2>2</option>
                     <option value=3>3</option>
@@ -72,17 +81,20 @@
         </div>
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="wpa_membership_number" placeholder="Membership Number"
-                       type="text"  id="wpa_membership_number" maxlength="6" onchange="reg_check('wpa_membership_number')">
+                <input autocomplete="off"  class="form-control m-2" name="wpa_membership_number"
+                       placeholder="Membership Number" type="text"  id="wpa_membership_number" maxlength="6"
+                       onchange="membership_number(document.form1.wpa_membership_number)">
+
                 <input autocomplete="off"  class="form-control m-2" name="score" placeholder="Score" type="text"
-                       id="score" size="10" onchange="zip_check(document.form1.score)">
+                       id="score" size="10" onchange="checkValidation()">
             </div>
         </div>
         <div class="row">
                 <button class="btn btn-primary m-2" type="submit" id="submit">Submit </button>
         </div>
     </form>
+<script src="static/pin_shoot.js"></script>
+<!--<script src="static/main.js"></script>-->
 
-<!--<script src="static/reg_script.js"></script>-->
 
 {% endblock %}

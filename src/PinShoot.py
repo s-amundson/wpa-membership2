@@ -2,7 +2,7 @@ class PinShoot:
     def __init__(self, db):
         self.db = db
         self.ps_dict = {'first_name': '', 'last_name': '', 'club': '', 'category': '', 'bow': '',
-                        'shoot_date': '', 'distance': '', 'target': '', 'star_achievement': '',
+                        'shoot_date': '', 'distance': '', 'target': '', 'prev_stars': '', 'stars': '',
                         'wpa_membership_number': '', 'score': 0}
         if self.db is None:
             print(self.calculate_pins())
@@ -210,11 +210,11 @@ class PinShoot:
         if m == "":
             m = None
         s = f"INSERT INTO `pin_shoot` (`first_name`, `last_name`, `club`, `category`, `bow`, " \
-            f"`shoot_date`, `distance`, `target`, `stars`, `wpa_membership_number`, `score`) VALUES (" \
+            f"`shoot_date`, `distance`, `target`, `prev_stars`, `stars`, `wpa_membership_number`, `score`) VALUES (" \
             f"'{self.ps_dict['first_name']}', '{self.ps_dict['last_name']}', '{self.ps_dict['club']}', " \
             f"'{self.ps_dict['category']}', '{self.ps_dict['bow']}', '{self.ps_dict['shoot_date']}', " \
-            f"'{self.ps_dict['distance']}', '{self.ps_dict['target']}', '{self.ps_dict['stars']}', " \
-            f" %s, '{self.ps_dict['score']}')"
+            f"'{self.ps_dict['distance']}', '{self.ps_dict['target']}', '{self.ps_dict['prev_stars']}'," \
+            f"'{self.ps_dict['stars']}', %s, '{self.ps_dict['score']}')"
 
         self.db.execute(s, (m,))
 

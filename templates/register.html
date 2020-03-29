@@ -75,11 +75,11 @@
             <div class="input-group input-group-md" id="dob_div">
 
                 <label for="dob">Date of Birth:</label>
-                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date" id="dob" onchange="reg_check('dob')">
+                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date" id="dob" onchange="dob_check('dob')">
             </div>
             <div class="input-group input-group-md">
                 <label for="level">Membersip Level:</label>
-                <select name="level" id="level" class="m-2" onchange="select_check(document.form1.level)">
+                <select name="level" id="level" class="m-2" onchange="reg_level_check(document.form1.level)">
                     <option value="level" selected disabled>Membership Level</option>
                     <option value="standard">Standard</option>
                     <option value="family">Family</option>
@@ -91,17 +91,45 @@
         </div>
 
         <div class="row">
+            <div class="input-group input-group-md">
+                <label for="joad">Select a start date to register for a JOAD Session:</label>
+                    <select name="level" id="joad" class="m-2" onchange="calculate_cost()">
+                        <option value="None" selected >None</option>
+                        {% for row in rows %}
+                            <option value={{row["start_date"]}}>{{row["start_date"]}}</option>
+                        {% endfor %}
+                    </select>
+                <label></label>
+            </div>
+        </div>
+<!--        <div class="row">-->
+<!--            <div class="input-group input-group-md">-->
+<!--                <label class="custom-control-label" for="session">Select a start date to register for a JOAD Session $95</label>-->
+<!--                <select name="session" id="session" class="form-control m-2 custom-control-input">-->
+<!--                    <option value="None" selected >None</option>-->
+<!--                    {% for row in rows %}-->
+<!--                        <option value={{row["start_date"]}}>{{row["start_date"]}}</option>-->
+<!--                    {% endfor %}-->
+<!--                </select>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <div class="row">
             <div class="custom-control custom-checkbox m-3">
                 <input class="form-control m-2 custom-control-input" name="benefactor" type="checkbox" id="benefactor" onchange="checkValidation()">
                 <label class="custom-control-label" for="benefactor">Benefactor</label>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" >
             <div class="custom-control custom-checkbox m-3">
                 <input class="form-control m-2 custom-control-input" name="terms" type="checkbox" id="terms" onchange="checkValidation()">
                 <label class="custom-control-label" for="terms">I agree to the terms and conditions</label>
             </div>
+        </div>
+
+        <div class="row" >
+            <h3 id="cost">Total Cost:</h3>
         </div>
 
         <div class="row">
@@ -113,7 +141,7 @@
 
 
 
-<script src="static/reg_script.js"></script>
+<script src="static/register.js"></script>
 
 {% endblock %}
 

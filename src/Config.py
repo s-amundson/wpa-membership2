@@ -1,7 +1,9 @@
 import configparser
 import os
 
+
 class Config:
+
     def __init__(self, project_directory):
         self.cfg = configparser.ConfigParser()
         self.cfg.read(os.path.join(project_directory, "static", "settings.cfg"))
@@ -9,12 +11,17 @@ class Config:
         print(self.sections)
 
 
+    def get_costs(self):
+        costs = {}
+        for key in self.cfg["costs"]:
+            costs[key] = int(self.cfg["costs"][key])
+        return costs
+
     def get_database(self):
         database = {}
         for key in self.cfg["database"]:
             database[key] = self.cfg["database"][key]
         return database
-
 
     def get_smtp(self):
         email = {}

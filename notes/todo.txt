@@ -2,11 +2,11 @@ ToDo
 integrate with wordpress perhaps sub-folder
 periodic checks - send renewal notices
 
-joad registration on membership registration with a checkbox
+
 maybe square payment order status and idempotency_key in pay log and insert pay log id in membership, JOAD Reg, and other tables
 remove current_reg from application.py put in session
 
-Check pin shoot payment redirect_url. square gave a 404 message
+subtract cost of pins already earned
 disable JOAD membership if dob is over 21
 
 

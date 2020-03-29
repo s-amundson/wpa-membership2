@@ -8,6 +8,7 @@ class square_handler:
         # Get config settings
         self.cfg = cfg.get_square()
         self.site = cfg.get_site()['site']
+        self.costs = cfg.get_costs()
 
         # Create an instance of the API Client
         # and initialize it with the credentials
@@ -31,7 +32,6 @@ class square_handler:
             amt += line['base_price_money']['amount']
 
         # Monetary amounts are specified in the smallest unit of the applicable currency.
-        # This amount is in cents. It's also hard-coded for $1.00, which isn't very useful.
         amount = {'amount': amt, 'currency': 'USD'}
 
         # To learn more about splitting payments with additional recipients,
@@ -82,28 +82,29 @@ class square_handler:
         line_items[0]['name'] = f"JOAD Session {date}"
         line_items[0]['quantity'] = '1'
         line_items[0]['base_price_money'] = {}
-        line_items[0]['base_price_money']['amount'] = 95 * 100
+        line_items[0]['base_price_money']['amount'] = self.costs['joad_session'] * 100
         line_items[0]['base_price_money']['currency'] = 'USD'
         return line_items
         # redirect_url = f'{self.site}/pay_success'
         # return self.order(idempotency_key, line_items, email,redirect_url)
 
-    def purchase_joad_pin_shoot(self, idempotency_key, date, email, qty):
-        print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, email = {email}")
+    def purchase_joad_pin_shoot(self, idempotency_key, date, qty):
+        print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, qty = {qty}")
         line_items = []
         line_items.append({})
         line_items[0]['name'] = f"JOAD Pin Shoot {date}"
         line_items[0]['quantity'] = '1'  # string?
         line_items[0]['base_price_money'] = {}
-        line_items[0]['base_price_money']['amount'] = 15 * 100
+        line_items[0]['base_price_money']['amount'] = self.costs['pin_shoot'] * 100
         line_items[0]['base_price_money']['currency'] = 'USD'
 
-        line_items.append({})
-        line_items[1]['name'] = f"JOAD Pins {date}"
-        line_items[1]['quantity'] = str(qty)  # string?
-        line_items[1]['base_price_money'] = {}
-        line_items[1]['base_price_money']['amount'] = 5 * 100 * qty
-        line_items[1]['base_price_money']['currency'] = 'USD'
+        if qty > 0:
+            line_items.append({})
+            line_items[1]['name'] = f"JOAD Pins {date}"
+            line_items[1]['quantity'] = str(qty)  # string?
+            line_items[1]['base_price_money'] = {}
+            line_items[1]['base_price_money']['amount'] = self.costs['joad_pin'] * 100 * qty
+            line_items[1]['base_price_money']['currency'] = 'USD'
         return line_items
         # redirect_url = f'{self.site}/pay_success'
         # print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
@@ -111,17 +112,17 @@ class square_handler:
 
     def purchase_membership(self, mem, renew):
         if mem['benefactor']:
-            price = 100
+            price = self.costs['standard_membership']
             mem['level'] = "benefactor"
         else:
             if mem['level'] == "standard":
-                price = 20
+                price = self.costs['standard_membership']
             elif mem['level'] == "family":
-                price = 40
+                price = self.costs['family_membership']
             elif mem['level'] == "joad":
-                price = 18
+                price = self.costs['joad_membership']
             elif mem['level'] == "senior":
-                price = 18
+                price = self.costs['senior_membership']
             else:
                 return None
 

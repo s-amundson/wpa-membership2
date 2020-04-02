@@ -162,6 +162,7 @@ class MemberDb:
         # self.set_pay_code()
         if "renew_code" in self.mem:
             msg = msg.replace("RENEW", self.mem["renew_code"])
+            msg = msg.replace("EXPIRE", self.mem["exp_date"])
         msg = msg.replace("FAMILY", fam)
 
         # TODO change this back

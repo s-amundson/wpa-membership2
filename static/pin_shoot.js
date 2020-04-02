@@ -25,8 +25,11 @@ function checkValidation() {
             v = false;
         }
     }
-
+    if (shoot_date_check == false) {
+        v = false;
+    }
     l = ['category', 'bow', 'target', 'distance', 'prev_stars'];
+
     for (var i = 0; i < l.length; i++) {
         if (select_check(document.getElementById(l[i])) == false) {
             v = false;
@@ -66,3 +69,20 @@ function pin_select_check (in_select) {
     }
 }
 
+function shoot_date_check (input) {
+    var i = document.getElementById(input)
+    if (i.value == '') {
+        i.style = 'border: 3px solid Tomato;';
+        return false
+    } else {
+        var sd = new Date(i.value);
+        if (sd > new Date()){
+            i.style = 'border: 3px solid Tomato;';
+            alert('Shoot Date cannot be in future');
+            return false
+        } else {
+            i.style = 'border: 3px solid Green;'
+            return true
+        }
+    }
+}

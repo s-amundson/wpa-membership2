@@ -3,8 +3,10 @@ function reg_check (input) {
     var i = document.getElementById(input)
     if (i.value == '') {
         i.style = 'border: 3px solid Tomato;';
+        return false;
     } else {
-        i.style = 'border: 3px solid Green;'
+        i.style = 'border: 3px solid Green;';
+        return true;
     }
 }
 

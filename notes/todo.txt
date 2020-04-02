@@ -2,12 +2,11 @@ ToDo
 integrate with wordpress perhaps sub-folder
 periodic checks - send renewal notices
 
+ineligible for renewal if expire date > 1 year + current date
 
 maybe square payment order status and idempotency_key in pay log and insert pay log id in membership, JOAD Reg, and other tables
 remove current_reg from application.py put in session
 
-subtract cost of pins already earned
-disable JOAD membership if dob is over 21
 
 
 Wish Lists:

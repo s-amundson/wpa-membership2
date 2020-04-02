@@ -19,6 +19,9 @@ from square_handler import square_handler
 from PayLogHelper import PayLogHelper
 from JoadSessions import JoadSessions
 from Config import Config
+from Upkeep import Upkeep
+
+
 
 # Configure application
 app = Flask(__name__)
@@ -56,7 +59,7 @@ Session(app)
 dbfile = "data.db"
 db = DbHelper(cfg)
 
-
+Upkeep(db, project_directory)
 current_reg = CurrentRegistration()
 family = FamilyClass(dbfile)
 

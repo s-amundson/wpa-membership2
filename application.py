@@ -261,7 +261,7 @@ def process_payment():
         # environment = square_cfg['environment']
         ik = str(uuid.uuid4())
         # TODO figure out how best to get the order information and process it.
-        response = square.nonce(ik, nonce)
+        response = square.nonce(ik, nonce, session['line_items'])
         print(f"payment response = {response}")
         if response is None:
             return apology("payment processing error")

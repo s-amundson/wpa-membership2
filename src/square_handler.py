@@ -112,7 +112,7 @@ class square_handler:
 
     def purchase_membership(self, mem, renew):
         if mem['benefactor']:
-            price = self.costs['standard_membership']
+            price = self.costs['benefactor']
             mem['level'] = "benefactor"
         else:
             if mem['level'] == "standard":
@@ -130,9 +130,9 @@ class square_handler:
 
         line_items.append({})
         if renew:
-            line_items[0]['name'] = f"{mem['level']} Membership Renewal"
+            line_items[0]['name'] = f"{str(mem['level']).capitalize()} Membership Renewal"
         else:
-            line_items[0]['name'] = f"{mem['level']} Membership"
+            line_items[0]['name'] = f"{str(mem['level']).capitalize()} Membership"
         line_items[0]['quantity'] = '1'
         line_items[0]['base_price_money'] = {}
         line_items[0]['base_price_money']['amount'] = price * 100

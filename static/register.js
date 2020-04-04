@@ -12,6 +12,38 @@ try {
     document.getElementById("joad_div").style.display = 'block';
 } catch (err) {}
 
+function dob_check (input) {
+    var i = document.getElementById(input)
+    if (i.value == '') {
+        i.style = 'border: 3px solid Tomato;';
+    } else {
+        if (input == 'dob'){
+            var bd = new Date(i.value);
+            var joad_date = new Date();
+            var senior_date = new Date();
+
+            joad_date.setFullYear(joad_date.getFullYear() - 21);
+            senior_date.setFullYear(senior_date.getFullYear() - 55)
+            console.log(senior_date);
+            if (bd > joad_date && bd < new Date()) {
+                console.log("Eligable for JOAD");
+                joad_enable(true);
+                level_enable(false, "senior");
+
+            } else if (bd <= senior_date) {
+                console.log("Senior");
+                joad_enable(false);
+                level_enable(true, "senior");
+            } else {
+                console.log("Standard and family only");
+                joad_enable(false);
+                level_enable(false, "senior");
+            }
+        }
+        i.style = 'border: 3px solid Green;'
+    }
+}
+
 var costs = {}
 $.get('/cost_values', function (data) {
     costs = data;
@@ -23,7 +55,11 @@ function calculate_cost() {
     if(document.getElementById("benefactor").checked) {
         price = parseInt(costs.benefactor)
     } else {
-        price = parseInt(costs[document.getElementById("level").value + "_membership"])
+        if(document.getElementById("level").value == "invalid") {
+            price = "Invalid Membership Level"
+        } else {
+            price = parseInt(costs[document.getElementById("level").value + "_membership"])
+        }
     }
     console.log("joad select = " + document.getElementById("joad").value)
     if(document.getElementById("joad").value != "None") {
@@ -84,7 +120,12 @@ function joad_enable(enable_value){
 //    for (let el of document.querySelectorAll('.joad')) el.style.visibility = vis;
 }
 function level_enable (enable_value, level){
+    if(document.getElementById("level").value == level) {
+        document.getElementById("level").value = "invalid";
+        calculate_cost();
+    }
     var op = document.getElementById("level").getElementsByTagName("option");
+
 
     for (var i = 0; i < op.length; i++) {
         var op_level =  op[i].value.toLowerCase()
@@ -94,37 +135,7 @@ function level_enable (enable_value, level){
         }
     }
 }
-function dob_check (input) {
-    var i = document.getElementById(input)
-    if (i.value == '') {
-        i.style = 'border: 3px solid Tomato;';
-    } else {
-        if (input == 'dob'){
-            var bd = new Date(i.value);
-            var joad_date = new Date();
-            var senior_date = new Date();
 
-            joad_date.setFullYear(joad_date.getFullYear() - 21);
-            senior_date.setFullYear(senior_date.getFullYear() - 55)
-            console.log(senior_date);
-            if (bd > joad_date && bd < new Date()) {
-                console.log("Eligable for JOAD");
-                joad_enable(true);
-                level_enable(false, "senior");
-
-            } else if (bd <= senior_date) {
-                console.log("Senior");
-                joad_enable(false);
-                level_enable(true, "senior");
-            } else {
-                console.log("Standard and family only");
-                joad_enable(false);
-                level_enable(false, "senior");
-            }
-        }
-        i.style = 'border: 3px solid Green;'
-    }
-}
 
 function phone_check (inputText) {
     var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im

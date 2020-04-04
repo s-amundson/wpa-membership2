@@ -333,6 +333,8 @@ def register():
             mdb.setbyDict(reg)
             if(mdb.checkInput()):
                 reg["id"] = mdb.add(family)
+                if(reg['level'] == "invalid"):
+                    return apology("Error in form", 200)
                 if(family.fam_id is None):  # not a family registration
                     current_reg.set_registration(None)
                     # if(mem['level'] == "joad"):

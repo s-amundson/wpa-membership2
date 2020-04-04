@@ -38,7 +38,7 @@ class MemberDb:
                     self.mem["fam"]))[0]["email_code"]
         else:
             self.mem["email_code"] = self.randomString()
-        print("Bennefactor {}".format(self.mem["benefactor"]))
+
         if self.mem["benefactor"] is None:
             self.mem["benefactor"] = 0
         else:

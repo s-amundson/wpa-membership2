@@ -174,6 +174,8 @@ class MemberDb:
         self.mem = row
         path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
         self.send_email(path, "Membership Renewal Notice")
+        self.mem['email_code'] = row["renew_code"]
+        self.db.execute(f"UPDATE member SET `email_code` = %s where `id` = %s", (self.mem['email_code'], self.mem['id']))
 
     def setbyDict(self, mydict):
         self.mem = mydict
@@ -226,6 +228,10 @@ class MemberDb:
         #     "benefactor, fam, email_code, reg_date, exp_date) VALUES ( "
         s = f"UPDATE member SET "
         update_required = False
+        if reg['dob'] == '':
+            reg['dob'] = self.mem['dob']
+        if reg['benefactor'] is None:
+            reg['benefactor'] = 0
         print(f"MemberDb.update_record s = {reg}")
         for k, v in reg.items():
             if self.mem[k] != v:

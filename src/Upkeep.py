@@ -6,7 +6,7 @@ from MemberDb import MemberDb
 
 class Upkeep:
     def __init__(self, db, project_directory):
-        self.print("upkeep __init__")
+        print("upkeep __init__")
         self.db = db
         # self.project_directory = project_directory
         self.member = MemberDb(db, project_directory)

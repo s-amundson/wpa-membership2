@@ -119,6 +119,7 @@ function joad_enable(enable_value){
     }
 //    for (let el of document.querySelectorAll('.joad')) el.style.visibility = vis;
 }
+
 function level_enable (enable_value, level){
     if(document.getElementById("level").value == level) {
         document.getElementById("level").value = "invalid";
@@ -135,7 +136,6 @@ function level_enable (enable_value, level){
         }
     }
 }
-
 
 function phone_check (inputText) {
     var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
@@ -204,16 +204,10 @@ $.get('/reg_values', function (data) {
     for (i = 0; i < l.length; i += 1) {
       console.log(l[i])
       console.log(typeof data[l[i]])
-//      if (l[i] == 'benefactor') {
-//        //                        document.getElementById("debugtext").innerHTML = document.form1.benefactor.value
-//        document.getElementById('benefactor').checked = document.form1.benefactor.value
-//      }
+
       if (l[i] == 'dob') {
         console.log("in dob");
-        // document.getElementById('debugtext').innerHTML = dob.toISOString().substring(0, 10);
-        // document.form1.dob.value = dob.toISOString().substring(0, 10)
         document.getElementById("dob_div").style.display = 'none';
-//        document.getElementById("dob").style.display = 'none';
         document.getElementById("dob").value = dob.toISOString().substring(0,10);
         console.log(document.getElementById("dob").value);
       }
@@ -233,5 +227,6 @@ $.get('/reg_values', function (data) {
       // TODO add for DOB
       document.getElementById(l[i]).value = data[l[i]]
     }
+    calculate_cost();
   }
 })

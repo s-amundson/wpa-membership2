@@ -206,7 +206,8 @@ class MemberDb:
         else:
             members += f"{self.mem['id']}"
 
-        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members.strip(", "), description)
+        pay_status = PayLogHelper(self.db).add_square_payment(square_result, members.strip(", "), description,
+                                                              self.mem['pay_code'])
         if pay_status == "OPEN":
             self.set_member_pay_code_status(self.mem['pay_code'], 'payment pending')
         elif pay_status == 'COMPLETED':

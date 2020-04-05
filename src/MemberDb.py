@@ -4,6 +4,7 @@ import string
 import random
 from Email import Email
 from PayLogHelper import PayLogHelper
+from datetime import date
 import uuid
 
 
@@ -170,12 +171,21 @@ class MemberDb:
         Email(self.project_directory).send_mail("sam.amundson@gmailcom", subject, msg)
 
     def send_renewal(self, row):
-        row["renew_code"] = self.randomString()
+        d = date.today()
+        d = d.replace(year=d.year + 1)
         self.mem = row
-        path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
-        self.send_email(path, "Membership Renewal Notice")
-        self.mem['email_code'] = row["renew_code"]
-        self.db.execute(f"UPDATE member SET `email_code` = %s where `id` = %s", (self.mem['email_code'], self.mem['id']))
+        if d > row['exp_date']:  # can renew
+            self.mem["renew_code"] = self.randomString()
+
+            path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
+            self.send_email(path, "Membership Renewal Notice")
+            self.mem['email_code'] = row["renew_code"]
+            self.db.execute(f"UPDATE member SET `email_code` = %s where `id` = %s",
+                            (self.mem['email_code'], self.mem['id']))
+        else:
+            self.mem["renew_code"] = "None"
+            path = os.path.join(self.project_directory, "email_templates", "renew_invalid.html")
+            self.send_email(path, "Membership Renewal Notice")
 
     def setbyDict(self, mydict):
         self.mem = mydict
@@ -224,8 +234,7 @@ class MemberDb:
             self.set_member_pay_code_status(self.mem['pay_code'], 'payment canceled')
 
     def update_record(self, reg):
-        # s = "INSERT INTO member (first_name, last_name, street,  " \
-        #     "benefactor, fam, email_code, reg_date, exp_date) VALUES ( "
+
         s = f"UPDATE member SET "
         update_required = False
         if reg['dob'] == '':
@@ -240,13 +249,4 @@ class MemberDb:
         if update_required:
             s = s[:-2] + f"WHERE id = {self.mem['id']}"
             print(f"MemberDb.update_record s = {s}")
-
-
-        # `fist_name` = '{self.mem['first_name']}', `last_name` = '{self.mem['last_name']}', " \
-        #     f"`street` = {self.mem['street']}`city` = , `state`, `zip`, `phone`, `email`, `dob`, `level`,"
-        # self.db.execute("{} '{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{},{},'{}', CURDATE(), CURDATE())".format(
-        #     s, ,
-        #     , , self.mem['city'],
-        #     self.mem["state"], self.mem["zip"], self.mem["phone"], self.mem["email"], self.mem["dob"],
-        #     self.mem["level"], self.mem["benefactor"], fam, self.mem["email_code"]))
-
+            self.db.execute(s)

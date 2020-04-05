@@ -9,7 +9,6 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 # from werkzeug.security import check_password_hash, generate_password_hash
 from DbHelper import DbHelper
-from CurrentRegistration import CurrentRegistration
 from PinShoot import PinShoot
 
 from helpers import apology, login_required
@@ -60,11 +59,10 @@ dbfile = "data.db"
 db = DbHelper(cfg)
 
 # Start the upkeep thread for renewals
-# upkeep_stopFlag = Event()
-upkeep = Upkeep(db, project_directory)
-# upkeep.start()
+if cfg.get_site()['site'] != "http://127.0.0.1:5000":
+    upkeep = Upkeep(db, project_directory)
 
-# current_reg = CurrentRegistration()
+
 family = FamilyClass(dbfile)
 
 square = square_handler(cfg)
@@ -107,8 +105,6 @@ def email_verify():
     else:  #method is POST
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
         return payment(mem)
-
-
 
 
 @app.route(subdir + "/joad_registration", methods=["GET", "POST"])
@@ -156,10 +152,6 @@ def kill():
 @app.route(subdir + "/pay_success", methods=["GET"])
 def pay_success():
 
-    # http: // www.example.com / order - complete?checkoutId = xxxxxx & orderId = xxxxxx & referenceId = xxxxxx & transactionId = xxxxxx
-    # https://wp3.amundsonca.com/?checkoutId=CBASEO3ShiHBS717uF3w9fMkzmE&page_id=9&referenceId=reference_id&transactionId=DotaTob7qJzQe1Ndj5jsUnmt3d4F
-
-    #l = pay_log.update_payment_state(request.args)
     if 'description' in session:
         if session['description'][:len("membership")] == "membership":
             l = session['members'].split(',')
@@ -175,8 +167,14 @@ def pay_success():
                 for row in rows:
                     fam += f"{row['first_name']}'s membership number is {row['id']} \n"
                     mdb.expire_update(mem)
-            path = os.path.join(project_directory, "email_templates", "join.html")
+
+            if session.get('renew', False) is True:
+                path = os.path.join(project_directory, "email_templates", "renew.html")
+            else:
+                path = os.path.join(project_directory, "email_templates", "join.html")
+
             mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
+
         elif session['description'][0:len("joad session")] == "joad session":
             JoadSessions(db).update_registration(session["members"], "paid", None)
     session.clear()
@@ -315,37 +313,18 @@ def register():
             mem = mdb.find_by_id(mem_id)
             mdb.update_record(form_data())
             return payment(mem)
-            # mem['pay_code'] = mdb.set_pay_code()
-            # p = square.purchase_membership(mem, session.get('renew', False))
-            # if p is not None:
-            #     # TODO does email verify process payment this way?
-            #     mdb.square_payment(p, "membership")
-            #     return redirect(p["checkout"]['checkout_page_url'])
-            #
-            # print(f"session sid = {session.sid}, ")
-            # session['registration'] = None
-            # #current_reg.set_registration(None)
-            # session.clear()
-            # return redirect('/')
-        else:
 
+        else:
             reg = form_data()
-            # current_reg.set_registration(reg)
             mdb.setbyDict(reg)
             if(mdb.checkInput()):
                 reg["id"] = mdb.add(family)
                 if(reg['level'] == "invalid"):
                     return apology("Error in form", 200)
                 if(family.fam_id is None):  # not a family registration
-                    #current_reg.set_registration(None)
                     session['registration'] = None
-                    # if(mem['level'] == "joad"):
-                    #     return render_template("joad_add.html")
                     return redirect("/")
                 else:
-                    # print("current_reg = {}".format(current_reg.get_registration()))
-                    # app.logger.info(f"current_reg = {current_reg.get_registration()}")
-                    # if current_reg.get_registration() is None:
                     if session.get("registration", None) is None:
                         path = os.path.join(project_directory, "email_templates", "verify.html")
                         mdb.send_email(path, "Email Verification Code")
@@ -353,7 +332,6 @@ def register():
                     reg["last_name"] = ""
                     reg["dob"] = ""
                     session['registration'] = reg
-                    # current_reg.set_registration(reg)
                     print("family.members={}".format(family.members), file=sys.stdout)
                     return render_template("register.html", rows=family.members)
             else:
@@ -404,7 +382,6 @@ def renew_id():
         #mem = MemberDb(db)
         m = mdb.find_by_id(n)
         session["registration"] = m
-        # current_reg.set_registration(m)
         if(m["fam"] is None):
             return render_template("register.html")
         else:
@@ -415,7 +392,6 @@ def renew_id():
 @app.route(subdir + "/reset", methods=["GET", "POST"])
 def reset():
     family.clear()
-    # current_reg.set_registration(None)
     session["registration"] = None
     # Redirect user to home page
     return redirect("/")

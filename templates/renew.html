@@ -9,10 +9,12 @@
     <form action="/renew" method="post" class="form" name="form1" onsubmit="return checkValidation(document.form1)">
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"  id="email" size="100"  onchange="ValidateEmail(document.form1.email)" value={{ email }}>
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"
+                       id="email" size="100"  onchange="renew_ValidateEmail(document.form1.email)" value={{ email }}>
             </div>
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="vcode" placeholder="Code" type="text"  id="vcode" size="100" onchange="reg_check('rcode')" value={{ renew_code }}>
+                <input autocomplete="off"  class="form-control m-2" name="vcode" placeholder="Code" type="text"
+                       id="vcode" size="100" onchange="renew_reg_check('vcode')" value={{ renew_code }}>
             </div>
         </div>
 
@@ -26,7 +28,8 @@
     <form action="/renew_code" method="post" class="form" name="form2" onsubmit="return checkValidation()">
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email2" placeholder="Email" type="text"  id="email2" size="100"  onchange="ValidateEmail(document.form2.email2)">
+                <input autocomplete="off"  class="form-control m-2" name="email2" placeholder="Email" type="text"
+                       id="email2" size="100"  onchange="renew_ValidateEmail(document.form2.email2)">
             </div>
         </div>
 

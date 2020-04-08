@@ -4,7 +4,7 @@
 function checkValidation(form) {
     // TODO get form elemets and check
 }
-function reg_check(input) {
+function renew_reg_check(input) {
     let i = document.getElementById(input);
     if(i.value == "") {
         i.style = "border: 3px solid Tomato;";
@@ -18,7 +18,7 @@ function reg_check(input) {
     }
 }
 
-function ValidateEmail(inputText) {
+function renew_ValidateEmail(inputText) {
     var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if(inputText.value.match(mailformat)) {
         inputText.style = "border: 3px solid Green;";
@@ -27,7 +27,7 @@ function ValidateEmail(inputText) {
             document.getElementById("renew2").focus();
         }
         if(inputText.name == "email") {
-            if(document.getElementById("rcode").value != ""){
+            if(document.getElementById("vcode").value != ""){
                 document.getElementById("renew").disabled = false;
                 document.getElementById("renew").focus();
             }

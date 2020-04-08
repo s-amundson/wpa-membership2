@@ -6,7 +6,7 @@ ineligible for renewal if expire date > 1 year + current date
 
 maybe square payment order status and idempotency_key in pay log and insert pay log id in membership, JOAD Reg, and other tables
 
-
+fix joad session in registration, check in joad registration.
 
 Wish Lists:
     cart shopping

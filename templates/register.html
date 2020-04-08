@@ -93,9 +93,9 @@
         <div class="row">
             <div class="input-group input-group-md">
                 <label for="joad">Select a start date to register for a JOAD Session:</label>
-                    <select name="level" id="joad" class="m-2" onchange="calculate_cost()">
+                    <select name="joad" id="joad" class="m-2" onchange="calculate_cost()">
                         <option value="None" selected >None</option>
-                        {% for row in rows %}
+                        {% for row in joad_sessions %}
                             <option value={{row["start_date"]}}>{{row["start_date"]}}</option>
                         {% endfor %}
                     </select>

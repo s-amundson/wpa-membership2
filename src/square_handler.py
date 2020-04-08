@@ -110,7 +110,7 @@ class square_handler:
         # print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
         # return self.order(idempotency_key, line_items, email, redirect_url)
 
-    def purchase_membership(self, mem, renew):
+    def purchase_membership(self, mem, renew, joad_sessions=0, joad_date=""):
         if mem['benefactor']:
             price = self.costs['benefactor']
             mem['level'] = "benefactor"
@@ -137,6 +137,14 @@ class square_handler:
         line_items[0]['base_price_money'] = {}
         line_items[0]['base_price_money']['amount'] = price * 100
         line_items[0]['base_price_money']['currency'] = 'USD'
+
+        if joad_sessions > 0:
+            line_items.append({})
+            line_items[1]['name'] = f"JOAD Session {joad_date}"
+            line_items[1]['quantity'] = str(joad_sessions)
+            line_items[1]['base_price_money'] = {}
+            line_items[1]['base_price_money']['amount'] = self.costs['joad_session'] * 100 * joad_sessions
+            line_items[1]['base_price_money']['currency'] = 'USD'
         return line_items
         # redirect_url = f'{self.site}/pay_success'
         # return self.order(str(mem['pay_code']), line_items, mem['email'], redirect_url)

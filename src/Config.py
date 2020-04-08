@@ -8,8 +8,6 @@ class Config:
         self.cfg = configparser.ConfigParser()
         self.cfg.read(os.path.join(project_directory, "static", "settings.cfg"))
         self.sections = self.cfg.sections()
-        print(self.sections)
-
 
     def get_costs(self):
         costs = {}

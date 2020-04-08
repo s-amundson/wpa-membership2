@@ -2,8 +2,7 @@
 try {
     document.getElementById("reg").disabled = true;
 } catch (err) {}
-//document.getElementById("debugtext").innerHTML = document.form1.benefactor.checked
-//if(document.form1.level.value != "family") {
+
 try {
     document.form2.style.display = "none";
 } catch (err) {}
@@ -51,24 +50,25 @@ $.get('/cost_values', function (data) {
 
 function calculate_cost() {
     var price = 0;
-
-    if(document.getElementById("benefactor").checked) {
-        price = parseInt(costs.benefactor)
+    console.log(costs.family_total)
+    if (costs.family_total != null){
+        price = parseInt(costs.family_total);
+    } else if(document.getElementById("benefactor").checked) {
+        price = parseInt(costs.benefactor);
     } else {
         if(document.getElementById("level").value == "invalid") {
-            price = "Invalid Membership Level"
+            price = "Invalid Membership Level";
         } else {
-            price = parseInt(costs[document.getElementById("level").value + "_membership"])
+            price = parseInt(costs[document.getElementById("level").value + "_membership"]);
         }
     }
-    console.log("joad select = " + document.getElementById("joad").value)
+    console.log("joad select = " + document.getElementById("joad").value);
     if(document.getElementById("joad").value != "None") {
-        price += parseInt(costs["joad_session"])
+        price += parseInt(costs["joad_session"]);
     }
-    document.getElementById("cost").innerHTML = "Total Cost: " + price
+    document.getElementById("cost").innerHTML = "Total Cost: " + price;
 }
 function checkValidation(reg_type) {
-    document.getElementById('debugtext').innerHTML = reg_type;
     var v = true;
     var l = ['first_name', 'last_name', 'street', 'city', 'state'];
     if (reg_type == 'joad') {
@@ -105,7 +105,6 @@ function checkValidation(reg_type) {
 }
 
 function joad_enable(enable_value){
-    console.log("enable value" + enable_value)
     // Get all options within <select id='foo'>...</select>
     level_enable(enable_value, "joad");
     var vis = "hidden";
@@ -117,7 +116,6 @@ function joad_enable(enable_value){
 //        document.getElementById("joad_div").style.display = 'none';
         document.getElementById("joad").disabled = true
     }
-//    for (let el of document.querySelectorAll('.joad')) el.style.visibility = vis;
 }
 
 function level_enable (enable_value, level){
@@ -150,7 +148,6 @@ function phone_check (inputText) {
 }
 
 function reg_level_check (in_select) {
-    console.log('select_check')
     calculate_cost();
     if (in_select.value === 'level') {
         in_select.style = 'border: 3px solid Tomato;'
@@ -170,18 +167,6 @@ function reg_level_check (in_select) {
     }
 }
 
-//function ValidateEmail (inputText) {
-//  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-//  if (inputText.value.match(mailformat)) {
-//    inputText.style = 'border: 3px solid Green;'
-//    return true
-//  } else {
-//    //        alert("You have entered an invalid email address!");
-//    inputText.style = 'border: 3px solid Tomato;'
-//    document.form1.email.focus();
-//    return false
-//  }
-//}
 function zip_check (in_zip) {
   if (/^\d{5}(-\d{4})?$/.test(in_zip.value)) {
     in_zip.style = 'border: 3px solid Green;'
@@ -198,22 +183,17 @@ $.get('/reg_values', function (data) {
   if (data != null) {
     var dob = new Date(data.dob)
     var i = 0
-    console.log(typeof 'dob')
-    //            document.getElementById("debugtext").innerHTML = dob.toISOString().substring(0,10);
     var l = ['first_name', 'last_name', 'street', 'city', 'state', 'zip', 'email', 'phone', 'dob', 'level', 'benefactor']
     for (i = 0; i < l.length; i += 1) {
-      console.log(l[i])
-      console.log(typeof data[l[i]])
-
       if (l[i] == 'dob') {
         console.log("in dob");
-        document.getElementById("dob_div").style.display = 'none';
-        document.getElementById("dob").value = dob.toISOString().substring(0,10);
-        console.log(document.getElementById("dob").value);
+        if (data.renewal == true) {
+            document.getElementById("dob_div").style.display = 'none';
+        }
       }
       if (l[i] == 'level') {
         if (data[l[i]] == 'family') {
-          document.getElementById('terms').checked = true
+//          document.getElementById('terms').checked = true
           $("select[name='level']").find('option').remove().end().append(
             "<option value='family'>Family</option>")
           //                                document.getElementById("level").remove().append(

@@ -139,9 +139,11 @@ class MemberDb:
 
     def joad_register(self):  #, session):
         """ Register a JOAD student and if session is not "None" register them for a joad session"""
-        s = f"SELECT `mem_id` from joad_registration where `mem_id` = {self.mem['id']}"
+        # s = f"SELECT `mem_id` from joad_registration where `mem_id` = {self.mem['id']}"
+        s = f"SELECT `mem_id` from joad_session_registration where `mem_id` = {self.mem['id']}"
         if len(self.db.execute(s)) == 0:
-            s = f"INSERT INTO joad_registration (mem_id) VALUES ({self.mem['id']})"
+            # s = f"INSERT INTO joad_registration (mem_id) VALUES ({self.mem['id']})"
+            s = f"INSERT INTO joad_session_registration (mem_id) VALUES ({self.mem['id']})"
             self.db.execute(s)
 
 

@@ -298,7 +298,7 @@ def register():
     if(request.method == "GET"):
         jsdb = JoadSessions(db)
         js = jsdb.list_open()
-        return render_template("register.html", rows=js)
+        return render_template("register.html", rows=[], joad_sessions=js)
     else:  # method is POST
         mem_id = session.get('mem_id', None)
         jsdb = JoadSessions(db)

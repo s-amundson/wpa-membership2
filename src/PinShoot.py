@@ -1,4 +1,6 @@
 class PinShoot:
+    """This class is to record a pin shoot record. Calculates the pins based off of target size, distance,
+    bow class and score"""
     def __init__(self, db):
         self.db = db
         self.ps_dict = {'first_name': '', 'last_name': '', 'club': '', 'category': '', 'bow': '',
@@ -8,12 +10,10 @@ class PinShoot:
             print(self.calculate_pins())
 
     def calculate_pins(self):
+        """Calculates the pins based off of target size, distance, bow class and score"""
         distance = int(self.ps_dict['distance'])
         target = int(self.ps_dict['target'])
         score = int(self.ps_dict['score'])
-
-        print(f"target = {target} {type(target)}, distance = {distance} {type(distance)}, "
-              f"category = {self.ps_dict['category']}, bow = {self.ps_dict['bow']} score = {score}")
 
         star_achievement = 0
         if self.ps_dict['category'] == 'joad_indoor':
@@ -202,10 +202,11 @@ class PinShoot:
         return star_achievement
 
     def get_dict(self):
+        """Returns a dict of the record"""
         return self.ps_dict
 
     def record_shoot(self):
-        # log information into database
+        """logs the shoot information into database"""
         m = self.ps_dict['wpa_membership_number']
         if m == "":
             m = None
@@ -219,9 +220,5 @@ class PinShoot:
         self.db.execute(s, (m,))
 
     def set_dict(self, d):
+        """Sets the dict values"""
         self.ps_dict = d
-
-# calculate_pins(psd['category'], psd['bow'], psd['target'], psd['distance'], psd['score'])
-
-if __name__ == '__main__':
-    PinShoot(None)

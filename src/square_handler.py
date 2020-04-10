@@ -27,9 +27,12 @@ class square_handler:
         # idempotency_key = str(uuid.uuid1())
 
         # get the amount form the line items
+        # also get line item name and add to notes
         amt = 0
+        note = ""
         for line in line_items:
-            amt += line['base_price_money']['amount']
+            amt += line['base_price_money']['amount'] * int(line['quantity'])
+            note += f" {line['name']},"
 
         # Monetary amounts are specified in the smallest unit of the applicable currency.
         amount = {'amount': amt, 'currency': 'USD'}
@@ -43,6 +46,7 @@ class square_handler:
         body['order'] = {}
         body['order']['reference_id'] = idempotency_key
         body['order']['line_items'] = line_items
+        body['note'] = note
 
         # The SDK throws an exception if a Connect endpoint responds with anything besides
         # a 200-level HTTP code. This block catches any exceptions that occur from the request.

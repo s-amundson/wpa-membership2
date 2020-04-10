@@ -1,5 +1,3 @@
-//document.getElementById("renew").disabled = true;
-//document.getElementById("renew2").disabled = true;
 
 function checkValidation(form) {
     // TODO get form elemets and check

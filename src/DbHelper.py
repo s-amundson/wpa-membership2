@@ -3,13 +3,14 @@ import pymysql
 from Config import Config
 
 class DbHelper:
+    """Class to connect to the database and execute statements"""
     def __init__(self, cfg):
         self.cfg = cfg.get_database() #Config().get_database()
         self.connect()
 
 
     def connect(self):
-        # Open database connection
+        """Open database connection"""
 
         self.db = pymysql.connect(self.cfg["server"], self.cfg["user"], self.cfg["password"], self.cfg["db"])
 
@@ -19,6 +20,7 @@ class DbHelper:
 
 
     def execute(self, statement, args=None):  # to pass None as args use (None,)
+        """To execute a statement. Commits changes immediately after execution"""
         rows = []
         try:
             print(f"DbHelper {statement}, args={args}")
@@ -39,7 +41,3 @@ class DbHelper:
         except pymysql.err.ProgrammingError as e:
             print("DbHelper Error: {}".format(e))
         return rows
-
-
-if __name__ == '__main__':
-    DbHelper()

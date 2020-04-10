@@ -8,6 +8,7 @@ from Config import Config
 
 
 class Email:
+    """ Class for sending out emails using Gmail"""
     def __init__(self, project_directory):
         cfg = Config(project_directory).get_smtp()
         self.server = cfg["server"]
@@ -16,7 +17,7 @@ class Email:
 
 
     def send_mail(self, toaddr, subject, body, attach_path=None, attach_filename=None):
-
+        "Send an email"
         # instance of MIMEMultipart
         msg = MIMEMultipart()
 

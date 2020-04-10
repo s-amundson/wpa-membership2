@@ -22,14 +22,14 @@ CREATE TABLE `joad_registration` (
   UNIQUE INDEX `mem_id_UNIQUE` (`mem_id` ASC)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-DROP TABLE IF EXISTS `joad_session_registration`;
-CREATE TABLE `mem2`.`joad_session_registration` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE `joad_session_registration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `mem_id` int(11) NOT NULL,
   `pay_status` varchar(20) DEFAULT NULL,
   `pay_code` varchar(45) DEFAULT NULL,
+  `session_date` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `joad_sessions`;
 CREATE TABLE `mem2`.`joad_sessions` (

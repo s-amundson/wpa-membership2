@@ -9,22 +9,21 @@ class PayLogHelper:
         """Adds a record for a square payment if not already present. Returns the state of the payment.
         This is used to prevent double payment. """
 
-        print(f"PayLogHelper idempotency_key= {idempotency_key}, order_id= {square_result['order_id']}")
-        s = f"SELECT * FROM payment_log WHERE `checkout_id` = '{square_result['id']}'"
-        if len(self.db.execute(s)) == 0:
+        sql = f"SELECT * FROM payment_log WHERE `checkout_id` = '{square_result['id']}'"
+        if len(self.db.execute(sql)) == 0:
             cd = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
-            #od = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
 
-            s = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
+            sql = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
                 "order_id, location_id, state, total_money, description) VALUES ( "
 
-            s += f"'{members}', '{cd}', '{square_result['id']}', '{square_result['order_id']}', " \
+            sql += f"'{members}', '{cd}', '{square_result['id']}', '{square_result['order_id']}', " \
                  f"'{square_result['location_id']}', '{square_result['status']}', " \
                  f"'{square_result['amount_money']['amount']}', '{description}')"
-            self.db.execute(s)
+            self.db.execute(sql)
         return(square_result['status'])
 
     def create_entry(self, members, description):
+        """Creates a log entry and returns the entry"""
         uid = uuid.uuid4()
         s = f"INSERT INTO payment_log (members, description, idempotency_key) VALUES " \
             f"('{members}', '{description}', '{str(uid)}')"
@@ -36,6 +35,7 @@ class PayLogHelper:
             return None
 
     def update_payment(self, square_result, record_id):
+        """Updates a log entry"""
         checkout = square_result["checkout"]
         order = checkout['order']
 
@@ -56,37 +56,3 @@ class PayLogHelper:
         s = f"SELECT * from payment_log WHERE `checkout_id` = '{args['checkoutId']}' and " \
             f"order_id = '{args['transactionId']}'"
         return self.db.execute(s)[0]
-
-
-        # c = {'checkout': {'ask_for_shipping_address': False,
-        #                   'checkout_page_url': 'https://connect.squareupsandbox.com/v2/checkout?c=CBASEKv2-G2nf8jv3eGAsP-64gI&l=SVM1F73THA9W6',
-        #                   'created_at': '2020-02-14T04:53:20Z',
-        #                   'id': 'CBASEKv2-G2nf8jv3eGAsP-64gI',
-        #                   'order': {'created_at': '2020-02-14T04:53:20.702Z',
-        #                             'id': '3m76uzYoU3w86U7HKKUGvIJtGi4F',
-        #                             'line_items': [{'base_price_money': {'amount': 20, 'currency': 'USD'},
-        #                                             'gross_sales_money': {'amount': 20, 'currency': 'USD'},
-        #                                             'name': 'standard Membership', 'quantity': '1',
-        #                                             'total_discount_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'total_money': {'amount': 20, 'currency': 'USD'},
-        #                                             'total_tax_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'uid': 'WDLQfGW9zePThccjk5KnP',
-        #                                             'variation_total_price_money': {'amount': 20, 'currency': 'USD'}}],
-        #                             'location_id': 'SVM1F73THA9W6',
-        #                             'net_amounts': {'discount_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'service_charge_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'tax_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'tip_money': {'amount': 0, 'currency': 'USD'},
-        #                                             'total_money': {'amount': 20, 'currency': 'USD'}},
-        #                             'reference_id': 'reference_id',
-        #                             'source': {'name': 'Sandbox for sq0idp-HSmCO3CJMh-XD_fhwK6EFg'},
-        #                             'state': 'OPEN',
-        #                             'total_discount_money': {'amount': 0, 'currency': 'USD'},
-        #                             'total_money': {'amount': 20, 'currency': 'USD'},
-        #                             'total_service_charge_money': {'amount': 0, 'currency': 'USD'},
-        #                             'total_tax_money': {'amount': 0, 'currency': 'USD'},
-        #                             'total_tip_money': {'amount': 0, 'currency': 'USD'},
-        #                             'updated_at': '2020-02-14T04:53:20.702Z', 'version': 1
-        #                             }
-        #                   }
-        #      }

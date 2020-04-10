@@ -3,7 +3,7 @@ from Config import Config
 
 
 class square_handler:
-
+    """Helper class for handling square payments"""
     def __init__(self, cfg):
         # Get config settings
         self.cfg = cfg.get_square()
@@ -19,7 +19,10 @@ class square_handler:
             environment=self.cfg["environment"],
         )
         self.checkout_api = self.client.checkout
+
+
     def nonce(self, idempotency_key, nonce, line_items):
+        """Process payment with squares nonce"""
         # Every payment you process with the SDK must have a unique idempotency key.
         # If you're unsure whether a particular payment succeeded, you can reattempt
         # it with the same idempotency key without worrying about double charging
@@ -58,28 +61,29 @@ class square_handler:
         print(res)
         return res
 
-    def order(self, idempotency_key, line_items, email, redirect_url):
-        location_id = self.cfg["location_id"]
-        body = {}
-        body['idempotency_key'] = str(idempotency_key)
-        body['order'] = {}
-        body['order']['reference_id'] = str(idempotency_key)
-        body['order']['line_items'] = line_items
-        if email is not None:
-            body['pre_populate_buyer_email'] = email
-        body['merchant_support_email'] = 'wpa4membership@gmail.com'
-        # TODO change redirect.
-        body['redirect_url'] = redirect_url
-
-        result = self.checkout_api.create_checkout(location_id, body)
-        if result.is_success():
-            # mem.square_payment(self, result)
-            return result.body
-        elif result.is_error():
-            print(result.errors)
-        return None
+    # def order(self, idempotency_key, line_items, email, redirect_url):
+    #     location_id = self.cfg["location_id"]
+    #     body = {}
+    #     body['idempotency_key'] = str(idempotency_key)
+    #     body['order'] = {}
+    #     body['order']['reference_id'] = str(idempotency_key)
+    #     body['order']['line_items'] = line_items
+    #     if email is not None:
+    #         body['pre_populate_buyer_email'] = email
+    #     body['merchant_support_email'] = 'wpa4membership@gmail.com'
+    #     # TODO change redirect.
+    #     body['redirect_url'] = redirect_url
+    #
+    #     result = self.checkout_api.create_checkout(location_id, body)
+    #     if result.is_success():
+    #         # mem.square_payment(self, result)
+    #         return result.body
+    #     elif result.is_error():
+    #         print(result.errors)
+    #     return None
 
     def purchase_joad_sesion(self, idempotency_key, date, email):
+        """Creates line items for JOAD session purchase"""
         print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, email = {email}")
         line_items = []
         line_items.append({})
@@ -93,9 +97,9 @@ class square_handler:
         # return self.order(idempotency_key, line_items, email,redirect_url)
 
     def purchase_joad_pin_shoot(self, idempotency_key, date, qty):
+        """Creates line items for JOAD pin shoot purchase"""
         print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, qty = {qty}")
-        line_items = []
-        line_items.append({})
+        line_items = [{}]
         line_items[0]['name'] = f"JOAD Pin Shoot {date}"
         line_items[0]['quantity'] = '1'  # string?
         line_items[0]['base_price_money'] = {}
@@ -110,11 +114,10 @@ class square_handler:
             line_items[1]['base_price_money']['amount'] = self.costs['joad_pin'] * 100 * qty
             line_items[1]['base_price_money']['currency'] = 'USD'
         return line_items
-        # redirect_url = f'{self.site}/pay_success'
-        # print(f"square_handler.purchase_joad_session line_items = {line_items}, url = {redirect_url}")
-        # return self.order(idempotency_key, line_items, email, redirect_url)
+
 
     def purchase_membership(self, mem, renew, joad_sessions=0, joad_date=""):
+        """Creates line items for membership that can include a JOAD session"""
         if mem['benefactor']:
             price = self.costs['benefactor']
             mem['level'] = "benefactor"
@@ -150,6 +153,3 @@ class square_handler:
             line_items[1]['base_price_money']['amount'] = self.costs['joad_session'] * 100 * joad_sessions
             line_items[1]['base_price_money']['currency'] = 'USD'
         return line_items
-        # redirect_url = f'{self.site}/pay_success'
-        # return self.order(str(mem['pay_code']), line_items, mem['email'], redirect_url)
-

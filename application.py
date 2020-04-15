@@ -73,7 +73,7 @@ pay_log = PayLogHelper(db)
 @app.route(subdir + "/")
 # @login_required
 def index():
-    return render_template("register.html")
+    return render_template("index.html")
 
 
 @app.route(subdir + "/cost_values", methods=["GET"])
@@ -257,11 +257,11 @@ def process_payment():
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])
             if mem["fam"] is None:
-                members = str(session['mem_id'])
+                members = f"{session['mem_id']}, "
             else:
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
-                    members = members + row['id']
+                    members = members + f"{row['id']}, "
         description = ""
         if 'description' in session:
             description = session['description']
@@ -321,7 +321,7 @@ def register():
 
                 # If a JOAD session was selected, check that the member is under 21,
                 # if so register them for a session.
-                if request.form.get('joad') is not None:
+                if request.form.get('joad') is not None or request.form.get('joad') is not "None":
                     d = request.form.get('dob').split('-')
                     if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
                         joad = JoadSessions(db).session_registration(reg['id'], request.form.get('joad'),

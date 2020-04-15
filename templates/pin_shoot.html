@@ -89,6 +89,15 @@
                        id="score" size="10" onchange="checkValidation()">
             </div>
         </div>
+        <div class="row pt-3">
+            Email is for confirmation of payment.
+        </div>
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"
+                       id="email" size="100" onchange="ValidateEmail(document.form1.email)">
+            </div>
+        </div>
         <div class="row">
                 <button class="btn btn-primary m-2" type="submit" id="submit">Submit </button>
         </div>

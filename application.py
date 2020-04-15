@@ -103,6 +103,10 @@ def email_verify():
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
         return payment(mem)
 
+@app.route(subdir + "/get_email", methods = ["GET"])
+def get_email():
+    return jsonify(session['email'])
+
 
 @app.route(subdir + "/joad_registration", methods=["GET", "POST"])
 def joad_registration():
@@ -190,6 +194,7 @@ def payment(mem):
 
         session['line_items'] = square.purchase_membership(mem, False, joad_sessions, session_date)
         session['description'] = 'membership'
+        session['email'] = mem['email']
         if session['line_items'] is None:
             return apology("payment error")
 
@@ -223,7 +228,7 @@ def pin_shoot():
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
-def process_payment():
+def process_payment():  # TODO add process payment js to get_email and form for email.
     """Shows a payment page for making purchases"""
     square_cfg = cfg.get_square()
     paydict = {}

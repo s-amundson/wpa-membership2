@@ -42,6 +42,9 @@ function checkValidation() {
             v = false;
         }
     }
+    if (ValidateEmail(document.form1.email) == false) {
+        v = false;
+    }
 
     if (v) {
         document.getElementById('submit').disabled = false;

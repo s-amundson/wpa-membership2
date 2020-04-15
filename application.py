@@ -73,7 +73,8 @@ pay_log = PayLogHelper(db)
 @app.route(subdir + "/")
 # @login_required
 def index():
-    return render_template("index.html")
+    # return render_template("index.html")
+    return redirect('/register')
 
 
 @app.route(subdir + "/cost_values", methods=["GET"])
@@ -134,7 +135,6 @@ def joad_registration():
                     return redirect('process_payment')
 
         return render_template(("joad_registration.html"))
-
 
 
 @app.route(subdir + "/pay_success", methods=["GET"])

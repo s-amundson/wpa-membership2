@@ -150,6 +150,6 @@ class square_handler:
             line_items[1]['name'] = f"JOAD Session {joad_date}"
             line_items[1]['quantity'] = str(joad_sessions)
             line_items[1]['base_price_money'] = {}
-            line_items[1]['base_price_money']['amount'] = self.costs['joad_session'] * 100 * joad_sessions
+            line_items[1]['base_price_money']['amount'] = self.costs['joad_session'] * 100
             line_items[1]['base_price_money']['currency'] = 'USD'
         return line_items

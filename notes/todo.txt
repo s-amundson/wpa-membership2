@@ -8,6 +8,8 @@ maybe square payment order status and idempotency_key in pay log and insert pay 
 
 fix joad session in registration, check in joad registration.
 
+check if member just added with same credientails before adding. to avoid accidental resubmission.
+
 Wish Lists:
     cart shopping
     JOAD attendance

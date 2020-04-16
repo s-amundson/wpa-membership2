@@ -169,6 +169,7 @@ def pay_success():
 
         elif session['description'][0:len("joad session")] == "joad session":
             JoadSessions(db).update_registration(session["members"], "paid", None)
+
     session.clear()
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
@@ -251,6 +252,11 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         return render_template("square_pay.html", paydict=paydict, rows=rows)
     elif request.method == 'POST':
         nonce = request.form.get('nonce')
+        if (mdb.isValidEmail(request.form.get('email'))):
+            session['email'] = request.form.get('email')
+        else:
+            session['email'] = None
+
         # environment = square_cfg['environment']
         ik = str(uuid.uuid4())
         # TODO figure out how best to get the order information and process it.

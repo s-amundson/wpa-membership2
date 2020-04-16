@@ -3,7 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-
+from flask import render_template
 from Config import Config
 
 
@@ -15,7 +15,9 @@ class Email:
         self.user = cfg["user"]
         self.password = cfg["password"]
 
-
+    def send_email(self, toaddr, subject, template, table_rows):
+        msg = render_template("email/purchase.html", rows=table_rows)
+        self.send_mail(toaddr, 'Pin Shoot Payment Confirmation', msg)
     def send_mail(self, toaddr, subject, body, attach_path=None, attach_filename=None):
         "Send an email"
         # instance of MIMEMultipart

@@ -1,7 +1,7 @@
 "use strict";
-try {
-    document.getElementById('submit').disabled = true;
-} catch (err) {}
+//try {
+//    document.getElementById('submit').disabled = true;
+//} catch (err) {}
 
 function all_numeric(input_txt) {
     var numbers = /^[0-9]+$/;

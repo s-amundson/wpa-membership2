@@ -20,6 +20,7 @@ from PayLogHelper import PayLogHelper
 from PinShoot import PinShoot
 from square_handler import square_handler
 from Upkeep import Upkeep
+from Email import Email
 
 
 # Configure application
@@ -68,6 +69,8 @@ square = square_handler(cfg)
 mdb = Member(db, project_directory)
 # PayLogHelper class is for logging payments.
 pay_log = PayLogHelper(db)
+# Email class for sending emails.
+email_helper = Email(project_directory)
 
 
 @app.route(subdir + "/")
@@ -212,7 +215,13 @@ def pin_shoot():
         return render_template("pin_shoot.html", date=date.today())
     else:
         """ Get values, calculate pins, """
-        ps = PinShoot(db)
+        if (mdb.isValidEmail(request.form.get('email'))):
+            session['email'] = request.form.get('email')
+        else:
+            session['email'] = None
+            return apology("Error in form", 200)
+
+        ps = PinShoot(db, project_directory)
         psd = ps.get_dict()
         for k,v in psd.items():
             psd[k] = request.form.get(k)
@@ -225,11 +234,25 @@ def pin_shoot():
 
         session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], stars)
         session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
+
         return redirect('process_payment')
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
 def process_payment():  # TODO add process payment js to get_email and form for email.
+    def table_rows():
+        rows = []
+        total = 0
+        if 'line_items' in session:
+            # line_items = session['line_items']
+            for row in session['line_items']:
+                d = {'name': row['name'], 'quantity': int(row['quantity']),
+                     'amount': int(row['base_price_money']['amount'])}
+                print(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
+                rows.append(d)
+                total += int(row['base_price_money']['amount'])
+
+        return rows, total
     """Shows a payment page for making purchases"""
     square_cfg = cfg.get_square()
     paydict = {}
@@ -241,25 +264,15 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             paydict['pay_url'] = "https://js.squareupsandbox.com/v2/paymentform"
         paydict['app_id'] = square_cfg['application_id']
         paydict['location_id'] = square_cfg['location_id']
-        rows = []
-        if 'line_items' in session:
-            # line_items = session['line_items']
-            for row in session['line_items']:
-                d = {'name': row['name'], 'quantity': int(row['quantity']),
-                     'amount': int(row['base_price_money']['amount'])}
-                print(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
-                rows.append(d)
-        return render_template("square_pay.html", paydict=paydict, rows=rows)
+        rows, total = table_rows()
+
+        return render_template("square_pay.html", paydict=paydict, rows=rows, total=total)
     elif request.method == 'POST':
         nonce = request.form.get('nonce')
-        if (mdb.isValidEmail(request.form.get('email'))):
-            session['email'] = request.form.get('email')
-        else:
-            session['email'] = None
+
 
         # environment = square_cfg['environment']
         ik = str(uuid.uuid4())
-        # TODO figure out how best to get the order information and process it.
         response = square.nonce(ik, nonce, session['line_items'])
         print(f"payment response = {response}")
         if response is None:
@@ -278,6 +291,12 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             description = session['description']
         session['members'] = members
         pay_log.add_square_payment(response, members, description, ik)
+        if description[:len("pin_shoot")] == 'pin_shoot':
+            email_helper.send_email(session['email'], 'Pin Shoot Payment Confirmation',
+                                                       "email/purchase.html", table_rows())
+        elif description[:len('JOAD Session')] == 'JOAD Session':
+            email_helper.send_email(session['email'], 'JOAD Session Payment Confirmation',
+                                                       "email/purchase.html", table_rows())
 
         return redirect('/pay_success')
 

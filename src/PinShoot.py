@@ -1,13 +1,16 @@
+from Email import Email
+from flask import render_template
 class PinShoot:
     """This class is to record a pin shoot record. Calculates the pins based off of target size, distance,
     bow class and score"""
-    def __init__(self, db):
+    def __init__(self, db, project_directory):
         self.db = db
         self.ps_dict = {'first_name': '', 'last_name': '', 'club': '', 'category': '', 'bow': '',
                         'shoot_date': '', 'distance': '', 'target': '', 'prev_stars': '', 'stars': '',
                         'wpa_membership_number': '', 'score': 0}
         if self.db is None:
             print(self.calculate_pins())
+        self.email_helper = Email(project_directory)
 
     def calculate_pins(self):
         """Calculates the pins based off of target size, distance, bow class and score"""

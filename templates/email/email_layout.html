@@ -4,28 +4,35 @@
     <meta charset="UTF-8">
     <style>
         table {
-          font-family: arial, sans-serif;
-          border-collapse: collapse;
-          font-color: black;
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            color: black;
+            margin: 10px;
         }
 
         td, th {
-          border: 1px solid #dddddd;
-          text-align: left;
-          padding: 8px;
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
         }
+
         p {
-        margin-bottom: 0in;
-        line-height: 100%;
-        align: left;
-        font-family: arial, sans-serif;
-        font-size: 14px;
-        font-color: black;
+            margin-bottom: 0in;
+            line-height: 100%;
+            align: left;
+            font-family: arial, sans-serif;
+    <!--        font-size: 14px;-->
+            color: black;
+            margin: 10px;
+        }
+
+        button {
+            margin: 10px;
         }
     </style>
 </head>
 <body>
-<img src="{{site}}/static/header.png" alt="WoodleyParkArchers.org">
+<img src="cid:header_img" alt="WoodleyParkArchers.org">
 {% block main %}{% endblock %}
 </body>
 </html>

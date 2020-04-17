@@ -289,13 +289,13 @@ def process_payment():  # TODO add process payment js to get_email and form for 
                 rows = mdb.find_by_fam(mem["fam"])
                 fam = ""
                 for row in rows:
-                    fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+                    fam += f"{row['first_name']}'s membership number is {row['id']} <br>"
                     mdb.expire_update(mem)
 
             if session.get('renew', False) is True:
                 # path = os.path.join(project_directory, "email_templates", "renew.html")
                 # TODO this is not the correct template for this.
-                email_helper.send_email(mem['email'], 'Renew', 'renew_code_email.html', table_rows(), mem, fam)
+                email_helper.send_email(mem['email'], 'Renew', 'email/join.html', table_rows(), mem, fam)
             else:
                 # path = os.path.join(project_directory, "email_templates", "join.html")
                 subject = 'Welcome To Wooldley Park Archers'
@@ -367,8 +367,10 @@ def register():
                     return redirect("/")
                 else:  # Family registration
                     if session.get("registration", None) is None:
-                        path = os.path.join(project_directory, "email_templates", "verify.html")
-                        mdb.send_email(path, "Email Verification Code")
+                        # path = os.path.join(project_directory, "email_templates", "verify.html")
+                        # mdb.send_email(path, "Email Verification Code")
+                        s = "Email Verification Code"
+                        email_helper.send_email(reg['email'], s, 'email/verify.html', mem=mdb.mem)
 
                     # Calculate the running cost for the membership with the possibility of adding JOAD sessions in.
                     costs = cfg.get_costs()
@@ -439,6 +441,15 @@ def reset():
     session.clear()
     # Redirect user to home page
     return redirect("/")
+
+
+@app.route(subdir + "/test_email", methods=["GET", "POST"])
+def test_email():
+    # email_helper.send_email("", "test join", 'email/verify.html')
+    # return redirect('/register')
+    mem = mdb.find_by_id(1)
+    mem['renew_code'] = mdb.randomString()
+    return email_helper.send_email("", "Renew", 'email/join.html', mem=mem)
 
 
 def errorhandler(e):

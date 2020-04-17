@@ -2,26 +2,26 @@
 
 #wid=`xdotool search --name "Membership Project: Register"`
 xdotool windowactivate 35651587
-xdotool type "Ruth"
+xdotool type "Irene"
 xdotool key Tab
-xdotool type "Johnson"
+xdotool type "Holloway"
 xdotool key Tab
-xdotool type "358"
+xdotool type "1140"
 xdotool key space
-xdotool type "Hall"
+xdotool type "Hamill"
 xdotool key space
-xdotool type "Street"
+xdotool type "Avenue"
 xdotool key space
 xdotool key Tab
-xdotool type "Las Vegas"
+xdotool type "San Diego"
 xdotool key Tab
-xdotool type "NV"
+xdotool type "CA"
 xdotool key Tab
-xdotool type "89101"
+xdotool type "92111"
 xdotool key Tab
-xdotool type "RuthSJohnson@gustr.com"
+xdotool type "IreneSHolloway@gustr.com"
 xdotool key Tab
-xdotool type "702-585-5660"
+xdotool type "858-227-7098"
 xdotool key Tab
-xdotool type "05081996"
+xdotool type "05261963"
 xdotool key Tab

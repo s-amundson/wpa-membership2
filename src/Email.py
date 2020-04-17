@@ -1,7 +1,9 @@
 import smtplib
+import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
 from email import encoders
 from flask import render_template
 from Config import Config
@@ -16,24 +18,30 @@ class Email:
         self.user = cfg["user"]
         self.password = cfg["password"]
         self.site = c.get_site()['site']
+        self.project_directory = project_directory
+        print(project_directory)
 
-    def send_email(self, toaddr, subject, template, table_rows=None, mem=None, fam=''):
-        user = {}
+    def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=''):
+        values = {'site': self.site, 'join':'joining'}
+        if subject == "Renew":
+            values['join'] = 'renewing with'
+            subject = 'Woodley Park Archers Renewal'
         if mem is not None:
-            user['name'] = mem["first_name"]
-            user['id'] = mem["id"]
-            user['email'] = mem["email"]
-            user['email_code'] = mem['email_code']
+            values['name'] = mem["first_name"]
+            values['id'] = mem["id"]
+            values['email'] = mem["email"]
+            values['email_code'] = mem['email_code']
             if "renew_code" in mem:
-                user['renew_code'] = mem['renew_code']
-                user['expire'] = mem["exp_date"].strftime("%d %B %Y")
-            user['fam'] = fam
-        total = 0
-        if table_rows is not None:
-            table_rows, total = table_rows
-        msg = render_template(template, rows=table_rows, total=total, user=user, site=self.site)
+                values['renew_code'] = mem['renew_code']
+                values['expire'] = mem["exp_date"].strftime("%d %B %Y")
+            values['fam'] = fam
+        values['total'] = 0
+        if len(table_rows) > 0:
+            table_rows, values['total'] = table_rows
+        msg = render_template(template, rows=table_rows, values=values)
+        # return msg
         # TODO change to toaddr when for production
-        self.send_mail('sam.amundson@gmail.com', subject, msg)
+        self.send_mail('sam.amundson@gmail.com', subject, msg) # , f"{self.project_directory}/static/header.png", "header.png")
 
     def send_mail(self, toaddr, subject, body, attach_path=None, attach_filename=None):
         "Send an email"
@@ -54,6 +62,13 @@ class Email:
 
         # # attach the body with the msg instance
         msg.attach(MIMEText(body, 'html'))
+
+        # Attach image
+        img = dict(title=u'Header', path=f"{self.project_directory}/static/header.png", cid='header_img')
+        with open(img['path'], 'rb') as file:
+            msg_image = MIMEImage(file.read(), name=os.path.basename(img['path']))
+            msg.attach(msg_image)
+        msg_image.add_header('Content-ID', "<header_img>")
         if attach_path is not None:
             # open the file to be sent
             # filename = "File_name_with_extension"
@@ -88,3 +103,9 @@ class Email:
 
         # terminating the session
         s.quit()
+
+
+if __name__ == '__main__':
+    project_directory = '/home/sam/PycharmProjects/wpa-membership2/'
+    e = Email(project_directory)
+    e.send_email("", "test join", 'templates/email/verify.html')

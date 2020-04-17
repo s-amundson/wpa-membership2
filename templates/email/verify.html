@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head></head>
-    <body>
+{% extends "email/email_layout.html" %}
+{% block main %}
         <p align="left" style="margin-bottom: 0in; line-height: 100%">
             <font face="Liberation Serif, serif" size="2" style="font-size: 11pt" color="black">
                     Hi {{ user['name'] }},<br>
@@ -11,11 +9,11 @@
             <font face="Liberation Serif, serif" size="2" style="font-size: 11pt" color="black">
                     Thank you for applying with Woodley Park Archers. Your member number is {user['id']}.
                 Your email verification code is <strong>{{ user['email_code'] }}</strong> please click below to complete your registration. localhost<br>
-                    <a href="http://wp3.amundsonca.com/email_verify?e={{user['email']}}&c={{user['email_code']}}">
+                    <a href="{{site}}/email_verify?e={{user['email']}}&c={{user['email_code']}}">
                          <button type="button">Complete Registration</button>
                     </a> <br>
 
-                    Or you can go to <a href="http://woodleyparkarchers.org/email_verify">WoodleyParkArchers.org/email_verify</a> and enter your code. <br>
+                    Or you can go to <a href="{{site}}/email_verify">WoodleyParkArchers.org/email_verify</a> and enter your code. <br>
             </font>
         </p>
         <p>
@@ -27,5 +25,4 @@
                     <br>
             </font>
         </p>
-    </body>
-</html>
+{% endblock %}

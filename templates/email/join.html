@@ -1,85 +1,64 @@
-<!DOCTYPE html>
-<head>
-    <style>
-        table {
-          font-family: arial, sans-serif;
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        td, th {
-          border: 1px solid #dddddd;
-          text-align: left;
-          padding: 8px;
-        }
-        p {
-        margin-bottom: 0in;
-        line-height: 100%;
-        align: left;
-        font-family: arial, sans-serif;
-        font-size: 14px;
-        }
-    </style>
-</head>
-<html>
+{% extends "email/email_layout.html" %}
+{% block main %}
     <p>
 
         Hi {{user['name']}},<br>
-        Thank you for joining Woodley Park Archers. Your member number is {{user['id']}}.
+        Thank you for joining Woodley Park Archers. Your member number is {{user['id']}}.<br>
         This email confirms your purchase and your membership.<br>
-            <table>
-                <tr>
-                    <th>
-                        Item
-                    </th>
-                    <th>
-                        Quantity
-                    </th>
-                    <th>
-                        Amount Each
-                    </th>
-                    <th>
-                        Amount
-                    </th>
-                </tr>
-
-                {% for row in rows %}
-                    <tr>
-                        <td>
-                        {{ row['name'] }}
-                        </td>
-                        <td>
-                            {{ row['quantity'] }}
-                        </td>
-                        <td>
-                            {{ row['amount']/100 }}
-                        </td>
-                        <td>
-                            {{ row['quantity'] * row['amount']/100 }}
-                        </td>
-                    </tr>
-                {% endfor %}
-                    <tr>
-                        <td>
-                        Total
-                        </td>
-                        <td>
-
-                        </td>
-                        <td>
-
-                        </td>
-                        <td>
-                            {{ total/100 }}
-                        </td>
-                    </tr>
-            </table> <br>
-        Please read the letter from our president below. <br>
-        Sam Amundson<br>
-        Membership Chair<br>
-        Woodley Park Archers<br>
-        <br>
     </p>
+    <table>
+        <tr>
+            <th>
+                Item
+            </th>
+            <th>
+                Quantity
+            </th>
+            <th>
+                Amount Each
+            </th>
+            <th>
+                Amount
+            </th>
+        </tr>
+
+        {% for row in rows %}
+            <tr>
+                <td>
+                {{ row['name'] }}
+                </td>
+                <td>
+                    {{ row['quantity'] }}
+                </td>
+                <td>
+                    {{ row['amount']/100 }}
+                </td>
+                <td>
+                    {{ row['quantity'] * row['amount']/100 }}
+                </td>
+            </tr>
+        {% endfor %}
+            <tr>
+                <td>
+                Total
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+                    {{ total/100 }}
+                </td>
+            </tr>
+    </table> <br>
+<p>Please read the letter from our president below. </p>
+<p>Sam Amundson</p>
+<p>Membership Chair</p>
+<p>Woodley Park Archers</p>
+<br>
+
     <p>
         <a href="http://woodleyparkarchers.org/">WoodleyParkArchers.org</a>
     </p>
@@ -112,4 +91,4 @@
     <p>
         President, Woodley Park Archers
     </p>
-</html>
+{% endblock %}

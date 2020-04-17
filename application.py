@@ -106,6 +106,7 @@ def email_verify():
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
         return payment(mem)
 
+
 @app.route(subdir + "/get_email", methods = ["GET"])
 def get_email():
     return jsonify(session['email'])
@@ -147,8 +148,6 @@ def joad_registration():
 @app.route(subdir + "/pay_success", methods=["GET"])
 def pay_success():
     """Shows the user that the payment was successful"""
-
-
     session.clear()
     return render_template("success.html", message="Your payment has been received, Thank You.")
 
@@ -246,7 +245,6 @@ def process_payment():  # TODO add process payment js to get_email and form for 
     elif request.method == 'POST':
         nonce = request.form.get('nonce')
 
-
         # environment = square_cfg['environment']
         ik = str(uuid.uuid4())
         response = square.nonce(ik, nonce, session['line_items'])
@@ -266,6 +264,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         if 'description' in session:
             description = session['description']
         session['members'] = members
+
         pay_log.add_square_payment(response, members, description, ik)
         if description[:len("pin_shoot")] == 'pin_shoot':
             email_helper.send_email(session['email'], 'Pin Shoot Payment Confirmation',
@@ -281,6 +280,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             l = session['members'].split(',')
             # mdb = MemberDb(db)
             mem = mdb.find_by_id(l[0])
+
             mdb.set_member_pay_code_status(None, "member")
             if mem["fam"] is None:
                 fam = ""
@@ -297,8 +297,9 @@ def process_payment():  # TODO add process payment js to get_email and form for 
                 # TODO this is not the correct template for this.
                 email_helper.send_email(mem['email'], 'Renew', 'renew_code_email.html', table_rows(), mem, fam)
             else:
-                path = os.path.join(project_directory, "email_templates", "join.html")
-                email_helper.send_email(mem['email'], 'Renew', 'email/join.html', table_rows(), mem, fam)
+                # path = os.path.join(project_directory, "email_templates", "join.html")
+                subject = 'Welcome To Wooldley Park Archers'
+                email_helper.send_email(mem['email'], subject, 'email/join.html', table_rows(), mem, fam)
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
         return redirect('/pay_success')
@@ -354,6 +355,7 @@ def register():
 
                 # If a JOAD session was selected, check that the member is under 21,
                 # if so register them for a session.
+                print(f"application.register request.form.get('joad') = {request.form.get('joad')}")
                 if request.form.get('joad') is not None or request.form.get('joad') is not "None":
                     d = request.form.get('dob').split('-')
                     if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.

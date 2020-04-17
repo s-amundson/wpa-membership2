@@ -10,10 +10,12 @@ from Config import Config
 class Email:
     """ Class for sending out emails using Gmail"""
     def __init__(self, project_directory):
-        cfg = Config(project_directory).get_smtp()
+        c = Config(project_directory)
+        cfg = c.get_smtp()
         self.server = cfg["server"]
         self.user = cfg["user"]
         self.password = cfg["password"]
+        self.site = c.get_site()['site']
 
     def send_email(self, toaddr, subject, template, table_rows=None, mem=None, fam=''):
         user = {}
@@ -26,9 +28,10 @@ class Email:
                 user['renew_code'] = mem['renew_code']
                 user['expire'] = mem["exp_date"].strftime("%d %B %Y")
             user['fam'] = fam
-
-        msg = render_template(template, rows=table_rows, user=user)
-        # print(msg)
+        total = 0
+        if table_rows is not None:
+            table_rows, total = table_rows
+        msg = render_template(template, rows=table_rows, total=total, user=user, site=self.site)
         # TODO change to toaddr when for production
         self.send_mail('sam.amundson@gmail.com', subject, msg)
 

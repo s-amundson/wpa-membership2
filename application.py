@@ -147,31 +147,7 @@ def joad_registration():
 @app.route(subdir + "/pay_success", methods=["GET"])
 def pay_success():
     """Shows the user that the payment was successful"""
-    if 'description' in session:
-        if session['description'][:len("membership")] == "membership":
-            l = session['members'].split(',')
-            # mdb = MemberDb(db)
-            mem = mdb.find_by_id(l[0])
-            mdb.set_member_pay_code_status(None, "member")
-            if mem["fam"] is None:
-                fam = ""
-                mdb.expire_update(mem)
-            else:
-                rows = mdb.find_by_fam(mem["fam"])
-                fam = ""
-                for row in rows:
-                    fam += f"{row['first_name']}'s membership number is {row['id']} \n"
-                    mdb.expire_update(mem)
 
-            if session.get('renew', False) is True:
-                path = os.path.join(project_directory, "email_templates", "renew.html")
-            else:
-                path = os.path.join(project_directory, "email_templates", "join.html")
-
-            mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
-
-        elif session['description'][0:len("joad session")] == "joad session":
-            JoadSessions(db).update_registration(session["members"], "paid", None)
 
     session.clear()
     return render_template("success.html", message="Your payment has been received, Thank You.")
@@ -183,13 +159,13 @@ def payment(mem):
         if mem['status'] == 'member' and session.get('renew', False) is False:
             return apology("payment already processed")
         session['mem_id'] = mem['id']
-        s = "SELECT id, session_date from joad_session_registration where 1=0"
+        s = "SELECT id, session_date from joad_session_registration where 1=0 "
         if mem["fam"] is not None:
             rows = mdb.find_by_fam(mem['fam'])
             for row in rows:
                 s += f" or mem_id = {row['id']}"
         else:
-            s += f"or mem_id = {mem['id']}"
+            s += f"OR mem_id = {mem['id']}"
         js = db.execute(s)
         joad_sessions = len(js)
         session_date = ""
@@ -293,11 +269,38 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         pay_log.add_square_payment(response, members, description, ik)
         if description[:len("pin_shoot")] == 'pin_shoot':
             email_helper.send_email(session['email'], 'Pin Shoot Payment Confirmation',
-                                                       "email/purchase.html", table_rows())
+                                                       "email/purchase_email.html", table_rows())
+
         elif description[:len('JOAD Session')] == 'JOAD Session':
             email_helper.send_email(session['email'], 'JOAD Session Payment Confirmation',
-                                                       "email/purchase.html", table_rows())
+                                                       "email/purchase_email.html", table_rows())
+            # elif session['description'][0:len("joad session")] == "joad session":
+            JoadSessions(db).update_registration(session["members"], "paid", None)
 
+        elif description == 'membership':
+            l = session['members'].split(',')
+            # mdb = MemberDb(db)
+            mem = mdb.find_by_id(l[0])
+            mdb.set_member_pay_code_status(None, "member")
+            if mem["fam"] is None:
+                fam = ""
+                mdb.expire_update(mem)
+            else:
+                rows = mdb.find_by_fam(mem["fam"])
+                fam = ""
+                for row in rows:
+                    fam += f"{row['first_name']}'s membership number is {row['id']} \n"
+                    mdb.expire_update(mem)
+
+            if session.get('renew', False) is True:
+                # path = os.path.join(project_directory, "email_templates", "renew.html")
+                # TODO this is not the correct template for this.
+                email_helper.send_email(mem['email'], 'Renew', 'renew_code_email.html', table_rows(), mem, fam)
+            else:
+                path = os.path.join(project_directory, "email_templates", "join.html")
+                email_helper.send_email(mem['email'], 'Renew', 'email/join.html', table_rows(), mem, fam)
+
+            # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
         return redirect('/pay_success')
 
 

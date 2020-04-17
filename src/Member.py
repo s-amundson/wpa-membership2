@@ -77,8 +77,9 @@ class Member:
         else:
             # Send an email to the member
             path = os.path.join(self.project_directory, "email_templates", "verify.html")
-            self.send_email(path, "Email Verification Code")
-
+            # self.send_email(path, "Email Verification Code")\
+            Email(self.project_directory).send_email(self.mem['email'], "Email Verification Code", "email/verify.html",
+                                                     mem=self.mem)
         return self.mem["id"]
 
     def checkInput(self):

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        td, th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+        }
+        p {
+        margin-bottom: 0in;
+        line-height: 100%;
+        align: left;
+        font-family: arial, sans-serif;
+        font-size: 14px;
+        }
+    </style>
+</head>
+<html>
+    <p>
+
+        Hi {{user['name']}},<br>
+        Thank you for joining Woodley Park Archers. Your member number is {{user['id']}}.
+        This email confirms your purchase and your membership.<br>
+            <table>
+                <tr>
+                    <th>
+                        Item
+                    </th>
+                    <th>
+                        Quantity
+                    </th>
+                    <th>
+                        Amount Each
+                    </th>
+                    <th>
+                        Amount
+                    </th>
+                </tr>
+
+                {% for row in rows %}
+                    <tr>
+                        <td>
+                        {{ row['name'] }}
+                        </td>
+                        <td>
+                            {{ row['quantity'] }}
+                        </td>
+                        <td>
+                            {{ row['amount']/100 }}
+                        </td>
+                        <td>
+                            {{ row['quantity'] * row['amount']/100 }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                    <tr>
+                        <td>
+                        Total
+                        </td>
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                        <td>
+                            {{ total/100 }}
+                        </td>
+                    </tr>
+            </table> <br>
+        Please read the letter from our president below. <br>
+        Sam Amundson<br>
+        Membership Chair<br>
+        Woodley Park Archers<br>
+        <br>
+    </p>
+    <p>
+        <a href="http://woodleyparkarchers.org/">WoodleyParkArchers.org</a>
+    </p>
+    <p>
+        <a href="http://www.facebook.com/pages/Woodley-Park-Archers/131056656971079">Facebook: Woodley Park Archers</a>
+    </p>
+    <img src="cid:photo" />
+    <p>
+        On behalf of the officers and members at large of the Board of Directors of the Woodley Park Archers, I would like to welcome you to the club and thank you for your membership.
+    </p>
+    <p>
+        The Woodley Park Archers have a long and rich history, since the club's formation in 1984. As you may know, the Woodley Park Archery Range was built in 1984 by the Easton Foundation to serve as a practice facility for the 1984 Los Angeles Olympics. At that time, the club was founded to provide fellowship among local archers and service to the City of Los Angeles, the United States Army Corps of Engineers, and the Easton Foundation in the maintenance of the range facility. To this date, the range continues to be regularly maintained by the volunteer efforts of members of the Woodley Park Archers with the support of the Easton Sports Development Foundation.
+    </p>
+    <p>
+        In addition to maintaining our facility, our club is dedicated to providing a quality archery instruction program to the community, promoting safety, sportsmanship and the highest level of excellence in archery. We are very proud of our club and our successful program, which has received commendation from the Mayor and City Council of the City of Los Angeles. Your membership will provide great support to the club in pursuit of its mission and achievement of its goals.
+    </p>
+    <p>
+        Please make sure to come by the range to pick up your Membership Card and WPA Member's Quiver Pin.
+    </p>
+    <p>
+        We look forward to meeting you and thanks again for your support. See you at the range!
+    </p>
+    <p></p>
+    <p>
+        Sincerely,
+    </p>
+    <p>
+        Wayne Shaphran
+    </p>
+    <p>
+        President, Woodley Park Archers
+    </p>
+</html>

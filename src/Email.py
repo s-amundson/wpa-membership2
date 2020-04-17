@@ -15,9 +15,23 @@ class Email:
         self.user = cfg["user"]
         self.password = cfg["password"]
 
-    def send_email(self, toaddr, subject, template, table_rows):
-        msg = render_template("email/purchase.html", rows=table_rows)
-        self.send_mail(toaddr, 'Pin Shoot Payment Confirmation', msg)
+    def send_email(self, toaddr, subject, template, table_rows=None, mem=None, fam=''):
+        user = {}
+        if mem is not None:
+            user['name'] = mem["first_name"]
+            user['id'] = mem["id"]
+            user['email'] = mem["email"]
+            user['email_code'] = mem['email_code']
+            if "renew_code" in mem:
+                user['renew_code'] = mem['renew_code']
+                user['expire'] = mem["exp_date"].strftime("%d %B %Y")
+            user['fam'] = fam
+
+        msg = render_template(template, rows=table_rows, user=user)
+        # print(msg)
+        # TODO change to toaddr when for production
+        self.send_mail('sam.amundson@gmail.com', subject, msg)
+
     def send_mail(self, toaddr, subject, body, attach_path=None, attach_filename=None):
         "Send an email"
         # instance of MIMEMultipart

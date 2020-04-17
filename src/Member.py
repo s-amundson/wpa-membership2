@@ -81,6 +81,18 @@ class Member:
             Email(self.project_directory).send_email(self.mem['email'], "Email Verification Code", "email/verify.html",
                                                      mem=self.mem)
         return self.mem["id"]
+    def check_duplicate(self):
+        """ Checks for duplicate entries """
+        col = ["street", "city", "state", "zip", "phone", "email", "dob"]
+        matches = 0
+        r = self.db.execute("SELECT * from member where last_name = '{}' and first_name = '{}'".format(
+            self.mem["last_name"], self.mem["first_name"]))
+        if len(r) > 0:
+            for c in col:
+                if self.mem[c] == r[c]:
+                    matches += 1
+        return matches > len(col) - 2
+
 
     def checkInput(self):
         """ Check input for values"""

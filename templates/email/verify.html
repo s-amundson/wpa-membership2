@@ -1,19 +1,19 @@
 {% extends "email/email_layout.html" %}
 {% block main %}
-        <p>
+        <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">
                     Hi {{ values['name'] }},<br>
         </p>
-        <p>
+        <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">
             Thank you for applying with Woodley Park Archers. Your member number is {{values['id']}}.
             Your email verification code is <strong>{{ values['email_code'] }}</strong> please click below to complete your registration.
         </p>
             <a href="{{values['site']}}/email_verify?e={{values['email']}}&c={{values['email_code']}}">
-                 <button type="button">Complete Registration</button>
+                 <button style="margin: 10px;" type="button">Complete Registration</button>
             </a>
-        <p>
+        <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">
             Or you can go to <a href="{{values['site']}}/email_verify">WoodleyParkArchers.org/email_verify</a> and enter your code. <br>
         </p>
-        <p>
+        <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">
                     Sam Amundson<br>
                     Membership Chair<br>
                     Woodley Park Archers<br>

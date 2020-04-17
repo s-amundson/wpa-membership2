@@ -1,5 +1,4 @@
 import os
-import sys
 from datetime import date
 import uuid
 
@@ -282,14 +281,13 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             mem = mdb.find_by_id(l[0])
 
             mdb.set_member_pay_code_status(None, "member")
+            fam = []
             if mem["fam"] is None:
-                fam = ""
                 mdb.expire_update(mem)
             else:
                 rows = mdb.find_by_fam(mem["fam"])
-                fam = ""
                 for row in rows:
-                    fam += f"{row['first_name']}'s membership number is {row['id']} <br>"
+                    fam.append(f"{row['first_name']}'s membership number is {row['id']}")
                     mdb.expire_update(mem)
 
             if session.get('renew', False) is True:
@@ -347,7 +345,9 @@ def register():
             joad = None
 
             # Preform server side validation of the inputs
-            if(mdb.checkInput()):
+            if mdb.checkInput():
+                if mdb.check_duplicate():
+                    return apology("Duplicate Entry", 200)
                 # Add member to database
                 reg["id"] = mdb.add(family)
                 if(reg['level'] == "invalid"):

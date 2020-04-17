@@ -21,7 +21,7 @@ class Email:
         self.project_directory = project_directory
         print(project_directory)
 
-    def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=''):
+    def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[]):
         values = {'site': self.site, 'join':'joining'}
         if subject == "Renew":
             values['join'] = 'renewing with'

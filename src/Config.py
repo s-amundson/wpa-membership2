@@ -23,13 +23,6 @@ class Config:
             database[key] = self.cfg["database"][key]
         return database
 
-    def get_smtp(self):
-        """Returns a dictionary of the email settings"""
-        email = {}
-        for key in self.cfg["smtp"]:
-            email[key] = self.cfg["smtp"][key]
-        return email
-
     def get_site(self):
         """Returns a dictionary of the site settings"""
         main = {}
@@ -37,6 +30,14 @@ class Config:
         for key in self.cfg["main"]:
             main[key] = self.cfg["main"][key]
         return main
+
+    def get_smtp(self):
+        """Returns a dictionary of the email settings"""
+        email = {}
+        for key in self.cfg["smtp"]:
+            email[key] = self.cfg["smtp"][key]
+        email['production'] = self.cfg.getboolean('smtp', 'production')
+        return email
 
     def get_square(self):
         """Returns a dictionary of the square settings"""

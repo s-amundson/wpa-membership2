@@ -19,7 +19,8 @@ class Email:
         self.password = cfg["password"]
         self.site = c.get_site()['site']
         self.project_directory = project_directory
-        print(project_directory)
+        self.production = cfg['production']
+        self.to_address = cfg['to_address']
 
     def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[]):
         values = {'site': self.site, 'join':'joining'}
@@ -40,8 +41,8 @@ class Email:
             table_rows, values['total'] = table_rows
         msg = render_template(template, rows=table_rows, values=values)
         # return msg
-        # TODO change to toaddr when for production
-        self.send_mail('sam.amundson@gmail.com', subject, msg) # , f"{self.project_directory}/static/header.png", "header.png")
+
+        self.send_mail(toaddr, subject, msg) # , f"{self.project_directory}/static/header.png", "header.png")
 
     def send_mail(self, toaddr, subject, body, attach_path=None, attach_filename=None):
         "Send an email"
@@ -53,6 +54,9 @@ class Email:
 
         # storing the receivers email address
         msg['To'] = toaddr
+        if not self.production:
+            msg['To'] = self.to_address
+
 
         # storing the subject
         msg['Subject'] = subject

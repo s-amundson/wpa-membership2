@@ -449,7 +449,8 @@ def test_email():
     # return redirect('/register')
     mem = mdb.find_by_id(1)
     mem['renew_code'] = mdb.randomString()
-    return email_helper.send_email("", "Renew", 'email/join.html', mem=mem)
+    email_helper.send_email("", "Renew", 'email/join.html', mem=mem)
+    return redirect('/register')
 
 
 def errorhandler(e):

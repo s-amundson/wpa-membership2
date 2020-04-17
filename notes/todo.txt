@@ -11,6 +11,8 @@ fix joad session in registration, check in joad registration.
 check if member just added with same credientails before adding. to avoid accidental resubmission.
 fix email address with square payment. all transactions getting same email address. - probably same customer in sqarres systmem
 
+names with apostrophes need to have the apostrophe escaped
+
 Wish Lists:
     cart shopping
     JOAD attendance

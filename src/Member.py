@@ -10,12 +10,12 @@ import uuid
 
 class Member:
     """Helper class for membership functions."""
+
     def __init__(self, db, project_directory):
         self.db = db
         self.mem = {}
         self.email_sent = False
         self.project_directory = project_directory
-
 
     def add(self, family):
         """Adds a member to the database, Returns member ID."""
@@ -39,7 +39,7 @@ class Member:
                 # create email code for email verification
                 self.mem["email_code"] = self.db.execute("SELECT * from member where fam = {}".format(
                     self.mem["fam"]))[0]["email_code"]
-        else: # not a family membership
+        else:  # not a family membership
             # create email code for email verification
             self.mem["email_code"] = self.randomString()
 
@@ -81,6 +81,7 @@ class Member:
             Email(self.project_directory).send_email(self.mem['email'], "Email Verification Code", "email/verify.html",
                                                      mem=self.mem)
         return self.mem["id"]
+
     def check_duplicate(self):
         """ Checks for duplicate entries """
         col = ["street", "city", "state", "zip", "phone", "email", "dob"]
@@ -92,7 +93,6 @@ class Member:
                 if self.mem[c] == r[c]:
                     matches += 1
         return matches > len(col) - 2
-
 
     def checkInput(self):
         """ Check input for values"""
@@ -113,7 +113,8 @@ class Member:
     def check_email(self, email, vcode):
         """ Checks to see if the email and the verification code match the database records. If so sets the pay code
         to start the payment process. This is done for initial verification of email address."""
-        rows = self.db.execute(f"SELECT * from member where `email` = '{email}' and `email_code` = '{vcode}' ORDER BY `id`")
+        rows = self.db.execute(
+            f"SELECT * from member where `email` = '{email}' and `email_code` = '{vcode}' ORDER BY `id`")
         if len(rows) > 0:
             self.setbyDict(rows[0])
 
@@ -168,32 +169,30 @@ class Member:
             s = f"INSERT INTO joad_session_registration (mem_id) VALUES ({self.mem['id']})"
             self.db.execute(s)
 
-
     def randomString(self, stringLength=16):
         """Generate a random string with the combination of lowercase and uppercase letters """
         # from https://pynative.com/python-generate-random-string/
         letters = string.ascii_letters
         return ''.join(random.choice(letters) for i in range(stringLength))
 
-    def send_email(self, file, subject, fam=""):
-        """Sends an email from a template file replacing key words"""
-        with open(file) as f:
-            msg = f.read()
-        # TODO insert image into email
-        msg = msg.replace("NAME", self.mem["first_name"])
-        msg = msg.replace("USERID", "{:06d}".format(self.mem["id"]))
-        msg = msg.replace("EMAIL", self.mem["email"])
-        if self.mem["email_code"] is not None:
-            msg = msg.replace("CODE", self.mem["email_code"])
-        # self.set_pay_code()
-        if "renew_code" in self.mem:
-            msg = msg.replace("RENEW", self.mem["renew_code"])
-            msg = msg.replace("EXPIRE", self.mem["exp_date"].strftime("%d %B %Y"))
-        msg = msg.replace("FAMILY", fam)
-
-        # TODO change this back
-        # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
-        Email(self.project_directory).send_mail("sam.amundson@gmailcom", subject, msg)
+    # def send_email(self, file, subject, fam=""):
+    #     """Sends an email from a template file replacing key words"""
+    #     with open(file) as f:
+    #         msg = f.read()
+    #     # TODO insert image into email
+    #     msg = msg.replace("NAME", self.mem["first_name"])
+    #     msg = msg.replace("USERID", "{:06d}".format(self.mem["id"]))
+    #     msg = msg.replace("EMAIL", self.mem["email"])
+    #     if self.mem["email_code"] is not None:
+    #         msg = msg.replace("CODE", self.mem["email_code"])
+    #     # self.set_pay_code()
+    #     if "renew_code" in self.mem:
+    #         msg = msg.replace("RENEW", self.mem["renew_code"])
+    #         msg = msg.replace("EXPIRE", self.mem["exp_date"].strftime("%d %B %Y"))
+    #     msg = msg.replace("FAMILY", fam)
+    #
+    #     # TODO change this back
+    #     # Email().send_mail(self.mem["email"], "Woodley Park Archers email verification", msg)
 
     def send_renewal(self, row):
         """ Sends an email with a renewal code"""
@@ -203,8 +202,11 @@ class Member:
         if d > row['exp_date']:  # can renew
             self.mem["renew_code"] = self.randomString()
 
-            path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
-            self.send_email(path, "Membership Renewal Notice")
+            # path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
+            # self.send_email(path, "Membership Renewal Notice")
+            Email(self.project_directory).send_email(self.mem['email'], 'Pin Shoot Payment Confirmation',
+                                                     "email/renew_code_email.html", mem=self.mem)
+
             self.mem['email_code'] = row["renew_code"]
             self.db.execute(f"UPDATE member SET `email_code` = %s where `id` = %s",
                             (self.mem['email_code'], self.mem['id']))

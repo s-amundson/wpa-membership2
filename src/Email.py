@@ -23,6 +23,8 @@ class Email:
         self.to_address = cfg['to_address']
 
     def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[]):
+        if toaddr is None:
+            return
         values = {'site': self.site, 'join':'joining'}
         if subject == "Renew":
             values['join'] = 'renewing with'
@@ -34,6 +36,7 @@ class Email:
             values['email_code'] = mem['email_code']
             if "renew_code" in mem:
                 values['renew_code'] = mem['renew_code']
+            if 'exp_date' in mem:
                 values['expire'] = mem["exp_date"].strftime("%d %B %Y")
             values['fam'] = fam
         values['total'] = 0

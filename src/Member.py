@@ -204,7 +204,7 @@ class Member:
 
             # path = os.path.join(self.project_directory, "email_templates", "renew_code_email.html")
             # self.send_email(path, "Membership Renewal Notice")
-            Email(self.project_directory).send_email(self.mem['email'], 'Pin Shoot Payment Confirmation',
+            Email(self.project_directory).send_email(self.mem['email'], 'Membership Renewal Notice',
                                                      "email/renew_code_email.html", mem=self.mem)
 
             self.mem['email_code'] = row["renew_code"]
@@ -212,8 +212,10 @@ class Member:
                             (self.mem['email_code'], self.mem['id']))
         else:  # Cannot renew yet
             self.mem["renew_code"] = "None"
-            path = os.path.join(self.project_directory, "email_templates", "renew_invalid.html")
-            self.send_email(path, "Membership Renewal Notice")
+            # path = os.path.join(self.project_directory, "email_templates", "renew_invalid.html")
+            # self.send_email(path, "Membership Renewal Notice")
+            Email(self.project_directory).send_email(self.mem['email'], 'Membership Renewal Notice',
+                                                     "email/renew_invalid.html", mem=self.mem)
 
     def setbyDict(self, mydict):
         """Sets the mem dict to the input dict"""

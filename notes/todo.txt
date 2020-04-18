@@ -8,10 +8,13 @@ maybe square payment order status and idempotency_key in pay log and insert pay 
 
 fix joad session in registration, check in joad registration.
 
-check if member just added with same credientails before adding. to avoid accidental resubmission.
-fix email address with square payment. all transactions getting same email address. - probably same customer in sqarres systmem
+check if member just added with same credentials before adding. to avoid accidental resubmission.
+fix email address with square payment. all transactions getting same email address. - probably same customer in squares system
 
 names with apostrophes need to have the apostrophe escaped
+
+add logic to resend verification email.
+
 
 Wish Lists:
     cart shopping

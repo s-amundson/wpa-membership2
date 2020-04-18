@@ -1,7 +1,4 @@
 "use strict";
-//try {
-//    document.getElementById('submit').disabled = true;
-//} catch (err) {}
 
 function all_numeric(input_txt) {
     var numbers = /^[0-9]+$/;
@@ -46,11 +43,6 @@ function checkValidation() {
         v = false;
     }
 
-    if (v) {
-        document.getElementById('submit').disabled = false;
-    } else {
-        document.getElementById('submit').disabled = true;
-    }
     return v
 }
 

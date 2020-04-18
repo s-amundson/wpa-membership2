@@ -120,18 +120,21 @@ def joad_registration():
         return render_template("joad_registration.html", rows=js)
     else:
         if not mdb.isValidEmail(request.form.get('email')):
-            return apology("invalid email")
+            # return apology("invalid email")
+            return render_template('message.html', message='invalid email')
         joad_session = request.form.get('session')
         rows = mdb.find_by_email(request.form.get('email'))
         if len(rows) == 0:
-            return apology("Record not found", 200)
+            return render_template('message.html', message='Record not found')
+
         for row in rows:
             if row["first_name"] == request.form.get('first_name') and row["last_name"] == request.form.get('last_name'):
                 d = row['dob']
 
                 # check to see if the student is to old (over 20)
                 if d.replace(year=d.year + 21) < date.today(): # student is to old.
-                    return apology("Must be younger then 21 to register")
+                    return render_template('message.html', message='Must be younger then 21 to register"')
+
                 mdb.setbyDict(row)
 
                 if(joad_session is not "None"):
@@ -139,6 +142,7 @@ def joad_registration():
 
                     session['line_items'] = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
                     session['description'] = 'JOAD Session' + joad_session
+                    session['email'] = row['email']
                     return redirect('process_payment')
 
         return render_template(("joad_registration.html"))
@@ -155,7 +159,7 @@ def payment(mem):
     """This function does the payment process for some other functions."""
     if mem is not None:
         if mem['status'] == 'member' and session.get('renew', False) is False:
-            return apology("payment already processed")
+            return render_template('message.html', message='payment already processed')
         session['mem_id'] = mem['id']
         s = "SELECT id, session_date from joad_session_registration where 1=0 "
         if mem["fam"] is not None:
@@ -174,12 +178,12 @@ def payment(mem):
         session['description'] = 'membership'
         session['email'] = mem['email']
         if session['line_items'] is None:
-            return apology("payment error")
+            return render_template('message.html', message='payment error')
 
         if mem["fam"] is not None and session.get('renew', False) is True:
             return render_template("renew_list.html", rows=rows)
         return redirect('process_payment')
-    return apology("Error with code", 200)
+    return render_template('message.html', message='Error with code')
 
 
 @app.route(subdir + "/pin_shoot", methods=["GET", "POST"])
@@ -193,7 +197,7 @@ def pin_shoot():
             session['email'] = request.form.get('email')
         else:
             session['email'] = None
-            return apology("Error in form", 200)
+            return render_template('message.html', message='Error in form')
 
         ps = PinShoot(db, project_directory)
         psd = ps.get_dict()
@@ -249,7 +253,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         response = square.nonce(ik, nonce, session['line_items'])
         print(f"payment response = {response}")
         if response is None:
-            return apology("payment processing error")
+            return render_template('message.html', message='payment processing error')
         members = ""
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])
@@ -347,16 +351,22 @@ def register():
             # Preform server side validation of the inputs
             if mdb.checkInput():
                 if mdb.check_duplicate():
-                    return apology("Duplicate Entry", 200)
+                    return render_template('message.html', message='Duplicate Entry')
+
                 # Add member to database
                 reg["id"] = mdb.add(family)
                 if(reg['level'] == "invalid"):
-                    return apology("Error in form", 200)
+                    return render_template('message.html', message='Error in form')
 
                 # If a JOAD session was selected, check that the member is under 21,
                 # if so register them for a session.
-                print(f"application.register request.form.get('joad') = {request.form.get('joad')}")
-                if request.form.get('joad') is not None or request.form.get('joad') is not "None":
+                joad = request.form.get('joad')
+
+                # Joad will either be 'None' or None if no session is selected.
+                if joad == "None":
+                    joad = None
+
+                if joad is not None:
                     d = request.form.get('dob').split('-')
                     if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
                         joad = JoadSessions(db).session_registration(reg['id'], request.form.get('joad'),
@@ -415,7 +425,8 @@ def renew():
         if mem is not None:
             return render_template("register.html")
         else:
-            return apology("Invalid email")
+            return render_template('message.html', message='Invalid email')
+
 
 
 @app.route(subdir + "/renew_code", methods=["POST"])
@@ -427,10 +438,12 @@ def renew_code():
     if (mdb.isValidEmail(request.form.get('email2'))):
         rows = mdb.find_by_email(request.form.get('email2'))
         if (len(rows) > 0):
-            mdb.send_renewal(rows[0])
+            print(rows)
+            if rows[0]['status'] == 'member' and rows[0]['email_code'] is None:
+                mdb.send_renewal(rows[0])
         return redirect("/")
     else:
-        return apology("Invalid email")
+        return render_template('message.html', message='Invalid email')
 
 
 @app.route(subdir + "/reset", methods=["GET", "POST"])

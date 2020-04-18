@@ -122,7 +122,15 @@
           <input type="hidden" id="card-nonce" name="nonce">
         </form>
       </div>
+
     </div>
     <!-- End Payment Form -->
+  <div class="row">
+    {% if bypass %}
+      <form id="form1" action="/process_payment" method="post" class="form" name="form1">
+          <button class="btn btn-primary m-2" type="submit" id="reg">Bypass</button>
+      </form>
+    {% endif %}
+  </div>
 
 {% endblock %}

@@ -139,10 +139,15 @@ def joad_registration():
 
                 if(joad_session is not "None"):
                     reg = JoadSessions(db).session_registration(row['id'], joad_session)
+                    if reg['pay_status'] == 'paid':
+                        message = f"{row['first_name']} is already registered for this session."
+                        return render_template('message.html', message=message)
 
                     session['line_items'] = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
                     session['description'] = 'JOAD Session' + joad_session
+                    session['joad_session'] = joad_session
                     session['email'] = row['email']
+                    session['id'] = row['id']
                     return redirect('process_payment')
 
         return render_template(("joad_registration.html"))
@@ -152,7 +157,7 @@ def joad_registration():
 def pay_success():
     """Shows the user that the payment was successful"""
     session.clear()
-    return render_template("success.html", message="Your payment has been received, Thank You.")
+    return render_template("message.html", message="Your payment has been received, Thank You.")
 
 
 def payment(mem):
@@ -233,6 +238,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         return rows, total
     """Shows a payment page for making purchases"""
     square_cfg = cfg.get_square()
+    site = cfg.get_site()['site']
     paydict = {}
     if(request.method == "GET"):
 
@@ -243,17 +249,20 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         paydict['app_id'] = square_cfg['application_id']
         paydict['location_id'] = square_cfg['location_id']
         rows, total = table_rows()
+        bypass = False
+        if site == "http://127.0.0.1:5000":
+            bypass = True
 
-        return render_template("square_pay.html", paydict=paydict, rows=rows, total=total)
+        return render_template("square_pay.html", paydict=paydict, rows=rows, total=total, bypass=bypass)
     elif request.method == 'POST':
-        nonce = request.form.get('nonce')
+        if  site != "http://127.0.0.1:5000":
+            nonce = request.form.get('nonce')
 
-        # environment = square_cfg['environment']
-        ik = str(uuid.uuid4())
-        response = square.nonce(ik, nonce, session['line_items'])
-        print(f"payment response = {response}")
-        if response is None:
-            return render_template('message.html', message='payment processing error')
+            # environment = square_cfg['environment']
+            ik = str(uuid.uuid4())
+            response = square.nonce(ik, nonce, session['line_items'])
+            if response is None:
+                return render_template('message.html', message='payment processing error')
         members = ""
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])
@@ -268,16 +277,18 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             description = session['description']
         session['members'] = members
 
-        pay_log.add_square_payment(response, members, description, ik)
+        if site != "http://127.0.0.1:5000":
+            pay_log.add_square_payment(response, members, description, ik)
         if description[:len("pin_shoot")] == 'pin_shoot':
             email_helper.send_email(session['email'], 'Pin Shoot Payment Confirmation',
                                                        "email/purchase_email.html", table_rows())
 
         elif description[:len('JOAD Session')] == 'JOAD Session':
-            email_helper.send_email(session['email'], 'JOAD Session Payment Confirmation',
-                                                       "email/purchase_email.html", table_rows())
-            # elif session['description'][0:len("joad session")] == "joad session":
-            JoadSessions(db).update_registration(session["members"], "paid", None)
+            if 'joad_session' in session:
+                email_helper.send_email(session['email'], 'JOAD Session Payment Confirmation',
+                                                           "email/purchase_email.html", table_rows())
+                # elif session['description'][0:len("joad session")] == "joad session":
+                JoadSessions(db).update_registration(session["id"], "paid", None, session['joad_session'])
 
         elif description == 'membership':
             l = session['members'].split(',')

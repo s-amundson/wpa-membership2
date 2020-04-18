@@ -221,14 +221,15 @@ class Member:
         """Sets the mem dict to the input dict"""
         self.mem = mydict
 
-    def set_member_pay_code_status(self, code, status):
+    def set_member_pay_code_status(self, code, status, mem_id=None):
         """ When email is verified status = start payment. When payment is in process = payment pending.
         When payment successful member"""
-
+        if mem_id is None:
+            mem_id = self.mem['id']
         if self.mem['fam'] is None:
-            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `id` = '{self.mem['id']}'"
+            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `id` = '{mem_id}'"
         else:
-            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{self.mem['fam']}'"
+            s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{mem_id}'"
         self.db.execute(s, (code, status))
 
     def set_pay_code(self):

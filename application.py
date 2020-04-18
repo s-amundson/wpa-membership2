@@ -128,7 +128,8 @@ def joad_registration():
             return render_template('message.html', message='Record not found')
 
         for row in rows:
-            if row["first_name"] == request.form.get('first_name') and row["last_name"] == request.form.get('last_name'):
+            if row["first_name"].lower() == request.form.get('first_name').lower() \
+                    and row["last_name"].lower() == request.form.get('last_name').lower():
                 d = row['dob']
 
                 # check to see if the student is to old (over 20)
@@ -150,7 +151,7 @@ def joad_registration():
                     session['id'] = row['id']
                     return redirect('process_payment')
 
-        return render_template(("joad_registration.html"))
+        return render_template('message.html', message='Record not found')
 
 
 @app.route(subdir + "/pay_success", methods=["GET"])
@@ -161,7 +162,7 @@ def pay_success():
 
 
 def payment(mem):
-    """This function does the payment process for some other functions."""
+    """This function starts the payment process for some other functions."""
     if mem is not None:
         if mem['status'] == 'member' and session.get('renew', False) is False:
             return render_template('message.html', message='payment already processed')
@@ -255,12 +256,13 @@ def process_payment():  # TODO add process payment js to get_email and form for 
 
         return render_template("square_pay.html", paydict=paydict, rows=rows, total=total, bypass=bypass)
     elif request.method == 'POST':
-        if  site != "http://127.0.0.1:5000":
+        if site != "http://127.0.0.1:5000":
             nonce = request.form.get('nonce')
 
             # environment = square_cfg['environment']
             ik = str(uuid.uuid4())
             response = square.nonce(ik, nonce, session['line_items'])
+            print(f"response = {response}")
             if response is None:
                 return render_template('message.html', message='payment processing error')
         members = ""
@@ -295,15 +297,17 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             # mdb = MemberDb(db)
             mem = mdb.find_by_id(l[0])
 
-            mdb.set_member_pay_code_status(None, "member")
+
             fam = []
             if mem["fam"] is None:
                 mdb.expire_update(mem)
+                mdb.set_member_pay_code_status(None, "member")
             else:
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
                     fam.append(f"{row['first_name']}'s membership number is {row['id']}")
                     mdb.expire_update(mem)
+                    mdb.set_member_pay_code_status(None, "member")
 
             if session.get('renew', False) is True:
                 # path = os.path.join(project_directory, "email_templates", "renew.html")

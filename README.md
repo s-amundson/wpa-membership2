@@ -22,4 +22,4 @@ python-dateutil
 
 ### `Setup`
 clone the repository to a folder accessible to the web server. 
-Copy settings_template.cfg in the static folder to settings.cfg and adjust the settings to meet your needs.
+Copy settings_template.cfg to settings.cfg and adjust the settings to meet your needs.

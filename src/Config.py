@@ -6,7 +6,7 @@ class Config:
     """ Gets the configuration settings from settings.cfg. Provides functions to get dicts for each heading"""
     def __init__(self, project_directory):
         self.cfg = configparser.ConfigParser()
-        self.cfg.read(os.path.join(project_directory, "static", "settings.cfg"))
+        self.cfg.read(os.path.join(project_directory, "settings.cfg"))
         self.sections = self.cfg.sections()
 
     def get_costs(self):

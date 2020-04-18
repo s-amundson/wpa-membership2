@@ -262,9 +262,9 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             # environment = square_cfg['environment']
             ik = str(uuid.uuid4())
             response = square.nonce(ik, nonce, session['line_items'])
-            print(f"response = {response}")
-            if response is None:
-                return render_template('message.html', message='payment processing error')
+            if response.is_error():
+                print(f"response = {response.errors}")
+                return render_template('message.html', message=f'payment processing error {response.errors}')
         members = ""
         if 'mem_id' in session:
             mem = mdb.find_by_id(session['mem_id'])

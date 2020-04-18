@@ -22,10 +22,10 @@ class Email:
         self.production = cfg['production']
         self.to_address = cfg['to_address']
 
-    def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[]):
+    def send_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[], receipt=''):
         if toaddr is None:
             return
-        values = {'site': self.site, 'join':'joining'}
+        values = {'site': self.site, 'join': 'joining', 'receipt': receipt}
         if subject == "Renew":
             values['join'] = 'renewing with'
             subject = 'Woodley Park Archers Renewal'

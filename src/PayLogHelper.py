@@ -14,11 +14,11 @@ class PayLogHelper:
             cd = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
 
             sql = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
-                "order_id, location_id, state, total_money, description, idempotency_key) VALUES ( "
+                "order_id, location_id, state, total_money, description, idempotency_key, reciept) VALUES ( "
 
             sql += f"'{members}', '{cd}', '{square_result['id']}', '{square_result['order_id']}', " \
                  f"'{square_result['location_id']}', '{square_result['status']}', " \
-                 f"'{square_result['amount_money']['amount']}', '{description}', '{idempotency_key}')"
+                 f"'{square_result['amount_money']['amount']}', '{description}', '{idempotency_key}', {square_result['receipt_url']})"
             self.db.execute(sql)
         return(square_result['status'])
 

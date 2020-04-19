@@ -263,7 +263,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             ik = str(uuid.uuid4())
             response = square.nonce(ik, nonce, session['line_items'])
             if isinstance(response, str):
-                return render_template('message.html', message=f'payment processing error {response}')
+                return render_template('message.html', message=f'payment processing error')
             # if response.is_error():
             print(f"response type = {type(response)} response = {response}")
 
@@ -280,17 +280,24 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         if 'description' in session:
             description = session['description']
         session['members'] = members
+        subject = ""
+        template = "email/purchase_email.html"
+        mem = None
+        fam = []
+        receipt = ""
 
         if site != "http://127.0.0.1:5000":
             pay_log.add_square_payment(response, members, description, ik)
+            receipt = response['receipt_url']
+
         if description[:len("pin_shoot")] == 'pin_shoot':
-            email_helper.send_email(session['email'], 'Pin Shoot Payment Confirmation',
-                                                       "email/purchase_email.html", table_rows())
+            subject = 'Pin Shoot Payment Confirmation'
+
 
         elif description[:len('JOAD Session')] == 'JOAD Session':
             if 'joad_session' in session:
-                email_helper.send_email(session['email'], 'JOAD Session Payment Confirmation',
-                                                           "email/purchase_email.html", table_rows())
+                subject = 'JOAD Session Payment Confirmation'
+
                 # elif session['description'][0:len("joad session")] == "joad session":
                 JoadSessions(db).update_registration(session["id"], "paid", None, session['joad_session'])
 
@@ -299,8 +306,9 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             # mdb = MemberDb(db)
             mem = mdb.find_by_id(l[0])
 
-
             fam = []
+            template = 'email/join.html'
+
             if mem["fam"] is None:
                 mdb.expire_update(mem)
                 mdb.set_member_pay_code_status(None, "member")
@@ -314,13 +322,13 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             if session.get('renew', False) is True:
                 # path = os.path.join(project_directory, "email_templates", "renew.html")
                 # TODO this is not the correct template for this.
-                email_helper.send_email(mem['email'], 'Renew', 'email/join.html', table_rows(), mem, fam)
+                subject = 'Renew'
+
             else:
-                # path = os.path.join(project_directory, "email_templates", "join.html")
                 subject = 'Welcome To Wooldley Park Archers'
-                email_helper.send_email(mem['email'], subject, 'email/join.html', table_rows(), mem, fam)
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
+        email_helper.send_email(session['email'], subject, template, table_rows(), mem, fam, receipt)
         return redirect('/pay_success')
 
 

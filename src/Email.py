@@ -56,8 +56,9 @@ class Email:
         msg['From'] = self.user
 
         # storing the receivers email address
-        msg['To'] = toaddr
-        if not self.production:
+        if self.production:
+            msg['To'] = toaddr
+        else:
             msg['To'] = self.to_address
 
 
@@ -96,7 +97,6 @@ class Email:
             msg.attach(p)
 
         # creates SMTP session
-        # s = smtplib.SMTP('smtp.gmail.com', 587)
         s = smtplib.SMTP(self.server)
 
         # start TLS for security
@@ -106,7 +106,7 @@ class Email:
         s.login(self.user, self.password)
 
         # sending the mail
-        s.sendmail(toaddr, self.user, msg.as_string())
+        s.sendmail(self.user, msg['to'], msg.as_string())
 
         # terminating the session
         s.quit()

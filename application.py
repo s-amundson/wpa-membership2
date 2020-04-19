@@ -288,7 +288,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
 
         if site != "http://127.0.0.1:5000":
             pay_log.add_square_payment(response, members, description, ik)
-            receipt = response['receipt_url']
+            receipt = f"Link to reciept: {response['receipt_url']}"
 
         if description[:len("pin_shoot")] == 'pin_shoot':
             subject = 'Pin Shoot Payment Confirmation'
@@ -487,7 +487,7 @@ def test_email():
     # return redirect('/register')
     mem = mdb.find_by_id(1)
     mem['renew_code'] = mdb.randomString()
-    email_helper.send_email("", "Renew", 'email/join.html', mem=mem)
+    email_helper.send_email(mem['email'], "Renew", 'email/join.html', mem=mem)
     return redirect('/register')
 
 

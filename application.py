@@ -496,7 +496,7 @@ def renew_code():
             print(rows)
             if rows[0]['status'] == 'member' and rows[0]['email_code'] is None:
                 mdb.send_renewal(rows[0])
-        return redirect("/")
+        return render_template('message.html', message='Verification email sent')
     else:
         return render_template('message.html', message='Invalid email')
 

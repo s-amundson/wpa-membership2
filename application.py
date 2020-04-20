@@ -113,6 +113,17 @@ def email_verify():
         return payment(mem)
 
 
+@app.route(subdir + "/fam_done", methods=["GET", "POST"])  # TODO update this to patch
+def fam_done():
+    """ Finishes family registration. Sends verification email."""
+    if session.get("registration", None) is not None:
+        s = "Email Verification Code"
+        email_helper.send_email(session['registration']['email'], s, 'email/verify.html', mem=session['registration'])
+    clear()
+    # Redirect user to home page
+    return redirect("/")
+
+
 @app.route(subdir + "/get_email", methods=["GET"])
 def get_email():
     return jsonify(session['email'])
@@ -322,16 +333,18 @@ def process_payment():
             fam = []
             template = 'email/join.html'
             JoadSessions(db).update_status_by_paycode('paid', mem['email_code'])
+            # s = f"UPDATE member SET `email_code` = %s, `status` = 'member' WHERE `email_code`` = '{mem['email_code']}'"
+            # db.execute(s)
 
             if mem["fam"] is None:
                 mdb.expire_update(mem)
-                mdb.set_member_pay_code_status(None, "member")
+                # mdb.set_member_pay_code_status(None, "member")
             else:
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
                     fam.append(f"{row['first_name']}'s membership number is {row['id']}")
-                    mdb.expire_update(mem)
-                    mdb.set_member_pay_code_status(None, "member")
+                    mdb.expire_update(row)
+                    # mdb.set_member_pay_code_status(None, "member")
 
             if session.get('renew', False) is True:
                 # path = os.path.join(project_directory, "email_templates", "renew.html")
@@ -415,11 +428,11 @@ def register():
                     session['registration'] = None
                     return redirect("/")
                 else:  # Family registration
-                    if session.get("registration", None) is None:
+                    # if session.get("registration", None) is None:
                         # path = os.path.join(project_directory, "email_templates", "verify.html")
                         # mdb.send_email(path, "Email Verification Code")
-                        s = "Email Verification Code"
-                        email_helper.send_email(reg['email'], s, 'email/verify.html', mem=mdb.mem)
+                        # s = "Email Verification Code"
+                        # email_helper.send_email(reg['email'], s, 'email/verify.html', mem=mdb.mem)
 
                     # Calculate the running cost for the membership with the possibility of adding JOAD sessions in.
                     costs = cfg.get_costs()

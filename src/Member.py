@@ -129,8 +129,8 @@ class Member:
         """ Update the expiration date of the row."""
         d = row["exp_date"]
         d = d.replace(year=d.year + 1)
-        s = f"UPDATE member SET `exp_date` = '{d.isoformat()}', `email_code` = %s, `pay_code` = %s  WHERE `id` = '{row['id']}'"
-        self.db.execute(s, (None, None))
+        s = f"UPDATE member SET `exp_date` = '{d.isoformat()}', `email_code` = %s, `status` = 'member'  WHERE `id` = '{row['id']}'"
+        self.db.execute(s, (None,))
 
     def find_by_email(self, email):
         """Returns member by their email address"""

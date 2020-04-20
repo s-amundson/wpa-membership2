@@ -33,3 +33,9 @@ class JoadSessions:
         s = f"UPDATE joad_session_registration SET `pay_status` = '{status}', `pay_code` = %s WHERE " \
             f"`mem_id` = {mem_id} AND `session_date` = '{session}'"
         self.db.execute(s, args=(pay_code,))
+
+    def update_status_by_paycode(self, status, pay_code):
+        """Updates a database registrant"""
+        s = f"UPDATE joad_session_registration SET `pay_status` = '{status}', `pay_code` = %s WHERE " \
+            f"`pay_code` = %s"
+        self.db.execute(s, args=(None, pay_code))

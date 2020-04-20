@@ -21,7 +21,6 @@ from square_handler import square_handler
 from Upkeep import Upkeep
 from Email import Email
 
-
 # Configure application
 app = Flask(__name__)
 project_directory = os.path.dirname(os.path.realpath(__file__))
@@ -51,7 +50,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-
 # Configure to use database
 dbfile = "data.db"
 db = DbHelper(cfg)
@@ -76,6 +74,7 @@ email_helper = Email(project_directory)
 # @login_required
 def index():
     # return render_template("index.html")
+    clear()
     return redirect('/register')
 
 
@@ -87,12 +86,20 @@ def cost_values():
     return jsonify(costs)
 
 
-@app.route(subdir + "/email_verify", methods=["GET", "POST"]) # TODO update this to patch
+def clear():
+    family.clear()
+    session["registration"] = None
+    session.clear()
+
+
+@app.route(subdir + "/email_verify", methods=["GET", "POST"])  # TODO update this to patch
 def email_verify():
     """The user must verify the users email address to complete the registration. Validation is done with a code
     that was sent to the user"""
 
-    if(request.method == "GET"):
+    if (request.method == "GET"):
+
+        clear()
         email = vcode = ""
         if "e" in request.args:
             email = request.args["e"]
@@ -101,12 +108,12 @@ def email_verify():
         session['renew'] = False
 
         return render_template("email_verify.html", vcode=vcode, email=email)
-    else:  #method is POST
+    else:  # method is POST
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
         return payment(mem)
 
 
-@app.route(subdir + "/get_email", methods = ["GET"])
+@app.route(subdir + "/get_email", methods=["GET"])
 def get_email():
     return jsonify(session['email'])
 
@@ -114,7 +121,7 @@ def get_email():
 @app.route(subdir + "/joad_registration", methods=["GET", "POST"])
 def joad_registration():
     """Registers a user for a Junior Olympic Archery Development Session"""
-    if(request.method == "GET"):
+    if (request.method == "GET"):
         jsdb = JoadSessions(db)
         js = jsdb.list_open()
         return render_template("joad_registration.html", rows=js)
@@ -133,12 +140,12 @@ def joad_registration():
                 d = row['dob']
 
                 # check to see if the student is to old (over 20)
-                if d.replace(year=d.year + 21) < date.today(): # student is to old.
+                if d.replace(year=d.year + 21) < date.today():  # student is to old.
                     return render_template('message.html', message='Must be younger then 21 to register"')
 
                 mdb.setbyDict(row)
 
-                if(joad_session is not "None"):
+                if (joad_session is not "None"):
                     reg = JoadSessions(db).session_registration(row['id'], joad_session)
                     if reg['pay_status'] == 'paid':
                         message = f"{row['first_name']} is already registered for this session."
@@ -148,7 +155,7 @@ def joad_registration():
                     session['description'] = 'JOAD Session' + joad_session
                     session['joad_session'] = joad_session
                     session['email'] = row['email']
-                    session['id'] = row['id']
+                    session['mem_id'] = row['id']
                     return redirect('process_payment')
 
         return render_template('message.html', message='Record not found')
@@ -163,11 +170,12 @@ def pay_success():
 
 def payment(mem):
     """This function starts the payment process for some other functions."""
+    jsdb = JoadSessions(db)
     if mem is not None:
         if mem['status'] == 'member' and session.get('renew', False) is False:
             return render_template('message.html', message='payment already processed')
-        session['mem_id'] = mem['id']
-        s = "SELECT id, session_date from joad_session_registration where 1=0 "
+        # session['mem_id'] = mem['id']
+        s = "SELECT id, mem_id, session_date from joad_session_registration where pay_status not like 'paid' AND "
         if mem["fam"] is not None:
             rows = mdb.find_by_fam(mem['fam'])
             for row in rows:
@@ -179,10 +187,13 @@ def payment(mem):
         session_date = ""
         if len(js) > 0:
             session_date = js[0]['session_date']
+            for j in js:
+                jsdb.update_registration(j["mem_id"], "start payment", mem['email_code'], session_date)
 
         session['line_items'] = square.purchase_membership(mem, False, joad_sessions, session_date)
         session['description'] = 'membership'
-        session['email'] = mem['email']
+        # session['email'] = mem['email']
+        session['mem'] = mem
         if session['line_items'] is None:
             return render_template('message.html', message='payment error')
 
@@ -195,7 +206,7 @@ def payment(mem):
 @app.route(subdir + "/pin_shoot", methods=["GET", "POST"])
 def pin_shoot():
     """Interface to register a pin shoot and pay for the shoot as well as pins."""
-    if(request.method == "GET"):
+    if (request.method == "GET"):
         return render_template("pin_shoot.html", date=date.today())
     else:
         """ Get values, calculate pins, """
@@ -207,7 +218,7 @@ def pin_shoot():
 
         ps = PinShoot(db, project_directory)
         psd = ps.get_dict()
-        for k,v in psd.items():
+        for k, v in psd.items():
             psd[k] = request.form.get(k)
         ps.set_dict(psd)
         stars = ps.calculate_pins() - int(psd['prev_stars'])
@@ -223,7 +234,7 @@ def pin_shoot():
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
-def process_payment():  # TODO add process payment js to get_email and form for email.
+def process_payment():
     def table_rows():
         rows = []
         total = 0
@@ -237,11 +248,12 @@ def process_payment():  # TODO add process payment js to get_email and form for 
                 total += int(row['base_price_money']['amount'])
 
         return rows, total
+
     """Shows a payment page for making purchases"""
     square_cfg = cfg.get_square()
     site = cfg.get_site()['site']
     paydict = {}
-    if(request.method == "GET"):
+    if (request.method == "GET"):
 
         if square_cfg['environment'] == "production":
             paydict['pay_url'] = "https://js.squareup.com/v2/paymentform"
@@ -268,10 +280,10 @@ def process_payment():  # TODO add process payment js to get_email and form for 
             print(f"response type = {type(response)} response = {response}")
 
         members = ""
-        if 'mem_id' in session:
-            mem = mdb.find_by_id(session['mem_id'])
+        if 'mem' in session:
+            mem = session['mem']
             if mem["fam"] is None:
-                members = f"{session['mem_id']}, "
+                members = f"{mem['id']}, "
             else:
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
@@ -282,7 +294,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
         session['members'] = members
         subject = ""
         template = "email/purchase_email.html"
-        mem = None
+        # mem = None
         fam = []
         receipt = ""
 
@@ -299,15 +311,17 @@ def process_payment():  # TODO add process payment js to get_email and form for 
                 subject = 'JOAD Session Payment Confirmation'
 
                 # elif session['description'][0:len("joad session")] == "joad session":
-                JoadSessions(db).update_registration(session["id"], "paid", None, session['joad_session'])
+                # JoadSessions(db).update_registration(mem["id"], "paid", None, session['joad_session'])
+                JoadSessions(db).update_status_by_paycode('paid', mem['email_code'])
 
         elif description == 'membership':
-            l = session['members'].split(',')
+            # l = session['members'].split(',')
             # mdb = MemberDb(db)
-            mem = mdb.find_by_id(l[0])
+            # mem = mdb.find_by_id(l[0])
 
             fam = []
             template = 'email/join.html'
+            JoadSessions(db).update_status_by_paycode('paid', mem['email_code'])
 
             if mem["fam"] is None:
                 mdb.expire_update(mem)
@@ -328,7 +342,7 @@ def process_payment():  # TODO add process payment js to get_email and form for 
                 subject = 'Welcome To Wooldley Park Archers'
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
-        email_helper.send_email(session['email'], subject, template, table_rows(), mem, fam, receipt)
+        email_helper.send_email(mem['email'], subject, template, table_rows(), mem, fam, receipt)
         return redirect('/pay_success')
 
 
@@ -342,6 +356,7 @@ def reg_values():
 @app.route(subdir + "/register", methods=["GET", "POST"])
 def register():
     """Register user"""
+
     def form_data():
         reg = {"first_name": request.form.get('first_name'),
                "last_name": request.form.get('last_name'),
@@ -356,7 +371,8 @@ def register():
                "benefactor": request.form.get('benefactor'),
                "fam": family.fam_id}
         return reg
-    if(request.method == "GET"):
+
+    if (request.method == "GET"):
         jsdb = JoadSessions(db)
         js = jsdb.list_open()
         return render_template("register.html", rows=[], joad_sessions=js)
@@ -380,24 +396,22 @@ def register():
 
                 # Add member to database
                 reg["id"] = mdb.add(family)
-                if(reg['level'] == "invalid"):
+                if (reg['level'] == "invalid"):
                     return render_template('message.html', message='Error in form')
 
-                # If a JOAD session was selected, check that the member is under 21,
-                # if so register them for a session.
-                joad = request.form.get('joad')
-
                 # Joad will either be 'None' or None if no session is selected.
+                joad = request.form.get('joad')
                 if joad == "None":
                     joad = None
 
+                # If a JOAD session was selected, check that the member is under 21,
+                # if so register them for a session.
                 if joad is not None:
                     d = request.form.get('dob').split('-')
                     if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
-                        joad = JoadSessions(db).session_registration(reg['id'], request.form.get('joad'),
-                                                              'see membership', None)
+                        joad_row = JoadSessions(db).session_registration(reg['id'], joad, pay_code=reg['email_code'])
 
-                if(family.fam_id is None):  # not a family registration
+                if (family.fam_id is None):  # not a family registration
                     session['registration'] = None
                     return redirect("/")
                 else:  # Family registration
@@ -419,6 +433,7 @@ def register():
                     reg["last_name"] = ""
                     reg["dob"] = ""
                     session['registration'] = reg
+                    session['joad_session'] = joad
 
                     return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
             else:
@@ -429,8 +444,10 @@ def register():
 def renew():
     """Provides interface to request a renewal code by entering email address.
     Also to provide renewal verification with email address and code"""
-    if(request.method == "GET"):
-        print(request.args)
+    if (request.method == "GET"):
+        # clear session information
+        clear()
+
         email = rc = ""
         session['renew'] = True
         if "e" in request.args:
@@ -438,10 +455,11 @@ def renew():
         if "c" in request.args:
             rc = request.args["c"]
         return render_template("renew.html", email=email, renew_code=rc)
-    else:  #  method is POST
+    else:  # method is POST
         mem = mdb.check_email(request.form.get('email'), request.form.get('vcode'))
-        if(mem['status'] != 'member'):
-            return render_template("email_verify.html", vcode=request.form.get('vcode'), email=request.form.get('email'))
+        if (mem['status'] != 'member'):
+            return render_template("email_verify.html", vcode=request.form.get('vcode'),
+                                   email=request.form.get('email'))
         mem['renewal'] = True
         session["registration"] = mem
         session['mem_id'] = mem['id']
@@ -451,7 +469,6 @@ def renew():
             return render_template("register.html")
         else:
             return render_template('message.html', message='Invalid email')
-
 
 
 @app.route(subdir + "/renew_code", methods=["POST"])
@@ -474,9 +491,8 @@ def renew_code():
 @app.route(subdir + "/reset", methods=["GET", "POST"])
 def reset():
     """Used to clear session data. Called from register.html when user is done with family registration."""
-    family.clear()
-    session["registration"] = None
-    session.clear()
+    clear()
+
     # Redirect user to home page
     return redirect("/")
 
@@ -501,6 +517,6 @@ def errorhandler(e):
 # Listen for errors
 for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
-    
+
 if __name__ == '__main__':
-   app.run(debug = True)
+    app.run(debug=True)

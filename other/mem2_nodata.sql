@@ -63,21 +63,21 @@ CREATE TABLE `member` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
-DROP TABLE IF EXISTS `payment_log`;
 CREATE TABLE `payment_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `members` varchar(45) DEFAULT NULL,
   `checkout_created_time` datetime DEFAULT NULL,
   `checkout_id` varchar(45) DEFAULT NULL,
   `order_id` varchar(45) DEFAULT NULL,
-  `order_create_time` datetime DEFAULT NULL,
   `location_id` varchar(45) DEFAULT NULL,
   `state` varchar(20) DEFAULT NULL,
   `total_money` varchar(45) DEFAULT NULL,
   `description` varchar(45) DEFAULT NULL,
   `idempotency_key` varchar(45) DEFAULT NULL,
+  `reciept` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1;
+
 
 DROP TABLE IF EXISTS `pin_shoot`;
 CREATE TABLE `pin_shoot` (

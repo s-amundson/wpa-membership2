@@ -15,6 +15,10 @@ names with apostrophes need to have the apostrophe escaped
 
 add logic to resend verification email.
 
+add table for comped volunteers. set up so that comped volunteers renewal is free.
+
+member['pay_code'] is not really used. consider changing to renew code
+
 
 Wish Lists:
     cart shopping

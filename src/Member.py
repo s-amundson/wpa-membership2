@@ -118,9 +118,9 @@ class Member:
         if len(rows) > 0:
             self.setbyDict(rows[0])
 
-            if self.mem['pay_code'] is None:
-                self.set_pay_code()
-                self.set_member_pay_code_status(self.mem['pay_code'], 'start payment')
+            # if self.mem['pay_code'] is None:
+            #     # self.set_pay_code()
+            #     # self.set_member_pay_code_status(self.mem['pay_code'], 'start payment')
             return self.mem
         else:
             return None
@@ -232,14 +232,14 @@ class Member:
             s = f"UPDATE member SET `pay_code` = %s, `status` = %s WHERE `fam` = '{mem_id}'"
         self.db.execute(s, (code, status))
 
-    def set_pay_code(self):
-        """Sets an unique payment code as required by square"""
-        if 'pay_code' in self.mem:
-            if self.mem['pay_code'] is None:
-                self.mem['pay_code'] = str(uuid.uuid4())
-        else:
-            self.mem['pay_code'] = str(uuid.uuid4())
-        return self.mem['pay_code']
+    # def set_pay_code(self):
+    #     """Sets an unique payment code as required by square"""
+    #     if 'pay_code' in self.mem:
+    #         if self.mem['pay_code'] is None:
+    #             self.mem['pay_code'] = str(uuid.uuid4())
+    #     else:
+    #         self.mem['pay_code'] = str(uuid.uuid4())
+    #     return self.mem['pay_code']
 
     # def square_payment(self, square_result, description):
     #     members = ""
@@ -274,12 +274,14 @@ class Member:
             reg['dob'] = self.mem['dob']
         if reg['benefactor'] is None:
             reg['benefactor'] = 0
-        print(f"MemberDb.update_record s = {reg}")
+        if reg['level'] is None:
+            reg['level'] = self.mem['level']
+        print(f"MemberDb.update_record s = {reg} ")
         for k, v in reg.items():
             if self.mem[k] != v:
                 s += f"{k} = {v}, "
                 update_required = True
         if update_required:
-            s = s[:-2] + f"WHERE id = {self.mem['id']}"
+            s = s[:-2] + f" WHERE id = {self.mem['id']}"
             print(f"MemberDb.update_record s = {s}")
             self.db.execute(s)

@@ -7,7 +7,7 @@
         Thank you for supporting Woodley Park Archers. Your membership is set to expire on {{ values['expire'] }}
         Your renewal code is <strong>{{ values['renew_code'] }}</strong> please click below to complete your renewal.
     </p>
-        <a href="https://wp3.amundsonca.com/renew?e={{ values['email'] }}&c={{ values['renew_code'] }}">
+        <a href="{{values['site']}}/renew?e={{ values['email'] }}&c={{ values['renew_code'] }}">
              <button style="margin: 10px;" type="button">Complete Renewal</button>
         </a>
     <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">

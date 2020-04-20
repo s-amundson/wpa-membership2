@@ -175,20 +175,20 @@ def payment(mem):
         if mem['status'] == 'member' and session.get('renew', False) is False:
             return render_template('message.html', message='payment already processed')
         # session['mem_id'] = mem['id']
-        s = "SELECT id, mem_id, session_date from joad_session_registration where pay_status not like 'paid' AND "
-        if mem["fam"] is not None:
-            rows = mdb.find_by_fam(mem['fam'])
-            for row in rows:
-                s += f" or mem_id = {row['id']}"
-        else:
-            s += f"OR mem_id = {mem['id']}"
+        s = f"SELECT id, mem_id, session_date from joad_session_registration where email_code like '{mem['email_code']}'"
+        # if mem["fam"] is not None:
+        #     rows = mdb.find_by_fam(mem['fam'])
+        #     for row in rows:
+        #         s += f" or mem_id = {row['id']}"
+        # else:
+        #     s += f"OR mem_id = {mem['id']}"
         js = db.execute(s)
         joad_sessions = len(js)
         session_date = ""
         if len(js) > 0:
             session_date = js[0]['session_date']
-            for j in js:
-                jsdb.update_registration(j["mem_id"], "start payment", mem['email_code'], session_date)
+            # for j in js:
+            #     jsdb.update_registration(j["mem_id"], "start payment", mem['email_code'], session_date)
 
         session['line_items'] = square.purchase_membership(mem, False, joad_sessions, session_date)
         session['description'] = 'membership'
@@ -409,7 +409,7 @@ def register():
                 if joad is not None:
                     d = request.form.get('dob').split('-')
                     if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
-                        joad_row = JoadSessions(db).session_registration(reg['id'], joad, pay_code=reg['email_code'])
+                        joad_row = JoadSessions(db).session_registration(reg['id'], joad, email_code=reg['email_code'])
 
                 if (family.fam_id is None):  # not a family registration
                     session['registration'] = None

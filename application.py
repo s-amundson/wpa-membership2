@@ -162,11 +162,11 @@ def joad_registration():
                         message = f"{row['first_name']} is already registered for this session."
                         return render_template('message.html', message=message)
 
-                    session['line_items'] = square.purchase_joad_sesion(reg['pay_code'], joad_session, row['email'])
+                    session['line_items'] = square.purchase_joad_sesion(reg['email_code'], joad_session, row['email'])
                     session['description'] = 'JOAD Session' + joad_session
                     session['joad_session'] = joad_session
-                    session['email'] = row['email']
-                    session['mem_id'] = row['id']
+                    # session['email'] = row['email']
+                    session['mem'] = row
                     return redirect('process_payment')
 
         return render_template('message.html', message='Record not found')
@@ -299,6 +299,10 @@ def process_payment():
                 rows = mdb.find_by_fam(mem["fam"])
                 for row in rows:
                     members = members + f"{row['id']}, "
+            email = mem['email']
+        elif 'email' in session:
+            mem = None
+            email = session['email']
         description = ""
         if 'description' in session:
             description = session['description']
@@ -315,6 +319,7 @@ def process_payment():
 
         if description[:len("pin_shoot")] == 'pin_shoot':
             subject = 'Pin Shoot Payment Confirmation'
+
 
 
         elif description[:len('JOAD Session')] == 'JOAD Session':
@@ -355,7 +360,7 @@ def process_payment():
                 subject = 'Welcome To Wooldley Park Archers'
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
-        email_helper.send_email(mem['email'], subject, template, table_rows(), mem, fam, receipt)
+        email_helper.send_email(email, subject, template, table_rows(), mem, fam, receipt)
         return redirect('/pay_success')
 
 

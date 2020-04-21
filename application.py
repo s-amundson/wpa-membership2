@@ -208,8 +208,9 @@ def payment(mem):
         if session['line_items'] is None:
             return render_template('message.html', message='payment error')
 
-        if mem["fam"] is not None and session.get('renew', False) is True:
-            return render_template("renew_list.html", rows=rows)
+        # if mem["fam"] is not None and session.get('renew', False) is True:
+        #     rows = mdb.find_by_fam(mem['fam'])
+        #     return render_template("renew_list.html", rows=rows)
         return redirect('process_payment')
     return render_template('message.html', message='Error with code')
 
@@ -484,7 +485,12 @@ def renew():
 
         # If email is verified, then process renewal.
         if mem is not None:
-            return render_template("register.html")
+            rows = []
+            jsdb = JoadSessions(db)
+            js = jsdb.list_open()
+            if mem['fam'] is not None:
+                rows = mdb.find_by_fam(mem['fam'])
+            return render_template("register.html", rows=rows, js=js)
         else:
             return render_template('message.html', message='Invalid email')
 

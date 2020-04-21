@@ -19,6 +19,8 @@ add table for comped volunteers. set up so that comped volunteers renewal is fre
 
 member['pay_code'] is not really used. consider changing to renew code
 
+upgrade renewals to allow to edit all family members. Perhaps a link on the family members id opens their reg form.
+
 
 Wish Lists:
     cart shopping

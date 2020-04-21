@@ -278,7 +278,9 @@ class Member:
             reg['level'] = self.mem['level']
         print(f"MemberDb.update_record s = {reg} ")
         for k, v in reg.items():
-            if self.mem[k] != v:
+            if k == 'fam':
+                pass
+            elif self.mem[k] != v:
                 s += f"{k} = {v}, "
                 update_required = True
         if update_required:

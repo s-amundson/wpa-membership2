@@ -166,6 +166,7 @@ def joad_registration():
                     session['description'] = 'JOAD Session' + joad_session
                     session['joad_session'] = joad_session
                     # session['email'] = row['email']
+                    row['email_code'] = reg['email_code']
                     session['mem'] = row
                     return redirect('process_payment')
 

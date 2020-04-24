@@ -475,7 +475,7 @@ def register():
 
 
 def render_template(file, **kwargs):
-    return flask_render_template(file, subdir=subdir, **kwargs)
+    return flask_render_template(subdir + '/' + file, subdir=subdir, **kwargs)
 
 
 @app.route(subdir + "/renew", methods=["GET", "POST"])

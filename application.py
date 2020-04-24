@@ -2,7 +2,8 @@ import os
 from datetime import date
 import uuid
 
-from flask import Flask, jsonify, redirect, render_template, request, session
+from flask import Flask, jsonify, redirect, request, session
+from flask import render_template as flask_render_template
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
@@ -458,6 +459,10 @@ def register():
                     return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
             else:
                 return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
+
+
+def render_template(file, **kwargs):
+    return flask_render_template(file, subdir=subdir, **kwargs)
 
 
 @app.route(subdir + "/renew", methods=["GET", "POST"])

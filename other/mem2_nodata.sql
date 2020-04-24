@@ -15,21 +15,22 @@ CREATE TABLE `joad_registration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mem_id` int(11) NOT NULL,
   `bow` varchar(20) DEFAULT NULL,
-  `joad_indoor` int(11) DEFAULT 0,
-  `joad_outdoor` int(11) DEFAULT 0,
+  `joad_indoor` int(11) DEFAULT '0',
+  `joad_outdoor` int(11) DEFAULT '0',
   `usaa_member` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `mem_id_UNIQUE` (`mem_id` ASC)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  UNIQUE KEY `mem_id_UNIQUE` (`mem_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
+DROP TABLE IF EXISTS `joad_session_registration`;
 CREATE TABLE `joad_session_registration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `mem_id` int(11) NOT NULL,
   `pay_status` varchar(20) DEFAULT NULL,
-  `pay_code` varchar(45) DEFAULT NULL,
+  `email_code` varchar(45) DEFAULT NULL,
   `session_date` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `joad_sessions`;
 CREATE TABLE `mem2`.`joad_sessions` (
@@ -59,10 +60,11 @@ CREATE TABLE `member` (
   `email_code` varchar(50) DEFAULT NULL,
   `status` varchar(20) DEFAULT 'new',
   `pay_code` varchar(45) DEFAULT NULL,
+  `note` VARCHAR(150) NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=latin1;
 
-
+DROP TABLE IF EXISTS `payment_log`;
 CREATE TABLE `payment_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `members` varchar(45) DEFAULT NULL,
@@ -78,7 +80,6 @@ CREATE TABLE `payment_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1;
 
-
 DROP TABLE IF EXISTS `pin_shoot`;
 CREATE TABLE `pin_shoot` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -90,8 +91,17 @@ CREATE TABLE `pin_shoot` (
   `shoot_date` date DEFAULT NULL,
   `distance` int(11) DEFAULT NULL,
   `target` int(11) DEFAULT NULL,
+  `prev_stars` int(11) DEFAULT NULL,
   `stars` int(11) DEFAULT NULL,
   `wpa_membership_number` int(11) DEFAULT NULL,
   `score` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `renewal_email_log`;
+CREATE TABLE `renewal_email_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mem_id` int(11) NOT NULL,
+  `sent_timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;

@@ -76,7 +76,7 @@ email_helper = Email(project_directory)
 def index():
     # return render_template("index.html")
     clear()
-    return redirect('/register')
+    return redirect(subdir + '/register')
 
 
 @app.route(subdir + "/cost_values", methods=["GET"])
@@ -169,7 +169,7 @@ def joad_registration():
                     # session['email'] = row['email']
                     row['email_code'] = reg['email_code']
                     session['mem'] = row
-                    return redirect('process_payment')
+                    return redirect(subdir + 'process_payment')
 
         return render_template('message.html', message='Record not found')
 
@@ -213,7 +213,7 @@ def payment(mem):
         # if mem["fam"] is not None and session.get('renew', False) is True:
         #     rows = mdb.find_by_fam(mem['fam'])
         #     return render_template("renew_list.html", rows=rows)
-        return redirect('process_payment')
+        return redirect(subdir + 'process_payment')
     return render_template('message.html', message='Error with code')
 
 
@@ -244,7 +244,7 @@ def pin_shoot():
         session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], stars)
         session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
 
-        return redirect('process_payment')
+        return redirect( subdir + 'process_payment')
 
 
 @app.route(subdir + "/process_payment", methods=["GET", "POST"])
@@ -364,7 +364,7 @@ def process_payment():
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
         email_helper.send_email(email, subject, template, table_rows(), mem, fam, receipt)
-        return redirect('/pay_success')
+        return redirect(subdir + '/pay_success')
 
 
 @app.route(subdir + "/reg_values", methods=["GET"])
@@ -434,7 +434,7 @@ def register():
 
                 if (family.fam_id is None):  # not a family registration
                     session['registration'] = None
-                    return redirect("/")
+                    return redirect(subdir + "/")
                 else:  # Family registration
                     # if session.get("registration", None) is None:
                         # path = os.path.join(project_directory, "email_templates", "verify.html")
@@ -534,7 +534,7 @@ def test_email():
     mem = mdb.find_by_id(1)
     mem['renew_code'] = mdb.randomString()
     email_helper.send_email(mem['email'], "Renew", 'email/join.html', mem=mem)
-    return redirect('/register')
+    return redirect(subdir + '/register')
 
 
 def errorhandler(e):

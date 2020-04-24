@@ -20,7 +20,7 @@ CREATE TABLE `joad_registration` (
   `usaa_member` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `mem_id_UNIQUE` (`mem_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `joad_session_registration`;
 CREATE TABLE `joad_session_registration` (
@@ -30,7 +30,7 @@ CREATE TABLE `joad_session_registration` (
   `email_code` varchar(45) DEFAULT NULL,
   `session_date` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `joad_sessions`;
 CREATE TABLE `mem2`.`joad_sessions` (
@@ -60,9 +60,8 @@ CREATE TABLE `member` (
   `email_code` varchar(50) DEFAULT NULL,
   `status` varchar(20) DEFAULT 'new',
   `pay_code` varchar(45) DEFAULT NULL,
-  `note` VARCHAR(150) NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `payment_log`;
 CREATE TABLE `payment_log` (
@@ -78,7 +77,7 @@ CREATE TABLE `payment_log` (
   `idempotency_key` varchar(45) DEFAULT NULL,
   `reciept` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `pin_shoot`;
 CREATE TABLE `pin_shoot` (
@@ -96,7 +95,7 @@ CREATE TABLE `pin_shoot` (
   `wpa_membership_number` int(11) DEFAULT NULL,
   `score` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `renewal_email_log`;
 CREATE TABLE `renewal_email_log` (
@@ -104,4 +103,4 @@ CREATE TABLE `renewal_email_log` (
   `mem_id` int(11) NOT NULL,
   `sent_timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

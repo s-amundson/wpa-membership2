@@ -14,7 +14,7 @@ from Config import Config
 from DbHelper import DbHelper
 from FamilyClass import FamilyClass
 from JoadSessions import JoadSessions
-from helpers import apology, login_required
+# from helpers import apology, login_required
 from Member import Member
 from PayLogHelper import PayLogHelper
 from PinShoot import PinShoot
@@ -28,9 +28,9 @@ project_directory = os.path.dirname(os.path.realpath(__file__))
 cfg = Config(project_directory)
 
 # subdirectory is to be used if this software is used in another site.
-subdir = cfg.get_site()['subdirectory']
-if subdir == 'None':
-    subdir = ''
+parent_site = cfg.get_site()['parent_site']
+if parent_site == 'None':
+    parent_site = '/'
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -71,12 +71,12 @@ pay_log = PayLogHelper(db)
 email_helper = Email(project_directory)
 
 
-@app.route(subdir + "/")
+@app.route("/")
 # @login_required
 def index():
     # return render_template("index.html")
     clear()
-    return redirect(subdir + '/register')
+    return redirect('/register')
 
 def apology(message, code=400):
     """Render message as an apology to user."""
@@ -92,7 +92,7 @@ def apology(message, code=400):
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
 
-@app.route(subdir + "/cost_values", methods=["GET"])
+@app.route("/cost_values", methods=["GET"])
 def cost_values():
     """Provides cost information for javascript functions"""
     costs = cfg.get_costs()
@@ -106,7 +106,7 @@ def clear():
     session.clear()
 
 
-@app.route(subdir + "/email_verify", methods=["GET", "POST"])  # TODO update this to patch
+@app.route("/email_verify", methods=["GET", "POST"])  # TODO update this to patch
 def email_verify():
     """The user must verify the users email address to complete the registration. Validation is done with a code
     that was sent to the user"""
@@ -127,7 +127,7 @@ def email_verify():
         return payment(mem)
 
 
-@app.route(subdir + "/fam_done", methods=["GET", "POST"])  # TODO update this to patch
+@app.route("/fam_done", methods=["GET", "POST"])  # TODO update this to patch
 def fam_done():
     """ Finishes family registration. Sends verification email."""
     if session.get("registration", None) is not None:
@@ -135,15 +135,16 @@ def fam_done():
         email_helper.send_email(session['registration']['email'], s, 'email/verify.html', mem=session['registration'])
     clear()
     # Redirect user to home page
-    return redirect("/")
+    # return redirect("/")
+    return render_template('message.html', message='Verification email sent')
 
 
-@app.route(subdir + "/get_email", methods=["GET"])
+@app.route("/get_email", methods=["GET"])
 def get_email():
     return jsonify(session['email'])
 
 
-@app.route(subdir + "/joad_registration", methods=["GET", "POST"])
+@app.route("/joad_registration", methods=["GET", "POST"])
 def joad_registration():
     """Registers a user for a Junior Olympic Archery Development Session"""
     if (request.method == "GET"):
@@ -182,12 +183,12 @@ def joad_registration():
                     # session['email'] = row['email']
                     row['email_code'] = reg['email_code']
                     session['mem'] = row
-                    return redirect(subdir + 'process_payment')
+                    return redirect('process_payment')
 
         return render_template('message.html', message='Record not found')
 
 
-@app.route(subdir + "/pay_success", methods=["GET"])
+@app.route("/pay_success", methods=["GET"])
 def pay_success():
     """Shows the user that the payment was successful"""
     session.clear()
@@ -226,11 +227,11 @@ def payment(mem):
         # if mem["fam"] is not None and session.get('renew', False) is True:
         #     rows = mdb.find_by_fam(mem['fam'])
         #     return render_template("renew_list.html", rows=rows)
-        return redirect(subdir + 'process_payment')
+        return redirect('process_payment')
     return render_template('message.html', message='Error with code')
 
 
-@app.route(subdir + "/pin_shoot", methods=["GET", "POST"])
+@app.route("/pin_shoot", methods=["GET", "POST"])
 def pin_shoot():
     """Interface to register a pin shoot and pay for the shoot as well as pins."""
     if (request.method == "GET"):
@@ -257,10 +258,10 @@ def pin_shoot():
         session['line_items'] = square.purchase_joad_pin_shoot(ik, psd["shoot_date"], stars)
         session['description'] = f"pin_shoot {psd['shoot_date']} {psd['first_name']}"
 
-        return redirect( subdir + 'process_payment')
+        return redirect('process_payment')
 
 
-@app.route(subdir + "/process_payment", methods=["GET", "POST"])
+@app.route("/process_payment", methods=["GET", "POST"])
 def process_payment():
     def table_rows():
         rows = []
@@ -377,17 +378,17 @@ def process_payment():
 
             # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
         email_helper.send_email(email, subject, template, table_rows(), mem, fam, receipt)
-        return redirect(subdir + '/pay_success')
+        return redirect('/pay_success')
 
 
-@app.route(subdir + "/reg_values", methods=["GET"])
+@app.route("/reg_values", methods=["GET"])
 def reg_values():
     """Provides registration valuse for a javascript, to be used with renewals and family registrations"""
     reg = jsonify(session.get('registration', None))
     return reg
 
 
-@app.route(subdir + "/register", methods=["GET", "POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
 
@@ -447,7 +448,8 @@ def register():
 
                 if (family.fam_id is None):  # not a family registration
                     session['registration'] = None
-                    return redirect(subdir + "/")
+                    # return redirect("/")
+                    return render_template('message.html', message='Registration Done')
                 else:  # Family registration
                     # if session.get("registration", None) is None:
                         # path = os.path.join(project_directory, "email_templates", "verify.html")
@@ -474,11 +476,7 @@ def register():
                 return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
 
 
-def render_template(file, **kwargs):
-    return flask_render_template(subdir + '/' + file, subdir=subdir, **kwargs)
-
-
-@app.route(subdir + "/renew", methods=["GET", "POST"])
+@app.route("/renew", methods=["GET", "POST"])
 def renew():
     """Provides interface to request a renewal code by entering email address.
     Also to provide renewal verification with email address and code"""
@@ -514,7 +512,7 @@ def renew():
             return render_template('message.html', message='Invalid email')
 
 
-@app.route(subdir + "/renew_code", methods=["POST"])
+@app.route("/renew_code", methods=["POST"])
 def renew_code():
     """ send an email to the member in the database with a renewal code if that email exists.
         If valid email address is not in database do nothing.
@@ -531,7 +529,11 @@ def renew_code():
         return render_template('message.html', message='Invalid email')
 
 
-@app.route(subdir + "/reset", methods=["GET", "POST"])
+def render_template(file, **kargs):
+    return flask_render_template(file, parent_site=parent_site, **kargs)
+
+
+@app.route("/reset", methods=["GET", "POST"])
 def reset():
     """Used to clear session data. Called from register.html when user is done with family registration."""
     clear()
@@ -540,14 +542,14 @@ def reset():
     return redirect("/")
 
 
-@app.route(subdir + "/test_email", methods=["GET", "POST"])
+@app.route("/test_email", methods=["GET", "POST"])
 def test_email():
     # email_helper.send_email("", "test join", 'email/verify.html')
     # return redirect('/register')
     mem = mdb.find_by_id(1)
     mem['renew_code'] = mdb.randomString()
     email_helper.send_email(mem['email'], "Renew", 'email/join.html', mem=mem)
-    return redirect(subdir + '/register')
+    return redirect('/register')
 
 
 def errorhandler(e):

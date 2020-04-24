@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block left %}
-        <form action="{{subdir}}/fam_done" method="post" class="form" name="form2">
+        <form action="/fam_done" method="post" class="form" name="form2">
         <div class="row">
             <h6>When done adding family members click the "Done" button below.</h6>
         </div>
@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block main %}
-    <form action="{{subdir}}/register" method="post" class="form" name="form1" onsubmit="return checkValidation()">
+    <form action="/register" method="post" class="form" name="form1" onsubmit="return checkValidation()">
         <div class="row">
             <div class="input-group input-group-md">
                 <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name"
@@ -130,7 +130,7 @@
 
 
 
-<script src="{{subdir}}/static/register.js"></script>
+<script src="static/register.js"></script>
 
 {% endblock %}
 

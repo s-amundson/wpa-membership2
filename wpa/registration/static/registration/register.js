@@ -125,7 +125,6 @@ function level_enable (enable_value, level){
     }
 }
 
-
 function phone_check (inputText) {
     var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
     if (inputText.value.match(phoneno)) {

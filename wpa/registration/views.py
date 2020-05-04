@@ -14,9 +14,20 @@ from .models import Joad_sessions, Member, Family, Joad_session_registration
 from .src.Config import Config
 
 # Create your views here.
-project_directory = os.path.dirname(os.path.realpath(__file__))
-cfg = Config('/'.join(project_directory.split('/')[:-1]))
-costs = cfg.get_costs()
+# project_directory = os.path.dirname(os.path.realpath(__file__))
+# print(project_directory)
+# print('\\'.join(project_directory.split('\\')[:-1]))
+# cfg = Config('\\'.join(project_directory.split('\\')[:-1]))
+# print(cfg.sections)
+# costs = cfg.get_costs()
+costs = {'standard_membership': 20,
+        'family_membership': 40,
+        'joad_membership': 18,
+        'senior_membership': 18,
+        'benefactor': 100,
+        'joad_session': 95,
+        'pin_shoot': 15,
+        'joad_pin': 5}
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +36,17 @@ def index(request):
     return render(request, 'registration/index.html')
 
 
+def fam_done(request):
+    request.session.flush()
+    return render(request, 'registration/message.html', {'message': 'Family Registration complete'})
+
+
 def message(request, text=""):
     return render(request, 'registration/message.html', {'message': text})
 
 
 def regform(request):
-    if (request.method == "GET"):
+    if request.method == "GET":
         form = MemberForm()
         return render(request, 'registration/regform.html', {'form': form})
     else:
@@ -38,13 +54,13 @@ def regform(request):
 
 
 def reg_values(request):
-    if (request.method == "GET"):
+    if request.method == "GET":
         return JsonResponse(request.session['fam_reg'])
     else:
         raise Http404('reg_values Error')
 
 
-def register(request):
+def register(request, message=None):
     sessions = Joad_sessions.objects.filter(state__exact='open')
 
     def form_data(mem=None):
@@ -65,14 +81,15 @@ def register(request):
 
         return mem
 
-    if (request.method == "GET"):
+    if request.method == "GET":
 
-        context = {'sessions': sessions, 'rows': [], 'costs': cfg.get_costs()}
+        context = {'sessions': sessions, 'rows': [], 'costs': costs, 'message': message}
         return render(request, 'registration/register.html', context)
-    elif (request.method == "POST"):
+
+    elif request.method == "POST":
         if request.POST['level'] == 'invalid' or 'terms' not in request.POST:
             #  TODO change this - return to registration with values entered filled
-            return render(request, 'registration/message.html', {'message': 'Duplicate found'})
+            return render(request, 'registration/message.html', {'message': 'Application Error'})
 
         if 'mem_id' in request.session:
             mem_id = int(request.session.get('mem_id'))
@@ -83,7 +100,7 @@ def register(request):
             member.save()
         #     return payment(mem)
         else:
-            #check for duplicate
+            # check for duplicate
             try:
                 reg_mem = Member.objects.filter(first_name=request.POST['first_name'],
                                                 last_name=request.POST['last_name'])
@@ -122,6 +139,7 @@ def register(request):
             member.email_code = str(uuid.uuid4())
             member.status = 'new'
             member.save()
+            logging.debug(f"member.level = {member.level}")
             if member.level == 'family':
                 if request.session.get('fam_id', None) is None:
                     # new family gets a new family id.
@@ -133,8 +151,10 @@ def register(request):
                     fam_reg  = request.POST.copy()
                     fam_reg['first_name'] = fam_reg['last_name'] = fam_reg['dob'] = ''
                     request.session['fam_reg'] = fam_reg
+                member.fam = request.session['fam_id']
+                member.save()
 
-                logging.debug(request.session['fam_id'])
+                logging.debug(f"fam_id = {request.session['fam_id']}, family_total = {request.session['family_total']}")
                 Family.objects.create(fam_id=request.session['fam_id'], member=member)
                 # return HttpResponseRedirect(reverse('registration:register'))
 
@@ -157,12 +177,13 @@ def register(request):
                         request.session['family_total'] += costs['joad']
             else:
                 logging.debug("joad not in request.POST")
-
+            show_session(request.session)
             if member.level != 'family':
+                pass
                 # Clear the session for the next user
-                show_session(request.session)
-                request.session.flush()
-                show_session(request.session)
+
+                # request.session.flush()
+                # show_session(request.session)
     #
     #                 if (family.fam_id is None):  # not a family registration
     #                     session['registration'] = None
@@ -194,7 +215,7 @@ def register(request):
 
 
 def cost_values(request):
-    if (request.method == "GET"):
+    if request.method == "GET":
 
         # TODO add family total
         costs['family_total'] = None  # session.get('family_total', None)
@@ -202,6 +223,7 @@ def cost_values(request):
 
     else:
         raise Http404('Cost Values Error')
+
 
 def show_session(session):
     logging.debug(f'show session, len= {len(session.items())}')

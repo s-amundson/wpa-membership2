@@ -2,12 +2,11 @@ from django.template.loader import render_to_string
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
-from .models import Member, Family, Joad_sessions, Joad_session_registration
+from registration.models import Member, Family, Joad_sessions, Joad_session_registration
 
-
+import logging
+logger = logging.getLogger(__name__)
 # Create your tests here.
-
-# TODO create tests for registration validation.
 
 
 class MemberModelTests(TestCase):
@@ -25,26 +24,26 @@ class MemberModelTests(TestCase):
                'dob': '1995-03-12',
                'level': 'standard',
                'terms':True}
+
     def test_add_member(self):
         # submit a registration to be added.
         response = self.client.post(reverse('registration:register'), self.mem, follow=True)
         self.assertRedirects(response, reverse('registration:register'))
         self.assertEquals(len(Member.objects.all()), 1)
-        # TODO test session clear
-
+        self.assertEquals(len(self.session.items()), 0)
 
     def test_duplicate_member(self):
-        # submit a registration to be added.
-        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
-        self.assertRedirects(response, reverse('registration:register'))
+        # # submit a registration to be added.
+        self.test_add_member()
         # resubmit a registration to test duplication.
-        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
 
         with self.assertTemplateUsed('registration/message.html'):
             render_to_string('registration/message.html')
         self.assertEquals(len(Member.objects.all()), 1)
-        # TODO test session clear
-
+        for k, v in self.session.items():
+            logging.debug(f"k = {k} v={v}")
+        self.assertEquals(len(self.session.items()), 0)
 
     def test_invalid_level(self):
         # if javascript is off then the form could be submitted with and invalid value.
@@ -54,7 +53,7 @@ class MemberModelTests(TestCase):
         with self.assertTemplateUsed('registration/message.html'):
             render_to_string('registration/message.html')
 
-        # TODO test session clear
+        # TODO test session clear - should there be a session clear with this?
 
 
     def test_joad_session_good(self):
@@ -70,7 +69,7 @@ class MemberModelTests(TestCase):
         # self.assertEquals(Member.objects.get(pk=1).joad, d)
         jsr = Joad_session_registration.objects.filter(mem=mem[0])
         self.assertEquals(len(jsr), 1)
-        # TODO test session clear
+        self.assertEquals(len(self.session.items()), 0)
 
 
 
@@ -86,4 +85,4 @@ class MemberModelTests(TestCase):
         # self.assertEquals(Member.objects.get(pk=1).joad, d)
         jsr = Joad_session_registration.objects.filter(mem=mem[0])
         self.assertEquals(len(jsr), 0)
-        # TODO test session clear
+        self.assertEquals(len(self.session.items()), 0)

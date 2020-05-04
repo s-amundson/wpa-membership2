@@ -7,6 +7,7 @@
 
 
 {% block main %}
+    <div class="row" message_text="{% message %}"><h3>"{% message %}"</h3></div>
     <form action="{% url 'registration:register' %}" method="post" class="form" name="form1" onsubmit="return checkValidation()">
         {% csrf_token %}
         <div class="row">
@@ -102,6 +103,8 @@
                 <button class="btn btn-primary m-2" type="submit" id="reg">Register </button>
         </div>
     </form>
+
+    <form action="{% url 'registration:fam_done' %}" method="post" class="form" name="form2"></form>
 {% load static %}
     <script type="text/javascript" src="{% static 'registration/register.js' %}"></script>
 {% endblock %}

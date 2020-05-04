@@ -33,7 +33,7 @@ CREATE TABLE `joad_session_registration` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 DROP TABLE IF EXISTS `joad_sessions`;
-CREATE TABLE `mem2`.`joad_sessions` (
+CREATE TABLE `joad_sessions` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `start_date` DATE NULL,
   `state` VARCHAR(20) NOT NULL,
@@ -60,8 +60,10 @@ CREATE TABLE `member` (
   `email_code` varchar(50) DEFAULT NULL,
   `status` varchar(20) DEFAULT 'new',
   `pay_code` varchar(45) DEFAULT NULL,
+  `note` varchar(150) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=124 DEFAULT CHARSET=latin1;
+
 
 DROP TABLE IF EXISTS `payment_log`;
 CREATE TABLE `payment_log` (

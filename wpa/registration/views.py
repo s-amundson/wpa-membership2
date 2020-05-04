@@ -1,8 +1,209 @@
-from django.http import HttpResponse
+import os
+import logging
+import uuid
+from sqlite3.dbapi2 import Date
+
+from django.db.models import Max
+from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.datetime_safe import datetime, date
+
+from .forms import MemberForm
+from .models import Joad_sessions, Member, Family, Joad_session_registration
+from .src.Config import Config
 
 # Create your views here.
+project_directory = os.path.dirname(os.path.realpath(__file__))
+cfg = Config('/'.join(project_directory.split('/')[:-1]))
+costs = cfg.get_costs()
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
+    return render(request, 'registration/index.html')
+
+
+def message(request, text=""):
+    return render(request, 'registration/message.html', {'message': text})
+
+
+def regform(request):
+    if (request.method == "GET"):
+        form = MemberForm()
+        return render(request, 'registration/regform.html', {'form': form})
+    else:
+        raise Http404('Register Error')
+
+
+def reg_values(request):
+    if (request.method == "GET"):
+        return JsonResponse(request.session['fam_reg'])
+    else:
+        raise Http404('reg_values Error')
+
+
+def register(request):
+    sessions = Joad_sessions.objects.filter(state__exact='open')
+
+    def form_data(mem=None):
+        if mem is None:
+            mem = Member()
+
+        mem.first_name = request.POST['first_name']
+        mem.last_name = request.POST['last_name']
+        mem.street = request.POST['street']
+        mem.city = request.POST['city']
+        mem.state = request.POST['state']
+        mem.post_code = request.POST['post_code']
+        mem.phone = request.POST['phone']
+        mem.email = request.POST['email']
+        mem.dob = Date.fromisoformat(request.POST['dob'])
+        mem.level = request.POST['level']
+        mem.benefactor = 'benefactor' in request.POST
+
+        return mem
+
+    if (request.method == "GET"):
+
+        context = {'sessions': sessions, 'rows': [], 'costs': cfg.get_costs()}
+        return render(request, 'registration/register.html', context)
+    elif (request.method == "POST"):
+        if request.POST['level'] == 'invalid' or 'terms' not in request.POST:
+            #  TODO change this - return to registration with values entered filled
+            return render(request, 'registration/message.html', {'message': 'Duplicate found'})
+
+        if 'mem_id' in request.session:
+            mem_id = int(request.session.get('mem_id'))
+
+        if request.session.get('renew', False):  # this is a renewal
+            # TODO move renewal to it's own flow.
+            member = form_data(Member.objects.get(pk=mem_id))
+            member.save()
+        #     return payment(mem)
+        else:
+            #check for duplicate
+            try:
+                reg_mem = Member.objects.filter(first_name=request.POST['first_name'],
+                                                last_name=request.POST['last_name'])
+            except Member.DoesNotExist:
+                reg_mem = None
+            if reg_mem is not None and len(reg_mem) > 0:
+                logging.debug(f"Duplicate(s) may exist {reg_mem}, len={len(reg_mem)}")
+                col = ["street", "city", "state", "zip", "phone", "email", "dob"]
+                for row in reg_mem:
+
+                    matches = 0
+                    if row.street == request.POST['street']:
+                        matches += 1
+                    if row.city == request.POST['city']:
+                        matches += 1
+                    if row.state == request.POST['state']:
+                        matches += 1
+                    if row.post_code == request.POST['post_code']:
+                        matches += 1
+                    if row.phone == request.POST['phone']:
+                        matches += 1
+                    if row.email == request.POST['email']:
+                        matches += 1
+                    if row.dob == date.fromisoformat(request.POST['dob']):
+                        matches += 1
+
+                    if matches >= len(col) - 2:
+                        logging.debug('Found Match')
+                        return render(request, 'registration/message.html', {'message': 'Duplicate found'})
+
+            # add member
+            # for key in request.POST.keys():
+            #     logging.debug(key)
+            member = form_data()
+            member.reg_date = member.exp_date = datetime.now()
+            member.email_code = str(uuid.uuid4())
+            member.status = 'new'
+            member.save()
+            if member.level == 'family':
+                if request.session.get('fam_id', None) is None:
+                    # new family gets a new family id.
+                    f = Family.objects.all().aggregate(Max('fam_id'))
+                    if f['fam_id__max'] is None:
+                        f['fam_id__max'] = 0
+                    request.session['fam_id'] = f['fam_id__max'] + 1
+                    request.session['family_total'] = costs['family_membership']
+                    fam_reg  = request.POST.copy()
+                    fam_reg['first_name'] = fam_reg['last_name'] = fam_reg['dob'] = ''
+                    request.session['fam_reg'] = fam_reg
+
+                logging.debug(request.session['fam_id'])
+                Family.objects.create(fam_id=request.session['fam_id'], member=member)
+                # return HttpResponseRedirect(reverse('registration:register'))
+
+            # Joad will either be 'None' or None if no session is selected.
+            if 'joad' in request.POST:
+                logging.debug(request.POST['joad'])
+                joad = request.POST['joad']
+                if joad == "None":
+                    joad = None
+
+                # If a JOAD session was selected, check that the member is under 21,
+                # if so register them for a session.
+                if joad is not None:
+                    d = request.POST['dob'].split('-')
+                    if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
+                        logging.debug("student is not to old.")
+                        js = Joad_sessions.objects.get(start_date=date.fromisoformat(joad))
+                        Joad_session_registration.objects.create(mem=member, pay_status=member.status,
+                                                                 email_code=member.email_code, session=js)
+                        request.session['family_total'] += costs['joad']
+            else:
+                logging.debug("joad not in request.POST")
+
+            if member.level != 'family':
+                # Clear the session for the next user
+                show_session(request.session)
+                request.session.flush()
+                show_session(request.session)
+    #
+    #                 if (family.fam_id is None):  # not a family registration
+    #                     session['registration'] = None
+    #                     # return redirect("/")
+    #                     return render_template('message.html', message='Registration Done')
+    #                 else:  # Family registration
+
+    #
+    #                     # Calculate the running cost for the membership with the possibility of adding JOAD sessions in.
+    #                     costs = cfg.get_costs()
+    #                     if session.get('family_total', None) is None:
+    #                         session['family_total'] = costs['family_membership']
+    #                     if joad is not None:
+    #                         session['family_total'] = session['family_total'] + costs['joad_session']
+    #
+    #                     # clear values that will be different for family members.
+    #                     reg["first_name"] = ""
+    #                     reg["last_name"] = ""
+    #                     reg["dob"] = ""
+    #                     session['registration'] = reg
+    #                     session['joad_session'] = joad
+    #
+    #                     return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
+    #             else:
+    #                 return render_template("register.html", rows=family.members, joad_sessions=jsdb.list_open())
+        return HttpResponseRedirect(reverse('registration:register'))
+    else:
+        raise Http404('Register Error')
+
+
+def cost_values(request):
+    if (request.method == "GET"):
+
+        # TODO add family total
+        costs['family_total'] = None  # session.get('family_total', None)
+        return JsonResponse(costs)
+
+    else:
+        raise Http404('Cost Values Error')
+
+def show_session(session):
+    logging.debug(f'show session, len= {len(session.items())}')
+    for k,v in session.items():
+        logging.debug(f"k = {k} v={v}")

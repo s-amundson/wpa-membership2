@@ -5,7 +5,7 @@ from sqlite3.dbapi2 import Date
 
 from django.db.models import Max
 from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 
@@ -14,20 +14,9 @@ from .models import Joad_sessions, Member, Family, Joad_session_registration
 from .src.Config import Config
 
 # Create your views here.
-# project_directory = os.path.dirname(os.path.realpath(__file__))
-# print(project_directory)
-# print('\\'.join(project_directory.split('\\')[:-1]))
-# cfg = Config('\\'.join(project_directory.split('\\')[:-1]))
-# print(cfg.sections)
-# costs = cfg.get_costs()
-costs = {'standard_membership': 20,
-        'family_membership': 40,
-        'joad_membership': 18,
-        'senior_membership': 18,
-        'benefactor': 100,
-        'joad_session': 95,
-        'pin_shoot': 15,
-        'joad_pin': 5}
+project_directory = os.path.dirname(os.path.realpath(__file__))
+cfg = Config('/'.join(project_directory.split('/')[:-1]))
+costs = cfg.get_costs()
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +34,13 @@ def message(request, text=""):
     return render(request, 'registration/message.html', {'message': text})
 
 
-def regform(request):
+def dev(request):
     if request.method == "GET":
-        form = MemberForm()
-        return render(request, 'registration/regform.html', {'form': form})
+        # form = MemberForm()
+        # return render(request, 'registration/regform.html', {'form': form})
+        # return HttpResponseRedirect(reverse('registration:register'), message_text="Form Error")
+        # return redirect('registration:register', message_text="Form Error")
+        return redirect('/register/', message_text="Form Error")
     else:
         raise Http404('Register Error')
 
@@ -60,9 +52,9 @@ def reg_values(request):
         raise Http404('reg_values Error')
 
 
-def register(request, message=None):
+def register(request):
     sessions = Joad_sessions.objects.filter(state__exact='open')
-
+    context = {'sessions': sessions, 'rows': [], 'costs': costs, 'message': ''}
     def form_data(mem=None):
         if mem is None:
             mem = Member()
@@ -82,14 +74,15 @@ def register(request, message=None):
         return mem
 
     if request.method == "GET":
-
-        context = {'sessions': sessions, 'rows': [], 'costs': costs, 'message': message}
         return render(request, 'registration/register.html', context)
 
     elif request.method == "POST":
-        if request.POST['level'] == 'invalid' or 'terms' not in request.POST:
+        if request.POST.get('level', 'invalid') == 'invalid' or 'terms' not in request.POST:
             #  TODO change this - return to registration with values entered filled
-            return render(request, 'registration/message.html', {'message': 'Application Error'})
+            context['message'] = "Application Error"
+            request.session['fam_reg'] = request.POST.copy()
+            return render(request, 'registration/register.html', context)
+            # return render(request, 'registration/message.html', {'message': 'Application Error'})
 
         if 'mem_id' in request.session:
             mem_id = int(request.session.get('mem_id'))
@@ -174,16 +167,17 @@ def register(request, message=None):
                         js = Joad_sessions.objects.get(start_date=date.fromisoformat(joad))
                         Joad_session_registration.objects.create(mem=member, pay_status=member.status,
                                                                  email_code=member.email_code, session=js)
-                        request.session['family_total'] += costs['joad']
+                        if 'family_total' in request.session:
+                            request.session['family_total'] += costs['joad']
+
             else:
                 logging.debug("joad not in request.POST")
-            show_session(request.session)
-            if member.level != 'family':
-                pass
-                # Clear the session for the next user
 
-                # request.session.flush()
-                # show_session(request.session)
+            if member.level != 'family':
+                # Clear the session for the next user
+                show_session(request.session)
+                request.session.flush()
+                show_session(request.session)
     #
     #                 if (family.fam_id is None):  # not a family registration
     #                     session['registration'] = None

@@ -172,9 +172,9 @@ window.onload = function () {
         });
     joad_enable(false);
     level_enable(false, "senior");
-    try {
-        document.getElementById("reg").disabled = true;
-    } catch (err) {}
+//    try {
+//        document.getElementById("reg").disabled = true;
+//    } catch (err) {}
 
     try {
         document.form2.style.display = "none";
@@ -183,9 +183,15 @@ window.onload = function () {
     try {
         document.getElementById("joad_div").style.display = 'block';
     } catch (err) {}
+    try {
+        var message_text = document.getElementById("message").getAttribute("message_text")
+        if (message_text != "") {
+            alert(message_text);
+        }
+    } catch (err) {}
 
 
-    $.get('/reg_values', function (data) {
+    $.get(document.getElementById("message").getAttribute("reg_link"), function (data) {
       if (data != null) {
         var dob = new Date(data.dob)
         var i = 0

@@ -12,7 +12,12 @@ class Member(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=150)
     dob = models.DateField()
-    level = models.CharField(max_length=20)
+    levels = [('invalid', 'Membership Level'),
+              ('standard', 'Standard'),
+              ('family', 'Family'),
+              ('joad', 'JOAD'),
+              ('senior', 'Senior')]
+    level = models.CharField(max_length=20, choices=levels)
     reg_date = models.DateField()
     exp_date = models.DateField()
     fam = models.IntegerField(null=True, default=None)

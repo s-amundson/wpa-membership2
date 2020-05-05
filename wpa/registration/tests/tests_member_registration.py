@@ -95,8 +95,10 @@ class MemberModelTests(TestCase):
         # self.assertRedirects(response, reverse('registration:register'), status_code=200)
         with self.assertTemplateUsed('registration/register.html'):
             render_to_string('registration/register.html')
-        self.assertEquals(len(Member.objects.all()), 1)
-        self.assertEquals(len(session.items()), 0)
+        for k, v in session.items():
+            logging.debug(f"k = {k} v={v}")
+        self.assertEquals(len(Member.objects.all()), 0)
+        self.assertEquals(len(session.items()), 1)
 
     def test_family_good(self):
         # Enter first family member

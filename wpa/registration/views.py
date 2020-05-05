@@ -1,22 +1,27 @@
-import os
 import logging
+import os
+import sys
 import uuid
-from sqlite3.dbapi2 import Date
 
 from django.db.models import Max
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import Http404, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 
-from .forms import MemberForm
+from forms import FamilyForm, MemberForm
 from .models import Joad_sessions, Member, Family, Joad_session_registration
 from .src.Config import Config
 
 # Create your views here.
 project_directory = os.path.dirname(os.path.realpath(__file__))
-cfg = Config('/'.join(project_directory.split('/')[:-1]))
-costs = cfg.get_costs()
+if sys.platform == 'win32':
+    print('windblows')
+    cfg = Config('\\'.join(project_directory.split('\\')[:-1]))
+    costs = {}
+else:
+    cfg = Config('/'.join(project_directory.split('/')[:-1]))
+    costs = cfg.get_costs()
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +41,30 @@ def message(request, text=""):
 
 def dev(request):
     if request.method == "GET":
-        # form = MemberForm()
+        form = MemberForm()
         # return render(request, 'registration/regform.html', {'form': form})
         # return HttpResponseRedirect(reverse('registration:register'), message_text="Form Error")
         # return redirect('registration:register', message_text="Form Error")
-        return redirect('/register/', message_text="Form Error")
+        # return redirect('/register/', message_text="Form Error")
+        # form = FamilyForm()
+        title = "Family Form"
+        # return render(request, 'registration/general_form.html', {'title': title, 'title1': title, 'form': form})
+        return render(request, 'registration/datepicker.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            logging.debug('valid form')
+            member = form.save(commit=False)
+            member.reg_date = member.exp_date = datetime.now()
+            member.email_code = str(uuid.uuid4())
+            member.status = 'new'
+            member.save()
+            return HttpResponseRedirect(reverse('registration:dev'))
+        else:
+            logging.debug('invalid form')
+            return render(request, 'registration/message.html', {'message': 'invalid form'})
+
     else:
         raise Http404('Register Error')
 
@@ -67,7 +91,7 @@ def register(request):
         mem.post_code = request.POST['post_code']
         mem.phone = request.POST['phone']
         mem.email = request.POST['email']
-        mem.dob = Date.fromisoformat(request.POST['dob'])
+        mem.dob = date.fromisoformat(request.POST['dob'])
         mem.level = request.POST['level']
         mem.benefactor = 'benefactor' in request.POST
 
@@ -78,6 +102,7 @@ def register(request):
 
     elif request.method == "POST":
         if request.POST.get('level', 'invalid') == 'invalid' or 'terms' not in request.POST:
+            logging.debug(f"level = {request.POST.get('level', 'None')}  terms = {request.POST.get('terms', 'None')}")
             #  TODO change this - return to registration with values entered filled
             context['message'] = "Application Error"
             request.session['fam_reg'] = request.POST.copy()

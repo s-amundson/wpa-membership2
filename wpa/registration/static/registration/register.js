@@ -3,40 +3,6 @@
 
 var costs = {}
 
-function dob_check (input) {
-    var i = document.getElementById(input)
-    if (i.value == '') {
-        i.style = 'border: 3px solid Tomato;';
-    } else {
-        if (input == 'dob'){
-            var bd = new Date(i.value);
-            var joad_date = new Date();
-            var senior_date = new Date();
-
-            joad_date.setFullYear(joad_date.getFullYear() - 21);
-            senior_date.setFullYear(senior_date.getFullYear() - 55)
-            console.log(senior_date);
-            if (bd > joad_date && bd < new Date()) {
-                console.log("Eligable for JOAD");
-                joad_enable(true);
-                level_enable(false, "senior");
-
-            } else if (bd <= senior_date) {
-                console.log("Senior");
-                joad_enable(false);
-                level_enable(true, "senior");
-            } else {
-                console.log("Standard and family only");
-                joad_enable(false);
-                level_enable(false, "senior");
-            }
-        }
-        i.style = 'border: 3px solid Green;'
-    }
-}
-
-
-
 function calculate_cost() {
     var price = 0;
     console.log(costs.family_total)
@@ -87,11 +53,15 @@ function checkValidation(reg_type) {
     }
 
     if (v) {
-        document.getElementById('reg').disabled = false
+        document.getElementById('id_submit').disabled = false
     } else {
         document.form1.terms.checked = false
     }
     return v
+}
+
+function isEmpty(obj) {
+  return Object.keys(obj).length === 0;
 }
 
 function joad_enable(enable_value){
@@ -100,40 +70,30 @@ function joad_enable(enable_value){
     var vis = "hidden";
     if(enable_value) {
 //        document.getElementById("joad_div").style.display = 'block';
-        document.getElementById("joad").disabled = false
+        document.getElementById("id_joad").disabled = false
         vis = 'visible';
     } else {
 //        document.getElementById("joad_div").style.display = 'none';
-        document.getElementById("joad").disabled = true
+        document.getElementById("id_joad").disabled = true
     }
 }
 
 function level_enable (enable_value, level){
-    if(document.getElementById("level").value == level) {
-        document.getElementById("level").value = "invalid";
+    console.log("level_enable")
+    if(document.getElementById("id_level").value == level) {
+        document.getElementById("id_level").value = "";
         calculate_cost();
     }
-    var op = document.getElementById("level").getElementsByTagName("option");
+    var op = document.getElementById("id_level").getElementsByTagName("option");
 
 
     for (var i = 0; i < op.length; i++) {
         var op_level =  op[i].value.toLowerCase()
+        console.log(op[i].value)
         // lowercase comparison for case-insensitivity
         if ( op_level == level) {
             op[i].disabled = !enable_value;
         }
-    }
-}
-
-function phone_check (inputText) {
-    var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
-    if (inputText.value.match(phoneno)) {
-        inputText.style = 'border: 3px solid Green;'
-        return true
-    } else {
-        //        alert("Please enter a valid phone number");
-        inputText.style = 'border: 3px solid Tomato;'
-        return false
     }
 }
 
@@ -158,23 +118,77 @@ function reg_level_check (in_select) {
 }
 
 function zip_check (in_zip) {
-  if (/^\d{5}(-\d{4})?$/.test(in_zip.value)) {
-    in_zip.style = 'border: 3px solid Green;'
-  } else {
-    in_zip.style = 'border: 3px solid Tomato;'
-  }
+    set_valid(in_zip, (/^\d{5}(-\d{4})?$/.test(in_zip.val())))
+//  if  {
+//    in_zip.style = 'border: 3px solid Green;'
+//  } else {
+//    in_zip.style = 'border: 3px solid Tomato;'
+//  }
 }
 
-window.onload = function () {
-
+//window.onload = function () {
+$(document).ready(function() {
     $.get(document.getElementById("cost").getAttribute("cost_link"), function (data) {
         costs = data;
         });
     joad_enable(false);
     level_enable(false, "senior");
+
+    $("#id_post_code").blur(zip_check($(this)));
+
+    $("#id_email").blur(function () {
+        var mail_format = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+        console.log(mail_format.test($(this).val()))
+        return set_valid($(this), mail_format.test($(this).val()))
+
+    });
+
+    $("#id_phone").blur(function () {
+        var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
+    //    return set_valid($("#" + inputText.id, inputText.value.match(phoneno)))
+        return($(this), phoneno.test($(this).val()))
+    });
+
+    $("#id_dob").blur(function () {
+        console.log("dob_check")
+        console.log($(this).val() != '')
+        if(set_valid($(this), $(this).val() != '')){
+            var bd = new Date($(this).val());
+            var joad_date = new Date();
+            var senior_date = new Date();
+
+            joad_date.setFullYear(joad_date.getFullYear() - 21);
+            senior_date.setFullYear(senior_date.getFullYear() - 55)
+            console.log(senior_date);
+            if (bd > joad_date && bd < new Date()) {
+                console.log("Eligable for JOAD");
+                joad_enable(true);
+                level_enable(false, "senior");
+
+            } else if (bd <= senior_date) {
+                console.log("Senior");
+                joad_enable(false);
+                level_enable(true, "senior");
+            } else {
+                console.log("Standard and family only");
+                joad_enable(false);
+                level_enable(false, "senior");
+            }
+        }
+    })
+//    $("#id_dob").blur($(this));
 //    try {
 //        document.getElementById("reg").disabled = true;
 //    } catch (err) {}
+
+//    var l = ['first_name', 'last_name', 'street']
+////    , 'city', 'state', 'zip', 'email', 'phone', 'dob', 'level', 'benefactor']
+//
+//    var i = 0
+//    for (i = 0; i < l.length; i += 1) {
+//        let e = document.getElementById('id_'+ l[i]);
+//        e.placeholder = e.getAttribute("label_text");
+//    }
 
     try {
         document.form2.style.display = "none";
@@ -191,34 +205,37 @@ window.onload = function () {
     } catch (err) {}
 
 
-    $.get(document.getElementById("message").getAttribute("reg_link"), function (data) {
-      if (data != null) {
-        var dob = new Date(data.dob)
-        var i = 0
-        var l = ['first_name', 'last_name', 'street', 'city', 'state', 'zip', 'email', 'phone', 'dob', 'level', 'benefactor']
-        for (i = 0; i < l.length; i += 1) {
-          if (l[i] == 'dob') {
-            console.log("in dob");
-            if (data.renewal == true) {
-                document.getElementById("dob_div").style.display = 'none';
-            }
-          }
-          if (l[i] == 'level') {
-            if (data[l[i]] == 'family') {
-
-              $("select[name='level']").find('option').remove().end().append(
-                "<option value='family'>Family</option>")
-
-              document.form2.style.display = 'initial'
-            } else {
-              document.form2.style.display = 'none'
-            }
-          }
-
-          // TODO add for DOB
-          document.getElementById(l[i]).value = data[l[i]]
-        }
-        calculate_cost();
-      }
-    })
-}
+//    $.get(document.getElementById("message").getAttribute("reg_link"), function (data) {
+//      console.log(data);
+//      console.log(isEmpty(data))
+//      if (!isEmpty(data)) {
+//
+//        var dob = new Date(data.dob);
+//        var i = 0;
+//        var l = ['first_name', 'last_name', 'street', 'city', 'state', 'zip', 'email', 'phone', 'dob', 'level', 'benefactor'];
+//        for (i = 0; i < l.length; i += 1) {
+//          if (l[i] == 'dob') {
+//            console.log("in dob");
+//            if (data.renewal == true) {
+//                document.getElementById("dob_div").style.display = 'none';
+//            }
+//          }
+//          if (l[i] == 'level') {
+//            if (data[l[i]] == 'family') {
+//
+//              $("select[name='level']").find('option').remove().end().append(
+//                "<option value='family'>Family</option>");
+//
+//              document.form2.style.display = 'initial';
+//            } else {
+//              document.form2.style.display = 'none';
+//            }
+//          }
+//
+//          // TODO add for DOB
+//          document.getElementById(l[i]).value = data[l[i]];
+//        }
+//        calculate_cost();
+//      }
+//    });
+});

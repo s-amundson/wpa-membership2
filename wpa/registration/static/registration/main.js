@@ -1,4 +1,11 @@
 "use strict";
+$(document).ready(function(){
+    $(".not_empty").blur(function() {
+        return set_valid($(this), $(this).val() != '')
+    });
+
+});
+
 function reg_check (input) {
     var i = document.getElementById(input)
     if (i.value == '') {
@@ -20,17 +27,13 @@ function select_check (in_select) {
         return true
     }
 }
-
-function ValidateEmail(inputText) {
-    var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    if(inputText.value.match(mailformat)) {
-        inputText.style = "border: 3px solid Green;";
+function set_valid (input, valid) {
+    if (valid) {
+        $(input).attr("style", 'border: 3px solid Green;');
         return true;
-    }
-    else {
-        alert("You have entered an invalid email address!");
-        inputText.style = "border: 3px solid Tomato;";
-        document.form1.email.focus();
+    } else {
+        $(input).attr("style", 'border: 3px solid Tomato;');
         return false;
     }
 }
+

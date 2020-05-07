@@ -4,94 +4,76 @@
     Register
 {% endblock %}
 
-
+{% block script %}
+    {{ form.media }}
+{% endblock %}
 
 {% block main %}
-    <div class="row" message_text="{{ message }}" reg_link="% url 'registration:reg_values' %}" hidden id="message"><h3>"{{ message }}"</h3></div>
-    <form action="{% url 'registration:register' %}" method="post" class="form" name="form1">
+    <!--suppress XmlInvalidId -->
+<div class="row" message_text="{{ message }}" reg_link="{% url 'registration:reg_values' %}" hidden id="message"><h3>"{{ message }}"</h3></div>
+<!--    <form action="{% url 'registration:register' %}" method="post" class="form" name="form1" autocomplete="off">-->
+    <form method="post" action="." autocomplete="off" class="form">
         {% csrf_token %}
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off" autofocus class="form-control m-2" name="first_name" placeholder="First Name"
-                       type="text" onchange="reg_check('first_name')" id="first_name">
-                <input autocomplete="off" class="form-control m-2" name="last_name" placeholder="Last Name"
-                       type="text" onchange="reg_check('last_name')" id="last_name">
+                {{ form.first_name }}
+                {{ form.last_name }}
             </div>
         </div>
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <input autocomplete="off" class="form-control m-2" name="street" placeholder="Address"
-                           type="text" onchange="reg_check('street')" id="street" size="100" >
+                    {{ form.street }}
                 </div>
         </div>
 
         <div class="row">
                 <div class="input-group input-group-md">
-                    <input autocomplete="off"  class="form-control m-2" name="city" placeholder="City"
-                           type="text"  id="city" size="40" onchange="reg_check('city')">
-
-                    <input autocomplete="off"  class="form-control m-2" name="state" placeholder="State" type="text"
-                           id="state" maxlength="2" onchange="reg_check('state')">
-
-                    <input autocomplete="off"  class="form-control m-2" name="post_code" placeholder="Zip" type="text"
-                           id="post_code" size="10" onchange="zip_check(document.form1.post_code)">
+                    {{ form.city }}
+                    {{ form.state }}
+                    {{ form.post_code }}
                 </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md">
-                <input autocomplete="off"  class="form-control m-2" name="email" placeholder="Email" type="text"
-                       id="email" size="100" onchange="ValidateEmail(document.form1.email)">
-                <input autocomplete="off"  class="form-control m-2" name="phone" placeholder="Phone" type="text"
-                       id="phone" size="20" onchange="phone_check(document.form1.phone)">
+                {{ form.email }}
+                {{ form.phone }}
             </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md" id="dob_div">
 
-                <label for="dob">Date of Birth:</label>
-                <input autocomplete="off" class="form-control m-2" name="dob" placeholder="Date of Birth" type="date"
-                       id="dob" onchange="dob_check('dob')">
+                <label for="id_dob">Date of Birth:</label>
+                {{ form.dob }}
             </div>
             <div class="input-group input-group-md">
-                <label for="level">Membersip Level:</label>
-                <select name="level" id="level" class="m-2" onchange="reg_level_check(document.form1.level)">
-                    <option value="invalid" selected disabled>Membership Level</option>
-                    <option value="standard">Standard</option>
-                    <option value="family">Family</option>
-                    <option value="joad">JOAD</option>
-                    <option value="senior">Senior</option>
-                </select>
+                <label for="id_level">Membersip Level:</label>
+                {{ form.level }}
                 <label></label>
             </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md">
-                <label for="joad">Select a start date to register for a JOAD Session:</label>
-                    <select name="joad" id="joad" class="m-2" onchange="calculate_cost()">
-                        <option value="None" selected >None</option>
-                        {% for row in sessions %}
-                            <option value={{row.start_date}}>{{row.start_date}}</option>
-                        {% endfor %}
-                    </select>
+                <label for="id_joad">Select a start date to register for a JOAD Session:</label>
+                    {{ form.joad }}
                 <label></label>
             </div>
         </div>
 
         <div class="row">
             <div class="custom-control custom-checkbox m-3">
-                <input class="form-control m-2 custom-control-input" name="benefactor" type="checkbox" id="benefactor" onchange="calculate_cost()">
-                <label class="custom-control-label" for="benefactor">Benefactor</label>
+                {{ form.benefactor }}
+                <label class="custom-control-label" for="id_benefactor">Benefactor</label>
             </div>
         </div>
 
         <div class="row" >
             <div class="custom-control custom-checkbox m-3">
-                <input class="form-control m-2 custom-control-input" name="terms" type="checkbox" id="terms" onchange="checkValidation()">
-                <label class="custom-control-label" for="terms">I agree to the terms and conditions</label>
+                {{ form.terms }}
+                <label class="custom-control-label" for="id_terms">I agree to the terms and conditions</label>
             </div>
         </div>
 
@@ -100,7 +82,7 @@
         </div>
 
         <div class="row">
-                <button class="btn btn-primary m-2" type="submit" id="reg">Register </button>
+            <button class="btn btn-primary m-2" type="submit" id="id_submit">Register </button>
         </div>
     </form>
 

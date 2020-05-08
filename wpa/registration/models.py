@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 
@@ -44,7 +46,7 @@ class Joad_sessions(models.Model):
 class Joad_session_registration(models.Model):
     mem = models.ForeignKey(Member, on_delete=models.DO_NOTHING)
     pay_status = models.CharField(max_length=20)
-    email_code = models.CharField(max_length=50, null=True, default=None)
+    idempotency_key = models.UUIDField(default=str(uuid.uuid4()))
     session = models.ForeignKey(Joad_sessions, on_delete=models.DO_NOTHING)
 
 
@@ -65,15 +67,16 @@ class Payment_log(models.Model):
 class Pin_shoot(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    club = models.CharField(max_length=45)
-    category = models.CharField(max_length=20)
-    bow = models.CharField(max_length=45)
+    club = models.CharField(max_length=45, null=True)
+    category = models.CharField(max_length=20, choices=[('joad_indoor', 'JOAD Indoor')])
+    c = [('barebow', 'Barebow/Basic Compound/Traditional'), ('olympic', 'Olympic Recurve'), ('compound', 'Compound')]
+    bow = models.CharField(max_length=45, choices=c)
     shoot_date = models.DateField()
-    distance = models.IntegerField()
-    target = models.IntegerField()
-    prev_stars = models.IntegerField()
+    distance = models.IntegerField(choices=[(9, 9), (18, 18)])
+    target = models.IntegerField(choices=[(60, 60), (40, 40)])
+    prev_stars = models.IntegerField(choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)])
     stars = models.IntegerField()
-    wpa_membership_number = models.IntegerField()
+    wpa_membership_number = models.IntegerField(null=True)
     score = models.IntegerField()
 
 

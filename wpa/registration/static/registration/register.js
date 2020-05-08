@@ -136,13 +136,6 @@ $(document).ready(function() {
 
     $("#id_post_code").blur(zip_check($(this)));
 
-    $("#id_email").blur(function () {
-        var mail_format = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-        console.log(mail_format.test($(this).val()))
-        return set_valid($(this), mail_format.test($(this).val()))
-
-    });
-
     $("#id_phone").blur(function () {
         var phoneno = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
     //    return set_valid($("#" + inputText.id, inputText.value.match(phoneno)))

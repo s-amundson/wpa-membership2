@@ -1,0 +1,46 @@
+{% extends 'registration/base.html' %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block left %}
+
+{% endblock %}
+
+{% block main %}
+    <form method="post" action="." autocomplete="off" class="form">
+        {% csrf_token %}
+        <div class="row">
+            <div class="input-group input-group-md">
+                {{ form.first_name }}
+                {{ form.last_name }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                {{ form.email }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <label for="id_joad">Select a session start date:</label>
+                {{ form.joad }}
+            </div>
+        </div>
+
+        <div class="row" >
+            <div class="custom-control custom-checkbox m-3">
+                {{ form.terms }}
+                <label class="custom-control-label" for="id_terms">I agree to the terms and conditions</label>
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="reg">Register </button>
+        </div>
+    </form>
+
+{% endblock %}

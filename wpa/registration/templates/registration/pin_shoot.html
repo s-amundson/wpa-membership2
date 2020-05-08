@@ -1,0 +1,74 @@
+{% extends 'registration/base.html' %}
+{% block script %}
+    {{ form.media }}
+{% endblock %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+
+{% block main %}
+<!--    <form action="/pin_shoot" method="post" class="form" name="form1" autocomplete="off" onsubmit="return checkValidation()">-->
+    <form method="post" action="." autocomplete="off" class="form">
+        {% csrf_token %}
+        <div class="row">
+            <div class="input-group input-group-md">
+                {{ form.first_name }}
+                {{ form.last_name }}
+            </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    {{ form.club }}
+                </div>
+        </div>
+        <div class="row">
+            <div class="input-group input-group-md">
+                <div class="m-2">
+                    <label for="id_shoot_date">Shoot Date:</label>
+                    {{ form.shoot_date }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    <label for="id_category">Category:</label>
+                    {{ form.category }}
+                    <label for="id_bow">Bow Class:</label>
+                    {{ form.bow }}
+                </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                <label for="id_target">Target:</label>
+                {{ form.target }}
+                <label for="id_category">Distance:</label>
+                {{ form.distance }}
+                <label for="id_prev_stars">Stars Previously Earned:</label>
+                {{ form.prev_stars }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group input-group-md">
+                {{ form.wpa_membership_number }}
+                {{ form.score }}
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="id_email">Email(for confirmation of payment):</label>
+            <div class="input-group input-group-md">
+                {{ form.email }}
+            </div>
+        </div>
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="submit">Submit </button>
+        </div>
+    </form>
+
+{% endblock %}

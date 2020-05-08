@@ -9,10 +9,11 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 
-from registration.forms import FamilyForm, MemberForm
-from src.register_helper import check_duplicate
-from .models import Joad_sessions, Member, Family, Joad_session_registration
-from .src.Config import Config
+from registration.src.joad_helper import calculate_pins, joad_check_date
+from registration.forms import FamilyForm, JoadRegistrationForm, MemberForm, PinShootForm
+from registration.src.register_helper import check_duplicate
+from registration.models import Joad_sessions, Member, Family, Joad_session_registration
+from registration.src.Config import Config
 
 # Create your views here.
 project_directory = os.path.dirname(os.path.realpath(__file__))
@@ -35,6 +36,44 @@ def index(request):
 def fam_done(request):
     request.session.flush()
     return render(request, 'registration/message.html', {'message': 'Family Registration complete'})
+
+
+def joad_registration(request):
+    if request.method == "GET":
+        form = JoadRegistrationForm
+        context = {'form': form}
+        return render(request, 'registration/joad_registration.html', context)
+    elif request.method == "POST":
+        form = JoadRegistrationForm(request.POST)
+        j = request.POST.get('joad')
+        form.fields['joad'].choices = [(j, j)]
+        if form.is_valid():
+            logging.debug(form.cleaned_data)
+            reg_data = form.cleaned_data
+            reg = form.save(commit=False)
+            try:
+                member = Member.objects.filter(first_name=reg_data['first_name'],
+                                               last_name=reg_data['last_name'],
+                                               email=reg_data['email'])
+            except Member.DoesNotExist:
+                return render(request, 'registration/message.html', {'message': 'Member not found'})
+            if not joad_check_date(member[0].dob):
+                return render(request, 'registration/message.html', {'message': 'Student is over 21'})
+            reg.mem = member[0]
+            reg.pay_status = 'new'
+            reg.idempotency_key = str(uuid.uuid4())
+
+            reg.session = Joad_sessions.objects.filter(start_date=reg_data['joad'])[0]
+            reg.save()
+            return HttpResponseRedirect(reverse('registration:pin_shoot'))
+        logging.debug(form.errors)
+        return render(request, 'registration/message.html', {'message': 'Error on form.'})
+    else:
+        raise Http404('JOAD Register Error')
+
+#     pay_status = models.CharField(max_length=20)
+#     email_code = models.CharField(max_length=50, null=True, default=None)
+#     session = models.ForeignKey(Joad_sessions, on_delete=models.DO_NOTHING)
 
 
 def message(request, text=""):
@@ -72,11 +111,29 @@ def dev(request):
         raise Http404('Register Error')
 
 
-def reg_values(request):
+def pin_shoot(request):
     if request.method == "GET":
-        return JsonResponse(request.session.get('fam_reg', {}))
+        form = PinShootForm
+        context = {'form': form}
+        return render(request, 'registration/pin_shoot.html', context)
+
+    elif request.method == "POST":
+        form = PinShootForm(request.POST)
+        if form.is_valid():
+            logging.debug(form.cleaned_data)
+            shoot = form.save(commit=False)
+            if shoot.wpa_membership_number == "":
+                shoot.wpa_membership_number = None
+            shoot.stars = calculate_pins(form.cleaned_data) - shoot.prev_stars
+            if shoot.stars < 0:
+                shoot.stars = 0
+            shoot.save()
+            fields = ['first_name', 'last_name', 'club', 'category', 'bow', 'shoot_date', 'distance', 'target',
+                      'prev_stars', 'wpa_membership_number', 'score']
+            return HttpResponseRedirect(reverse('registration:pin_shoot'))
     else:
-        raise Http404('reg_values Error')
+        raise Http404('Pin Shoot Error')
+
 
 
 def register(request):
@@ -192,15 +249,15 @@ def register(request):
         raise Http404('Register Error')
 
 
-def cost_values(request):
-    if request.method == "GET":
-
-        # TODO add family total
-        costs['family_total'] = None  # session.get('family_total', None)
-        return JsonResponse(costs)
-
-    else:
-        raise Http404('Cost Values Error')
+# def cost_values(request):
+#     if request.method == "GET":
+#
+#         # TODO add family total
+#         costs['family_total'] = None  # session.get('family_total', None)
+#         return JsonResponse(costs)
+#
+#     else:
+#         raise Http404('Cost Values Error')
 
 
 def show_session(session):

@@ -28,7 +28,7 @@ class MemberModelTests(TestCase):
                     'level': 'standard',
                     'terms': True}
 
-    def test_add_member(self):
+    def add_member(self):
         # submit a registration to be added.
         response = self.client.post(reverse('registration:register'), self.mem, follow=True)
         session = self.client.session
@@ -38,7 +38,7 @@ class MemberModelTests(TestCase):
 
     def test_duplicate_member(self):
         # # submit a registration to be added.
-        self.test_add_member()
+        self.add_member()
         # resubmit a registration to test duplication.
         self.client.post(reverse('registration:register'), self.mem, follow=True)
         session = self.client.session
@@ -59,39 +59,45 @@ class MemberModelTests(TestCase):
 
         # TODO test session clear - should there be a session clear with this?
 
-    # def test_joad_session_good(self): # Broken, because the session options are now sent with the form,
-    #   and this test does not preform the get portion.
-    #     d = date.fromisoformat("2020-04-18")
-    #     js = Joad_sessions(start_date=d, state='open')
-    #     js.save()
-    #     self.mem['joad'] = "2020-04-18"
-    #     self.mem['dob'] = '2010-03-12'
-    #     response = self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #     session = self.client.session
-    #     self.assertRedirects(response, reverse('registration:register'))
-    #     mem = Member.objects.all()
-    #     self.assertEquals(len(mem), 1)
-    #     # self.assertEquals(Member.objects.get(pk=1).joad, d)
-    #     jsr = Joad_session_registration.objects.filter(mem=mem[0])
-    #     self.assertEquals(len(jsr), 1)
-    #     self.assertEquals(len(session.items()), 0)
+    def test_joad_session_good(self):
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
+        self.mem['joad'] = "2020-04-18"
+        self.mem['dob'] = '2010-03-12'
 
-    # def test_joad_session_to_old(self): # Broken, because the session options are now sent with the form,
-    #   and this test does not preform the get portion.
-    #     d = date.fromisoformat("2020-04-18")
-    #     js = Joad_sessions(start_date=d, state='open')
-    #     js.save()
-    #     self.mem['joad'] = "2020-04-18"
-    #     response = self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #     session = self.client.session
-    #     self.assertRedirects(response, reverse('registration:register'))
-    #     mem = Member.objects.all()
-    #     self.assertEquals(len(mem), 0)
-    #     # The form is invalid therefore the member is not saved
-    #     # # self.assertEquals(Member.objects.get(pk=1).joad, d)
-    #     # jsr = Joad_session_registration.objects.filter(mem=mem[0])
-    #     # self.assertEquals(len(jsr), 0)
-    #     # self.assertEquals(len(session.items()), 0)
+        self.client.get(reverse('registration:register'))
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+
+        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
+        session = self.client.session
+        self.assertRedirects(response, reverse('registration:register'))
+        mem = Member.objects.all()
+        self.assertEquals(len(mem), 1)
+        # self.assertEquals(Member.objects.get(pk=1).joad, d)
+        jsr = Joad_session_registration.objects.filter(mem=mem[0])
+        self.assertEquals(len(jsr), 1)
+        self.assertEquals(len(session.items()), 0)
+
+    def test_joad_session_to_old(self):
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
+        self.mem['level'] = 'joad'
+        self.mem['joad'] = "2020-04-18"
+
+        self.client.get(reverse('registration:register'))
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+
+        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
+        with self.assertTemplateUsed('registration/message.html'):
+            render_to_string('registration/message.html')
+            self.assertContains(response, 'Error on form.')
+
+        mem = Member.objects.all()
+        self.assertEquals(len(mem), 0)
 
     def test_terms_bad(self):
         # submit a registration to be added.
@@ -134,3 +140,10 @@ class MemberModelTests(TestCase):
         self.assertEquals(len(member), 2)
         for m in member:
             self.assertEquals(m.fam, 1)
+
+    def test_joad_register_invalid_request_method(self):
+        response = self.client.put(reverse('registration:register'))
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.delete(reverse('registration:register'))
+        self.assertEqual(response.status_code, 404)

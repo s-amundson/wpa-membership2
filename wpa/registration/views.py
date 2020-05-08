@@ -135,7 +135,6 @@ def pin_shoot(request):
         raise Http404('Pin Shoot Error')
 
 
-
 def register(request):
     # to initalize with data initial = dict of data
     form = MemberForm(initial={})
@@ -147,6 +146,12 @@ def register(request):
     elif request.method == "POST":
         form = MemberForm(request.POST)
         logging.debug(request.POST)
+        j = request.POST.get('joad', None)
+        if j is not None:
+            form.fields['joad'].choices = [(j, j)]
+            logging.debug(j)
+            if not joad_check_date(date.fromisoformat(request.POST.get('dob', ""))):
+                return render(request, 'registration/message.html', {'message': 'Error on form.'})
         if form.is_valid():
             logging.debug(form.cleaned_data)
             # check for duplicate
@@ -177,6 +182,7 @@ def register(request):
                 Family.objects.create(fam_id=request.session['fam_id'], member=member)
                 # return HttpResponseRedirect(reverse('registration:register'))
 
+
             # Joad will either be 'None' or None if no session is selected.
             if 'joad' in request.POST:
                 logging.debug(request.POST['joad'])
@@ -187,14 +193,11 @@ def register(request):
                 # If a JOAD session was selected, check that the member is under 21,
                 # if so register them for a session.
                 if joad is not None:
-                    d = request.POST['dob'].split('-')
-                    if date(int(d[0]) + 21, int(d[1]), int(d[2])) > date.today():  # student is not to old.
-                        logging.debug("student is not to old.")
-                        js = Joad_sessions.objects.get(start_date=date.fromisoformat(joad))
-                        Joad_session_registration.objects.create(mem=member, pay_status=member.status,
-                                                                 email_code=member.email_code, session=js)
-                        if 'family_total' in request.session:
-                            request.session['family_total'] += costs['joad']
+                    js = Joad_sessions.objects.get(start_date=date.fromisoformat(joad))
+                    Joad_session_registration.objects.create(mem=member, pay_status=member.status,
+                                                             idempotency_key=member.email_code, session=js)
+                    if 'family_total' in request.session:
+                        request.session['family_total'] += costs['joad']
 
             else:
                 joad = None
@@ -247,17 +250,6 @@ def register(request):
         return HttpResponseRedirect(reverse('registration:register'))
     else:
         raise Http404('Register Error')
-
-
-# def cost_values(request):
-#     if request.method == "GET":
-#
-#         # TODO add family total
-#         costs['family_total'] = None  # session.get('family_total', None)
-#         return JsonResponse(costs)
-#
-#     else:
-#         raise Http404('Cost Values Error')
 
 
 def show_session(session):

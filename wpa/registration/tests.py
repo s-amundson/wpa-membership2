@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 # Create your tests here.
 
-
-class MemberModelTests(TestCase):
+class Temporary_Tests(TestCase):
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
@@ -28,18 +27,19 @@ class MemberModelTests(TestCase):
                     'level': 'standard',
                     'terms': True}
 
-    def test_joad_session_good(self):
-        d = date.fromisoformat("2020-04-18")
-        js = Joad_sessions(start_date=d, state='open')
-        js.save()
-        self.mem['joad'] = "2020-04-18"
-        self.mem['dob'] = '2010-03-12'
+
+    def add_member(self):
+        # submit a registration to be added.
         response = self.client.post(reverse('registration:register'), self.mem, follow=True)
         session = self.client.session
         self.assertRedirects(response, reverse('registration:register'))
-        mem = Member.objects.all()
-        self.assertEquals(len(mem), 1)
-        # self.assertEquals(Member.objects.get(pk=1).joad, d)
-        jsr = Joad_session_registration.objects.filter(mem=mem[0])
-        self.assertEquals(len(jsr), 1)
+        self.assertEquals(len(Member.objects.all()), 1)
         self.assertEquals(len(session.items()), 0)
+
+    def test_joad_register_invalid_request_method(self):
+        response = self.client.put(reverse('registration:register'))
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.delete(reverse('registration:register'))
+        self.assertEqual(response.status_code, 404)
+

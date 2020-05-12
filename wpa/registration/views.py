@@ -8,23 +8,33 @@ from django.http import Http404, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
+from django.forms.models import model_to_dict
 
 from registration.src.joad_helper import calculate_pins, joad_check_date
-from registration.forms import FamilyForm, JoadRegistrationForm, MemberForm, PinShootForm
+from registration.forms import FamilyForm, JoadRegistrationForm, MemberForm, PinShootForm, EmailValidate
 from registration.src.register_helper import check_duplicate
-from registration.models import Joad_sessions, Member, Family, Joad_session_registration
-from registration.src.Config import Config
+from registration.models import Joad_sessions, Member, Family, Joad_session_registration, Pin_scores
+from Email import Email
+# from registration.src.Config import Config
 
 # Create your views here.
-project_directory = os.path.dirname(os.path.realpath(__file__))
-if sys.platform == 'win32':
-    # print('windblows')
-    cfg = Config('\\'.join(project_directory.split('\\')[:-1]))
-    # costs = {}
-else:
-    cfg = Config('/'.join(project_directory.split('/')[:-1]))
 
-costs = cfg.get_costs()
+
+project_directory = os.path.dirname(os.path.realpath(__file__))
+# if sys.platform == 'win32':
+#     # print('windblows')
+#     # cfg = Config('\\'.join(project_directory.split('\\')[:-1]))
+costs = {'standard_membership': 20,
+         'family_membership': 40,
+         'joad_membership': 18,
+         'senior_membership': 18,
+         'benefactor': 100,
+         'joad_session': 95,
+         'pin_shoot': 15,
+         'joad_pin': 5},
+# else:
+#     # cfg = Config('/'.join(project_directory.split('/')[:-1]))
+#     # costs = cfg.get_costs()
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +48,28 @@ def cost_values(request):
 
     else:
         raise Http404('Cost Values Error')
+
+
+def calculate_pins(ps_dict):
+    """Calculates the pins based off of target size, distance, bow class and score"""
+    star_achievement = 0
+    # rows = Pin_scores.objects.filter(category=ps_dict['category'],
+    #                                  bow=ps_dict['bow'],
+    #                                  distance=ps_dict['distance'],
+    #                                  target=ps_dict['target'])
+    logging.debug(ps_dict)
+    rows = Pin_scores.objects.filter(category=ps_dict['category'],
+                                     bow=ps_dict['bow'],
+                                     distance=ps_dict['distance'],
+                                     target=ps_dict['target'],
+                                     score__lte=ps_dict['score'])
+    # rows = Pin_scores.objects.all()
+    logging.debug(len(rows))
+    for row in rows:
+        logging.debug(f"row id = {row.id}, stars={row.stars}")
+        if row.stars > star_achievement:
+            star_achievement = row.stars
+    return star_achievement
 
 
 def dev(request):
@@ -72,12 +104,14 @@ def dev(request):
 
 
 def fam_done(request):
+    Email.verfication_email()
     request.session.flush()
     return render(request, 'registration/message.html', {'message': 'Family Registration complete'})
 
 
 def index(request):
     return render(request, 'registration/index.html')
+
 
 def joad_registration(request):
     if request.method == "GET":
@@ -112,6 +146,7 @@ def joad_registration(request):
     else:
         raise Http404('JOAD Register Error')
 
+
 #     pay_status = models.CharField(max_length=20)
 #     email_code = models.CharField(max_length=50, null=True, default=None)
 #     session = models.ForeignKey(Joad_sessions, on_delete=models.DO_NOTHING)
@@ -119,7 +154,6 @@ def joad_registration(request):
 
 def message(request, text=""):
     return render(request, 'registration/message.html', {'message': text})
-
 
 
 def pin_shoot(request):
@@ -192,7 +226,7 @@ def register(request):
                         f['fam_id__max'] = 0
                     request.session['fam_id'] = f['fam_id__max'] + 1
                     request.session['family_total'] = costs['family_membership']
-                    fam_reg  = request.POST.copy()
+                    fam_reg = request.POST.copy()
                     fam_reg['first_name'] = fam_reg['last_name'] = fam_reg['dob'] = ''
                     request.session['fam_reg'] = fam_reg
                 member.fam = request.session['fam_id']
@@ -201,7 +235,6 @@ def register(request):
                 logging.debug(f"fam_id = {request.session['fam_id']}, family_total = {request.session['family_total']}")
                 Family.objects.create(fam_id=request.session['fam_id'], member=member)
                 # return HttpResponseRedirect(reverse('registration:register'))
-
 
             # Joad will either be 'None' or None if no session is selected.
             if 'joad' in request.POST:
@@ -225,16 +258,10 @@ def register(request):
 
             if member.level != 'family':
                 # Clear the session for the next user
-                show_session(request.session)
                 request.session.flush()
-                show_session(request.session)
+                Email.verification_email(model_to_dict(member))
 
-                # if (family.fam_id is None):  # not a family registration
-                #     session['registration'] = None
-                #     # return redirect("/")
-                #     return render_template('message.html', message='Registration Done')
             else:  # Family registration
-
 
                 # Calculate the running cost for the membership with the possibility of adding JOAD sessions in.
                 # costs = cfg.get_costs()
@@ -261,12 +288,6 @@ def register(request):
             logging.debug(form.cleaned_data)
             logging.debug(form.errors)
 
-
-
-
-
-
-
         return HttpResponseRedirect(reverse('registration:register'))
     else:
         raise Http404('Register Error')
@@ -274,16 +295,28 @@ def register(request):
 
 def show_session(session):
     logging.debug(f'show session, len= {len(session.items())}')
-    for k,v in session.items():
+    for k, v in session.items():
         logging.debug(f"k = {k} v={v}")
 
+
 def verify_email(request):
+    """The user must verify the users email address to complete the registration. Validation is done with a code
+        that was sent to the user"""
     if request.method == "GET":
+
         email = request.GET.get('e', '')
         vcode = request.GET.get('c', '')
-        context = {'email': email, 'vcode': vcode}
-        return render(request, 'registration/email_verify.html', context)
+        form = EmailValidate(initial={'email': email, 'verification_code': vcode})
+        return render(request, 'registration/email_verify.html', {'form': form})
     elif request.method == "POST":
-        pass
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            rows = Member.objects.filter(email=form.cleaned_data['email'],
+                                         verification_code=form.cleaned_data['verification_code'])
+            if (rows > 0):
+                # TODO process payment.
+                pass
+        # else:
+        return render(request, 'registration/message.html', {'message': 'Error on form.'})
     else:
         raise Http404('Error')

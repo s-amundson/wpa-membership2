@@ -115,8 +115,8 @@ class PinShootForm(ModelForm):
                    'bow': Select(attrs={'class': "form-control m-2"}),
                    'shoot_date': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
                                                    'class': "form-control"}),
-                   'distance': Select(attrs={'class': "form-control m-2"}),
-                   'target': Select(attrs={'class': "form-control m-2"}),
+                   'distance': Select(attrs={'class': "form-control m-2"}, choices=((9, 9), (18, 18))),
+                   'target': Select(attrs={'class': "form-control m-2"}, choices=((60, 60), (40, 40))),
                    'prev_stars': Select(attrs={'class': "form-control m-2"}),
                    'score': TextInput(attrs={'placeholder': 'Score', 'autocomplete': 'off',
                                              'class': "form-control m-2 numeric"})

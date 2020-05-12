@@ -1,5 +1,5 @@
 import csv
-import os
+
 from django.template.loader import render_to_string
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -13,32 +13,40 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-path = os.path.join('C:', 'Users', 'samundson', 'PycharmProjects', 'wpa-membership2', 'wpa', 'registration', 'pins.csv')
-logging.debug(path)
-logging.debug(os.getcwd())
+
 # Create your tests here.
 
 class Temporary_Tests(TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        with open(path, 'r') as csvfile:
-        # fieldnames = ['category', 'bow', 'distance', 'target', 'score', 'stars']
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                print(row)
-            Pin_scores(category=row['category'],
-                       bow=row['bow'],
-                       distance=row['distance'],
-                       target=row['target'],
-                       score=row['score'],
-                       stars=row['stars']).save()
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     logging.debug('init')
+    #     with open('pins.csv', 'r') as csvfile:
+    #         reader = csv.DictReader(csvfile)
+    #         for row in reader:
+    #             print(row)
+    #             Pin_scores(category=row['category'],
+    #                        bow=row['bow'],
+    #                        distance=row['distance'],
+    #                        target=row['target'],
+    #                        score=row['score'],
+    #                        stars=row['stars']).save()
 
     def setUp(self):
         # Every test needs a client.
         self.client = Client()
-
-    # def test_equal(self):
-    #     self.assertEqual(1, 1)
+        logging.debug('init')
+        # with open('pins.csv', 'r') as csvfile:
+        #     reader = csv.DictReader(csvfile)
+        #     for row in reader:
+        #         print(row)
+        #         Pin_scores(category=row['category'],
+        #                    bow=row['bow'],
+        #                    distance=row['distance'],
+        #                    target=row['target'],
+        #                    score=row['score'],
+        #                    stars=row['stars']).save()
+    def test_equal(self):
+        self.assertEqual(1, 1)
     #     self.mem = {'first_name': 'Emily',
     #                 'last_name': 'Conlan',
     #                 'street': "1984 Jones Avenue",

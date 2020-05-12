@@ -10,10 +10,23 @@ logger = logging.getLogger(__name__)
 
 def joad_sessions():
     sessions = Joad_sessions.objects.filter(state__exact='open')
-    d = []
+    d = [("", "None")]
     for s in sessions:
         d.append((str(s.start_date), str(s.start_date)))
     return d
+
+
+class EmailValidate(ModelForm):
+    verification_code = forms.CharField(required=True, widget=TextInput(
+        attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+               'class': "form-control m-2 not_empty"}))
+    class Meta:
+        model = Member
+        fields = ['email', 'verification_code']
+        widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
+                                             'class': "form-control m-2 email"})}
+
+
 class FamilyForm(ModelForm):
     class Meta:
         model = Family
@@ -47,10 +60,11 @@ class MemberForm(ModelForm):
     terms = forms.BooleanField(widget=CheckboxInput(attrs={'class': "form-control m-2 custom-control-input"}),
                                required=True)
 
-    joad = forms.ChoiceField(choices=joad_sessions(), widget=Select(attrs={'class': "form-control m-2"}))
+    joad = forms.ChoiceField(choices=joad_sessions(), widget=Select(attrs={'class': "form-control m-2 costs"}))
     joad.required = False
 
     class Meta:
+
         model = Member
         fields = ['first_name', 'last_name', 'street', 'city', 'state', 'post_code', 'phone', 'email', 'dob', 'level',
                   'joad', 'benefactor', 'terms']
@@ -72,9 +86,10 @@ class MemberForm(ModelForm):
                                              'class': "form-control m-2 email"}),
                    'dob': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
                                             'class': "form-control"}),
-                   'level': Select(attrs={'class': "form-control m-2"}),
-                   'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input"})
+                   'level': Select(attrs={'class': "form-control m-2 costs "}),
+                   'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input costs"})
                    }
+
 
 
 class PinShootForm(ModelForm):

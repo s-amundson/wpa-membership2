@@ -5,20 +5,22 @@ var costs = {}
 
 function calculate_cost() {
     var price = 0;
-    console.log(costs.family_total)
+
     if (costs.family_total != null){
         price = parseInt(costs.family_total);
-    } else if(document.getElementById("benefactor").checked) {
+
+    } else if(document.getElementById("id_benefactor").checked) {
         price = parseInt(costs.benefactor);
     } else {
-        if(document.getElementById("level").value == "invalid") {
+        if(document.getElementById("id_level").value == "") {
             price = "Invalid Membership Level";
         } else {
-            price = parseInt(costs[document.getElementById("level").value + "_membership"]);
+            console.log("level " + document.getElementById("id_level").value);
+            price = parseInt(costs[document.getElementById("id_level").value + "_membership"]);
         }
     }
-    console.log("joad select = " + document.getElementById("joad").value);
-    if(document.getElementById("joad").value != "None") {
+
+    if(document.getElementById("id_joad").value != "") {
         price += parseInt(costs["joad_session"]);
     }
     document.getElementById("cost").innerHTML = "Total Cost: " + price;
@@ -79,17 +81,14 @@ function joad_enable(enable_value){
 }
 
 function level_enable (enable_value, level){
-    console.log("level_enable")
     if(document.getElementById("id_level").value == level) {
         document.getElementById("id_level").value = "";
         calculate_cost();
     }
     var op = document.getElementById("id_level").getElementsByTagName("option");
 
-
     for (var i = 0; i < op.length; i++) {
         var op_level =  op[i].value.toLowerCase()
-        console.log(op[i].value)
         // lowercase comparison for case-insensitivity
         if ( op_level == level) {
             op[i].disabled = !enable_value;
@@ -143,8 +142,8 @@ $(document).ready(function() {
     });
 
     $("#id_dob").blur(function () {
-        console.log("dob_check")
-        console.log($(this).val() != '')
+        console.log("dob_check");
+        console.log($(this).val() != '');
         if(set_valid($(this), $(this).val() != '')){
             var bd = new Date($(this).val());
             var joad_date = new Date();
@@ -168,6 +167,14 @@ $(document).ready(function() {
                 level_enable(false, "senior");
             }
         }
+        calculate_cost();
+    })
+    $("#id_level").change(function() {
+//        calculate_cost()
+        return set_valid($(this), $(this).val() != "")
+    })
+    $(".costs").change(function () {
+        calculate_cost()
     })
 //    $("#id_dob").blur($(this));
 //    try {

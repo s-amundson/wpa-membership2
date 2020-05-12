@@ -1,0 +1,27 @@
+{% extends 'registration/base.html' %}
+
+{% block script %}
+    <script src="static/email_verify.js"></script>
+{% endblock %}
+
+{% block title %}
+    Verify Email
+{% endblock %}
+
+{% block main %}
+    <form action="/email_verify" method="post" class="form" name="form1" onsubmit="return checkValidation()">
+        <div class="row">
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2 email" name="email" placeholder="Email" type="text"  id="email" size="100" value={{ email }}>
+            </div>
+            <div class="input-group input-group-md">
+                <input autocomplete="off"  class="form-control m-2 not_empty" name="vcode" placeholder="Code" type="text"  id="vcode" size="100" value={{ vcode }}>
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="renew">Submit </button>
+        </div>
+    </form>
+
+{% endblock %}

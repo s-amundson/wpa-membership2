@@ -29,14 +29,55 @@ costs = cfg.get_costs()
 logger = logging.getLogger(__name__)
 
 
-def index(request):
-    return render(request, 'registration/index.html')
+def cost_values(request):
+    if request.method == "GET":
+
+        # TODO add family total
+        costs['family_total'] = None  # session.get('family_total', None)
+        return JsonResponse(costs)
+
+    else:
+        raise Http404('Cost Values Error')
+
+
+def dev(request):
+    if request.method == "GET":
+        form = MemberForm()
+        form.first_name = "Joe"
+        # return render(request, 'registration/regform.html', {'form': form})
+        # return HttpResponseRedirect(reverse('registration:register'), message_text="Form Error")
+        # return redirect('registration:register', message_text="Form Error")
+        # return redirect('/register/', message_text="Form Error")
+        # form = FamilyForm()
+        title = "Family Form"
+        # return render(request, 'registration/general_form.html', {'title': title, 'title1': title, 'form': form})
+        return render(request, 'registration/datepicker.html', {'form': form})
+
+    elif request.method == 'POST':
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            logging.debug('valid form')
+            member = form.save(commit=False)
+            member.reg_date = member.exp_date = datetime.now()
+            member.email_code = str(uuid.uuid4())
+            member.status = 'new'
+            member.save()
+            return HttpResponseRedirect(reverse('registration:dev'))
+        else:
+            logging.debug('invalid form')
+            return render(request, 'registration/message.html', {'message': 'invalid form'})
+
+    else:
+        raise Http404('Register Error')
 
 
 def fam_done(request):
     request.session.flush()
     return render(request, 'registration/message.html', {'message': 'Family Registration complete'})
 
+
+def index(request):
+    return render(request, 'registration/index.html')
 
 def joad_registration(request):
     if request.method == "GET":
@@ -80,36 +121,6 @@ def message(request, text=""):
     return render(request, 'registration/message.html', {'message': text})
 
 
-def dev(request):
-    if request.method == "GET":
-        form = MemberForm()
-        form.first_name = "Joe"
-        # return render(request, 'registration/regform.html', {'form': form})
-        # return HttpResponseRedirect(reverse('registration:register'), message_text="Form Error")
-        # return redirect('registration:register', message_text="Form Error")
-        # return redirect('/register/', message_text="Form Error")
-        # form = FamilyForm()
-        title = "Family Form"
-        # return render(request, 'registration/general_form.html', {'title': title, 'title1': title, 'form': form})
-        return render(request, 'registration/datepicker.html', {'form': form})
-
-    elif request.method == 'POST':
-        form = MemberForm(request.POST)
-        if form.is_valid():
-            logging.debug('valid form')
-            member = form.save(commit=False)
-            member.reg_date = member.exp_date = datetime.now()
-            member.email_code = str(uuid.uuid4())
-            member.status = 'new'
-            member.save()
-            return HttpResponseRedirect(reverse('registration:dev'))
-        else:
-            logging.debug('invalid form')
-            return render(request, 'registration/message.html', {'message': 'invalid form'})
-
-    else:
-        raise Http404('Register Error')
-
 
 def pin_shoot(request):
     if request.method == "GET":
@@ -119,6 +130,11 @@ def pin_shoot(request):
 
     elif request.method == "POST":
         form = PinShootForm(request.POST)
+        selects = ['category', 'bow', 'shoot_date', 'distance', 'target', 'prev_stars']
+        for i in selects:
+            c = request.POST.get(i, None)
+            form.fields[i].choices = [(c, c)]
+
         if form.is_valid():
             logging.debug(form.cleaned_data)
             shoot = form.save(commit=False)
@@ -131,6 +147,9 @@ def pin_shoot(request):
             fields = ['first_name', 'last_name', 'club', 'category', 'bow', 'shoot_date', 'distance', 'target',
                       'prev_stars', 'wpa_membership_number', 'score']
             return HttpResponseRedirect(reverse('registration:pin_shoot'))
+        else:
+            logging.debug(form.errors)
+            return render(request, 'registration/message.html', {'message': 'Error on form.'})
     else:
         raise Http404('Pin Shoot Error')
 
@@ -150,7 +169,8 @@ def register(request):
         if j is not None:
             form.fields['joad'].choices = [(j, j)]
             logging.debug(j)
-            if not joad_check_date(date.fromisoformat(request.POST.get('dob', ""))):
+            d = request.POST.get('dob', None)
+            if d is None or not joad_check_date(date.fromisoformat(d)):
                 return render(request, 'registration/message.html', {'message': 'Error on form.'})
         if form.is_valid():
             logging.debug(form.cleaned_data)
@@ -256,3 +276,14 @@ def show_session(session):
     logging.debug(f'show session, len= {len(session.items())}')
     for k,v in session.items():
         logging.debug(f"k = {k} v={v}")
+
+def verify_email(request):
+    if request.method == "GET":
+        email = request.GET.get('e', '')
+        vcode = request.GET.get('c', '')
+        context = {'email': email, 'vcode': vcode}
+        return render(request, 'registration/email_verify.html', context)
+    elif request.method == "POST":
+        pass
+    else:
+        raise Http404('Error')

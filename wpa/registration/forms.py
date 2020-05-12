@@ -8,6 +8,7 @@ from tempus_dominus.widgets import DatePicker
 
 logger = logging.getLogger(__name__)
 
+
 def joad_sessions():
     sessions = Joad_sessions.objects.filter(state__exact='open')
     d = [("", "None")]

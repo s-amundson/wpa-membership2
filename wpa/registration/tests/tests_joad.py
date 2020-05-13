@@ -1,5 +1,6 @@
 import csv
 import os
+import logging
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -8,15 +9,9 @@ from django.urls import reverse
 from django.utils.datetime_safe import  date
 
 from registration.models import Member, Joad_sessions, Joad_session_registration, Pin_shoot, Pin_scores
-
-import logging
-
 from views import calculate_pins
 
 logger = logging.getLogger(__name__)
-
-
-# Create your tests here.
 
 
 class JoadRegistrtionTests(TestCase):

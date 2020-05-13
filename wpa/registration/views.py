@@ -14,7 +14,7 @@ from registration.src.joad_helper import calculate_pins, joad_check_date
 from registration.forms import FamilyForm, JoadRegistrationForm, MemberForm, PinShootForm, EmailValidate
 from registration.src.register_helper import check_duplicate
 from registration.models import Joad_sessions, Member, Family, Joad_session_registration, Pin_scores
-from Email import Email
+from registration.src.Email import Email
 # from registration.src.Config import Config
 
 # Create your views here.
@@ -53,20 +53,13 @@ def cost_values(request):
 def calculate_pins(ps_dict):
     """Calculates the pins based off of target size, distance, bow class and score"""
     star_achievement = 0
-    # rows = Pin_scores.objects.filter(category=ps_dict['category'],
-    #                                  bow=ps_dict['bow'],
-    #                                  distance=ps_dict['distance'],
-    #                                  target=ps_dict['target'])
-    logging.debug(ps_dict)
     rows = Pin_scores.objects.filter(category=ps_dict['category'],
                                      bow=ps_dict['bow'],
                                      distance=ps_dict['distance'],
                                      target=ps_dict['target'],
                                      score__lte=ps_dict['score'])
-    # rows = Pin_scores.objects.all()
-    logging.debug(len(rows))
+
     for row in rows:
-        logging.debug(f"row id = {row.id}, stars={row.stars}")
         if row.stars > star_achievement:
             star_achievement = row.stars
     return star_achievement

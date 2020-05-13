@@ -143,7 +143,7 @@ class MemberModelTests(TestCase):
 
     def test_joad_register_invalid_request_method(self):
         response = self.client.put(reverse('registration:register'))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
         response = self.client.delete(reverse('registration:register'))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)

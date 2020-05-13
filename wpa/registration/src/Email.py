@@ -24,7 +24,6 @@ class Email:
 
         # text_content = plaintext.render(d)
         html_content = htmly.render(d)
-        logging.debug(html_content)
         msg = EmailMultiAlternatives(subject, html_content, settings.EMAIL_HOST_USER, [to_address])
         msg.content_subtype = "html"
         # msg.attach_alternative(html_content, "text/html")

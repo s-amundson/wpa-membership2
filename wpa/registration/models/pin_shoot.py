@@ -1,4 +1,5 @@
 from django.db import models
+from .pin_scores import Pin_scores
 
 
 class Pin_shoot(models.Model):
@@ -18,3 +19,22 @@ class Pin_shoot(models.Model):
     stars = models.IntegerField()
     wpa_membership_number = models.IntegerField(null=True)
     score = models.IntegerField()
+
+    def calculate_pins(self):
+        """Calculates the pins based off of target size, distance, bow class and score"""
+        self.stars = 0
+        rows = Pin_scores.objects.filter(category=self.category,
+                                         bow=self.bow,
+                                         distance=self.distance,
+                                         target=self.target,
+                                         score__lte=self.score)
+
+        for row in rows:
+            if row.stars > self.stars:
+                self.stars = row.stars
+        return self.stars
+
+    def save(self, *args, **kwargs):
+        if self.stars is None:
+            self.calculate_pins()
+        super().save(*args, **kwargs)  # Call the "real" save() method.

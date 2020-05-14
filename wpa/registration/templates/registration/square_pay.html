@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends 'registration/base.html' %}
 {% block title %}
     Payment Form
 {% endblock %}
@@ -92,6 +92,7 @@
           https://developer.squareup.com/docs/payments-api/overview
         -->
         <form id="nonce-form" novalidate action="/process_payment" method="post">
+          {% csrf_token %}
           <div class="sq-field">
             <label class="sq-label">Card Number</label>
             <div id="sq-card-number"></div>
@@ -127,8 +128,10 @@
     <!-- End Payment Form -->
   <div class="row">
     {% if bypass %}
-      <form id="form1" action="/process_payment" method="post" class="form" name="form1">
-          <button class="btn btn-primary m-2" type="submit" id="reg">Bypass</button>
+<!--      <form id="form1" action="/process_payment" method="post" class="form" name="form1">-->
+    <form method="post" action="." autocomplete="off" class="form">
+        {% csrf_token %}
+          <button class="btn btn-primary m-2" type="submit" id="id_submit">Bypass</button>
       </form>
     {% endif %}
   </div>

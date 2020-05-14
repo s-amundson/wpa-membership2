@@ -6,6 +6,7 @@ from django.urls.base import reverse
 from django.views.generic.base import View
 
 from forms import PinShootForm
+from square_helper import line_item
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +29,16 @@ class PinShootView(View):
             shoot = form.save(commit=False)
             if shoot.wpa_membership_number == "":
                 shoot.wpa_membership_number = None
-            # stars_earned = shoot.stars - shoot.prev_stars
             shoot.save()
+            stars_earned = shoot.stars - shoot.prev_stars
             fields = ['first_name', 'last_name', 'club', 'category', 'bow', 'shoot_date', 'distance', 'target',
                       'prev_stars', 'wpa_membership_number', 'score']
-            # todo create line items
+            l = [line_item(f"JOAD Pin Shoot {request.POST['shoot_date']}", 1, 15),
+                 line_item(f"JOAD Pins {request.POST['shoot_date']}", stars_earned, 5)]
+            logging.debug(f"line items = {l}")
+            request.session['line_items'] = l
+            request.session['email'] = form.cleaned_data.get('email', '')
+
             return HttpResponseRedirect(reverse('registration:pin_shoot'))
         else:
             logging.debug(form.errors)

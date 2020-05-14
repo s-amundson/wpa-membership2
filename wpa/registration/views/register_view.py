@@ -10,7 +10,6 @@ from django.utils.datetime_safe import date, datetime
 from django.views import View
 
 from forms import MemberForm
-from joad_helper import joad_check_date
 from registration.models import Family, Joad_session_registration, Joad_sessions
 from registration.src.Email import Email
 from views_function import costs  # todo make costs a table
@@ -34,7 +33,7 @@ class RegisterView(View):
             form.fields['joad'].choices = [(j, j)]
             logging.debug(j)
             d = request.POST.get('dob', None)
-            if d is None or not joad_check_date(date.fromisoformat(d)):
+            if d is None or not Joad_session_registration.joad_check_date(date.fromisoformat(d)):
                 return render(request, 'registration/message.html', {'message': 'Error on form.'})
         if form.is_valid():
             logging.debug(form.cleaned_data)

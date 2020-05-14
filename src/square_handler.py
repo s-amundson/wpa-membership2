@@ -101,7 +101,7 @@ class square_handler:
         print(f"square_handler.purchase_joad_session ik = {idempotency_key}, date = {date}, qty = {qty}")
         line_items = [{}]
         line_items[0]['name'] = f"JOAD Pin Shoot {date}"
-        line_items[0]['quantity'] = '1'  # string?
+        line_items[0]['quantity'] = '1'
         line_items[0]['base_price_money'] = {}
         line_items[0]['base_price_money']['amount'] = self.costs['pin_shoot'] * 100
         line_items[0]['base_price_money']['currency'] = 'USD'

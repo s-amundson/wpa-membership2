@@ -1,5 +1,6 @@
-import dateutil.parser
 import uuid
+from django.utils.datetime_safe import date
+
 
 class PayLogHelper:
     def __init__(self, db):
@@ -11,7 +12,8 @@ class PayLogHelper:
 
         sql = f"SELECT * FROM payment_log WHERE `checkout_id` = '{square_result['id']}'"
         if len(self.db.execute(sql)) == 0:
-            cd = dateutil.parser.parse(square_result['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+            # cd = dateutil.parser.parse().strftime('%Y-%m-%d %H:%M:%S')
+            cd = date.fromisoformat(square_result['created_at'])
 
             sql = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
                 "order_id, location_id, state, total_money, description, idempotency_key, reciept) VALUES ( "

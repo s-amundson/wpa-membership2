@@ -9,7 +9,6 @@ from django.views.generic.base import View
 from forms import JoadRegistrationForm
 
 from registration.models import Joad_sessions, Member
-from joad_helper import joad_check_date
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ class JoadRegistrationView(View):
                                                email=reg_data['email'])
             except Member.DoesNotExist:
                 return render(request, 'registration/message.html', {'message': 'Member not found'})
-            if not joad_check_date(member[0].dob):
+            if not reg.joad_check_date(member[0].dob):
                 return render(request, 'registration/message.html', {'message': 'Student is over 21'})
             reg.mem = member[0]
             reg.pay_status = 'new'

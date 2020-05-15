@@ -16,8 +16,10 @@ class ProcessPaymentView(View):
     def get(self, request):
         paydict = {}
         if settings.SQUARE_CONFIG['environment'] == "production":
+            # paydict['production'] = True
             paydict['pay_url'] = "https://js.squareup.com/v2/paymentform"
         else:
+            # paydict['production'] = False
             paydict['pay_url'] = "https://js.squareupsandbox.com/v2/paymentform"
         paydict['app_id'] = settings.SQUARE_CONFIG['application_id']
         paydict['location_id'] = settings.SQUARE_CONFIG['location_id']
@@ -25,9 +27,9 @@ class ProcessPaymentView(View):
         bypass = False
         if settings.DEBUG:
             bypass = True
-
-        context = {'paydict': paydict, 'rows': rows, 'total': total, 'bypass':bypass}
-        return render(request, 'registration/pin_shoot.html', context)
+        logging.debug(paydict)
+        context = {'paydict': paydict, 'rows': rows, 'total': total, 'bypass': bypass}
+        return render(request, 'registration/square_pay.html', context)
 
     def nonce(self, idempotency_key, nonce, line_items):
         """Process payment with squares nonce"""
@@ -76,10 +78,11 @@ class ProcessPaymentView(View):
             # line_items = session['line_items']
             for row in session['line_items']:
                 d = {'name': row['name'], 'quantity': int(row['quantity']),
-                     'amount': int(row['base_price_money']['amount'])}
+                     'amount_each': int(row['base_price_money']['amount']) / 100,
+                     'amount_total' : int(row['base_price_money']['amount']) * int(row['quantity']) / 100}
                 print(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
                 rows.append(d)
-                total += int(row['base_price_money']['amount'])
+                total += int(d['amount_total'])
 
         return rows, total
 

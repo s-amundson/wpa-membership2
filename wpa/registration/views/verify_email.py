@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 
-from forms import EmailValidate, MemberForm
+from registration.forms import EmailValidate, MemberForm
 from registration.models import Member
 
 

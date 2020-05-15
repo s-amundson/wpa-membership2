@@ -9,10 +9,10 @@ from django.urls import reverse
 from django.utils.datetime_safe import date, datetime
 from django.views import View
 
-from forms import MemberForm
+from registration.forms import MemberForm
 from registration.models import Family, Joad_session_registration, Joad_sessions
 from registration.src.Email import Email
-from views_function import costs  # todo make costs a table
+from registration.views_function import costs  # todo make costs a table
 
 logger = logging.getLogger(__name__)
 

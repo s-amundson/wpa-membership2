@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.urls.base import reverse
 from django.views.generic.base import View
 
-from forms import JoadRegistrationForm
+from registration.forms import JoadRegistrationForm
 
 from registration.models import Joad_sessions, Member
 

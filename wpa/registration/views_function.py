@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
 from django.forms.models import model_to_dict
 
-from registration.forms import MemberForm, PinShootForm
+from registration.forms import MemberForm
 from registration.models import Joad_sessions, Member, Family, Joad_session_registration, Pin_scores
 from registration.src.Email import Email
 

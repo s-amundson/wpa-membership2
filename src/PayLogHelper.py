@@ -16,7 +16,7 @@ class PayLogHelper:
             cd = date.fromisoformat(square_result['created_at'])
 
             sql = "INSERT INTO payment_log (members, checkout_created_time, checkout_id, " \
-                "order_id, location_id, state, total_money, description, idempotency_key, reciept) VALUES ( "
+                "order_id, location_id, state, total_money, description, idempotency_key, receipt) VALUES ( "
 
             sql += f"'{members}', '{cd}', '{square_result['id']}', '{square_result['order_id']}', " \
                  f"'{square_result['location_id']}', '{square_result['status']}', " \

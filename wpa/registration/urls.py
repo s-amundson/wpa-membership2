@@ -1,7 +1,7 @@
 from django.urls import path
 
 from registration import views_function
-from .views import JoadRegistrationView, PinShootView, RegisterView, VerifyEmailView
+from .views import JoadRegistrationView, PinShootView, ProcessPaymentView, RegisterView, VerifyEmailView
 
 app_name = 'registration'
 urlpatterns = [
@@ -13,6 +13,6 @@ urlpatterns = [
     path('joad_registration/', JoadRegistrationView.as_view(), name='joad_registration'),
     path('message/', views_function.message, name='message'),
     path('pin_shoot/', PinShootView.as_view(), name='pin_shoot'),
-
+    path('process_payment/', ProcessPaymentView.as_view(), name='process_payment'),
     path('register/', RegisterView.as_view(), name='register'),
 ]

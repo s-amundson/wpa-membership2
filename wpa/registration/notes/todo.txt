@@ -1,0 +1,4 @@
+create admin way of bypassing payment for in person payments.
+add costs to database
+
+multiple joad students at once.

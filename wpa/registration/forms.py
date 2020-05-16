@@ -1,5 +1,6 @@
 import logging
 
+from django.db import OperationalError
 from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField
 from registration.models import Member, Family, Joad_sessions, Pin_shoot, Joad_session_registration
 from registration.widgets import BootstrapDateTimePickerInput
@@ -12,20 +13,25 @@ logger = logging.getLogger(__name__)
 def joad_sessions():
     sessions = Joad_sessions.objects.filter(state__exact='open')
     d = [("", "None")]
-    for s in sessions:
-        d.append((str(s.start_date), str(s.start_date)))
+    try: # this has caused a error when migration is needed, but also blocks migrations from working
+        for s in sessions:
+            d.append((str(s.start_date), str(s.start_date)))
+    except OperationalError as e:
+        logging.error(f"Operational Error: {e}")
     return d
 
 
 class EmailValidate(ModelForm):
-    verification_code = forms.CharField(required=True, widget=TextInput(
-        attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
-               'class': "form-control m-2 not_empty"}))
+    # verification_code = forms.CharField(required=True, widget=TextInput(
+    #     attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+    #            'class': "form-control m-2 not_empty"}))
     class Meta:
         model = Member
-        fields = ['email', 'verification_code']
+        fields = ['email', 'email_code']
         widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
-                                             'class': "form-control m-2 email"})}
+                                             'class': "form-control m-2 email"}),
+                   'email_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+                                                  'class': "form-control m-2 not_empty"})}
 
 
 class FamilyForm(ModelForm):

@@ -1,3 +1,4 @@
 # Untracked files:
 /wpa/settings.py
-/registration/tests.py
+/wpa/local_settings.py
+/registration/temp_tests.py

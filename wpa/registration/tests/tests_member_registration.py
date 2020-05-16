@@ -33,8 +33,10 @@ class MemberModelTests(TestCase):
         response = self.client.post(reverse('registration:register'), self.mem, follow=True)
         session = self.client.session
         self.assertRedirects(response, reverse('registration:register'))
-        self.assertEquals(len(Member.objects.all()), 1)
+        self.member = Member.objects.all()
+        self.assertEquals(len(self.member), 1)
         self.assertEquals(len(session.items()), 0)
+
 
     def test_duplicate_member(self):
         # # submit a registration to be added.

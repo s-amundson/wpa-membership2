@@ -11,7 +11,7 @@ class Joad_session_registration(models.Model):
     pay_status = models.CharField(max_length=20)
     idempotency_key = models.UUIDField(default=str(uuid.uuid4()))
     session = models.ForeignKey(Joad_sessions, on_delete=models.DO_NOTHING)
-
+    @staticmethod
     def joad_check_date(dob):
         d = date.today()
         # logging.debug(d.year)

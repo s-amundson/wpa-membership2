@@ -12,7 +12,7 @@ from django.views import View
 from registration.forms import MemberForm
 from registration.models import Family, Joad_session_registration, Joad_sessions
 from registration.src.Email import Email
-from registration.views_function import costs  # todo make costs a table
+from registration.views_function import costs  # todo.txt make costs a table
 
 logger = logging.getLogger(__name__)
 

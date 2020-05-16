@@ -146,7 +146,7 @@ class JoadPinShootTests(TestCase):
     def test_add_shooter(self):
         response = self.client.post(reverse('registration:pin_shoot'), self.shoot_record, follow=True)
 
-        self.assertRedirects(response, reverse('registration:pin_shoot'))
+        self.assertRedirects(response, reverse('registration:process_payment'))
         ps = Pin_shoot.objects.all()
         self.assertEquals(len(ps), 1)
 
@@ -180,7 +180,7 @@ class JoadPinShootTests(TestCase):
         self.shoot_record['wpa_membership_number'] = 5
 
         response = self.client.post(reverse('registration:pin_shoot'), self.shoot_record, follow=True)
-        self.assertRedirects(response, reverse('registration:pin_shoot'))
+        self.assertRedirects(response, reverse('registration:process_payment'))
         reg = Pin_shoot.objects.all()
         self.assertEquals(len(reg), 1)
         self.assertEquals(reg[0].club, self.shoot_record['club'])

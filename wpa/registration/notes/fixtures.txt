@@ -4,11 +4,11 @@ email verify
     standard, benefactor;
     standard, joad session, benefactor
 
-    family,
-    family, joad session;
-    family, multiple joad session;
-    family, benefactor;
-    family, joad session, benefactor;
+#    family,
+#    family, joad session;
+#    family, multiple joad session;
+#    family, benefactor;
+#    family, joad session, benefactor;
 
     joad;
     joad, joad session;

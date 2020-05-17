@@ -1,1 +1,0 @@
-from .tests_member_registration import MemberModelTests

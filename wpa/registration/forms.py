@@ -1,7 +1,7 @@
 import logging
 
 from django.db import OperationalError
-from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField
+from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField, formset_factory
 from registration.models import Member, Family, Joad_sessions, Pin_shoot, Joad_session_registration
 from registration.widgets import BootstrapDateTimePickerInput
 from django import forms
@@ -16,7 +16,7 @@ def joad_sessions():
     try: # this has caused a error when migration is needed, but also blocks migrations from working
         for s in sessions:
             d.append((str(s.start_date), str(s.start_date)))
-    except OperationalError as e:
+    except OperationalError as e:  # pragma: no cover
         logging.error(f"Operational Error: {e}")
     return d
 
@@ -27,7 +27,7 @@ class EmailValidate(ModelForm):
     #            'class': "form-control m-2 not_empty"}))
     class Meta:
         model = Member
-        fields = ['email', 'email_code']
+        fields = ['email', 'verification_code']
         widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
                                              'class': "form-control m-2 email"}),
                    'email_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
@@ -59,6 +59,14 @@ class JoadRegistrationForm(ModelForm):
     class Meta:
         model = Joad_session_registration
         fields = ['first_name', 'last_name', 'email', 'joad', 'terms']
+
+
+class JoadSessionForm(ModelForm):
+    class Meta:
+        model = Joad_sessions
+        fields = ['start_date', 'state']
+        widgets = {'start_date': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
+                                            'class': "form-control"}),}
 
 
 class MemberForm(ModelForm):
@@ -97,6 +105,8 @@ class MemberForm(ModelForm):
                    'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input costs"})
                    }
 
+
+MemberFormSet = formset_factory(MemberForm)
 
 
 class PinShootForm(ModelForm):

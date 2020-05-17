@@ -68,7 +68,7 @@ class ProcessPaymentView(View):
             res = api_response.body['payment']
         elif api_response.is_error():
             res = "Exception when calling PaymentsApi->create_payment: {}".format(api_response.errors)
-        print(res)
+
         return res
 
     def table_rows(self, session):
@@ -80,7 +80,7 @@ class ProcessPaymentView(View):
                 d = {'name': row['name'], 'quantity': int(row['quantity']),
                      'amount_each': int(row['base_price_money']['amount']) / 100,
                      'amount_total' : int(row['base_price_money']['amount']) * int(row['quantity']) / 100}
-                print(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
+                logging.debug(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
                 rows.append(d)
                 total += int(d['amount_total'])
 

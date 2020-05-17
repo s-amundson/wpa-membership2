@@ -14,20 +14,22 @@ class Email:
     def verification_email(member_dict):
         subject = 'Email Verification Code'
         to_address = member_dict['email']
+        logging.debug(settings.DEBUG)
         if settings.DEBUG:
             to_address = 'sam.amundson@gmail.com'
 
         htmly = get_template('email/verify.html')
 
         d = {'id': member_dict['id'], 'first_name': member_dict['first_name'],
-             'email_code': member_dict['email_code'], 'site': ""}
+             'verification_code': member_dict['verification_code'], 'site': ""}
 
         # text_content = plaintext.render(d)
         html_content = htmly.render(d)
         msg = EmailMultiAlternatives(subject, html_content, settings.EMAIL_HOST_USER, [to_address])
         msg.content_subtype = "html"
         # msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        logging.debug(f"To: {to_address}, subject: {subject}")
+        # msg.send()
 
 
     # def payment_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[], receipt=''):

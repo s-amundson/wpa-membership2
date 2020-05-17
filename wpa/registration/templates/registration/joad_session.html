@@ -1,8 +1,11 @@
 {% extends 'registration/base.html' %}
 
-
 {% block title %}
-    Verify Email
+    Register
+{% endblock %}
+
+{% block left %}
+
 {% endblock %}
 
 {% block main %}
@@ -10,15 +13,18 @@
         {% csrf_token %}
         <div class="row">
             <div class="input-group input-group-md">
-                {{ form.email }}
-            </div>
-            <div class="input-group input-group-md">
-                {{ form.verification_code }}
+                {{ form.start_date }}
             </div>
         </div>
 
         <div class="row">
-                <button class="btn btn-primary m-2" type="submit" id="id_submit">Submit </button>
+            <div class="input-group input-group-md">
+                {{ form.state }}
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="id_submit">Register </button>
         </div>
     </form>
 

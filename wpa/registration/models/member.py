@@ -14,8 +14,7 @@ class Member(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=150)
     dob = models.DateField()
-    levels = [  # ('invalid', 'Membership Level'),
-              ('standard', 'Standard'),
+    levels = [('standard', 'Standard'),
               ('family', 'Family'),
               ('joad', 'JOAD'),
               ('senior', 'Senior')]
@@ -24,7 +23,7 @@ class Member(models.Model):
     exp_date = models.DateField()
     fam = models.IntegerField(null=True, default=None)
     benefactor = models.BooleanField(default=False)
-    email_code = models.CharField(max_length=50, null=True)
+    verification_code = models.CharField(max_length=50, null=True)
     status = models.CharField(max_length=50, null=True)
     pay_code = models.CharField(max_length=50, null=True)
 
@@ -33,7 +32,7 @@ class Member(models.Model):
         try:
             reg_mem = Member.objects.filter(first_name=form_data['first_name'],
                                             last_name=form_data['last_name'])
-        except Member.DoesNotExist:
+        except Member.DoesNotExist:  # pragma: no cover
             reg_mem = None
         if reg_mem is not None and len(reg_mem) > 0:
             logging.debug(f"Duplicate(s) may exist {reg_mem}, len={len(reg_mem)}")

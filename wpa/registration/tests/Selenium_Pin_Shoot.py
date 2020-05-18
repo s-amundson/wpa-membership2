@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils.datetime_safe import datetime, date
-from registration.models import Member, Family, Joad_sessions, Joad_session_registration, Pin_shoot
+from registration.models import Member, Membership, Joad_sessions, Joad_session_registration, Pin_shoot
 from django.test import LiveServerTestCase
 # from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver import ActionChains

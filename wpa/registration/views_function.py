@@ -10,7 +10,7 @@ from django.utils.datetime_safe import datetime, date
 from django.forms.models import model_to_dict
 
 from registration.forms import MemberForm, joad_sessions, JoadSessionForm
-from registration.models import Joad_sessions, Member, Family, Joad_session_registration, Pin_scores
+from registration.models import Joad_sessions, Member, Membership, Joad_session_registration, Pin_scores
 from registration.src.Email import Email
 
 

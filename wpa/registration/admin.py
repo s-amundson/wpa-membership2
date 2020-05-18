@@ -4,6 +4,6 @@ from .models import *
 
 admin.site.register(Member)
 admin.site.register(Joad_sessions)
-admin.site.register(Family)
+admin.site.register(Membership)
 admin.site.register(Joad_session_registration)
 admin.site.register(Pin_shoot)

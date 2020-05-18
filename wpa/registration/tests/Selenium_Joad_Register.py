@@ -1,4 +1,4 @@
-from registration.models import Member, Family, Joad_sessions, Joad_session_registration, Pin_shoot
+from registration.models import Member, Membership, Joad_sessions, Joad_session_registration, Pin_shoot
 from django.test import LiveServerTestCase
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.select import Select

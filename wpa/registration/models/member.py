@@ -1,31 +1,16 @@
 import logging
 from django.db import models
+from .membership import Membership
 
 logger = logging.getLogger(__name__)
 
 
 class Member(models.Model):
+    membership = models.ForeignKey(Membership, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    street = models.CharField(max_length=150)
-    city = models.CharField(max_length=150)
-    state = models.CharField(max_length=3)
-    post_code = models.CharField(max_length=10)
-    phone = models.CharField(max_length=20)
-    email = models.EmailField(max_length=150)
     dob = models.DateField()
-    levels = [('standard', 'Standard'),
-              ('family', 'Family'),
-              ('joad', 'JOAD'),
-              ('senior', 'Senior')]
-    level = models.CharField(max_length=20, choices=levels)
-    reg_date = models.DateField()
-    exp_date = models.DateField()
-    fam = models.IntegerField(null=True, default=None)
-    benefactor = models.BooleanField(default=False)
-    verification_code = models.CharField(max_length=50, null=True)
-    status = models.CharField(max_length=50, null=True)
-    pay_code = models.CharField(max_length=50, null=True)
+
 
     def check_duplicate(self, form_data):
         # check for duplicate

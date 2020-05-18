@@ -12,7 +12,7 @@ from django.utils.datetime_safe import date, datetime
 from django.views import View
 
 from registration.forms import MemberForm, MemberFormSet
-from registration.models import Family, Joad_session_registration, Joad_sessions
+from registration.models import Membership, Joad_session_registration, Joad_sessions
 from registration.src.Email import Email
 
 
@@ -56,7 +56,7 @@ class RegisterView(View):
             if member.level == 'family':
                 if request.session.get('fam_id', None) is None:
                     # new family gets a new family id.
-                    f = Family.objects.all().aggregate(Max('fam_id'))
+                    f = Membership.objects.all().aggregate(Max('fam_id'))
                     logging.debug(f['fam_id__max'])
                     if f['fam_id__max'] is None:
                         f['fam_id__max'] = 0
@@ -70,7 +70,7 @@ class RegisterView(View):
                 member.fam = request.session['fam_id']
                 member.save()
 
-                Family.objects.create(fam_id=request.session['fam_id'], member=member)
+                Membership.objects.create(fam_id=request.session['fam_id'], member=member)
                 # return HttpResponseRedirect(reverse('registration:register'))
 
             # Joad will either be 'None' or None if no session is selected.

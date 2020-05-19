@@ -47,17 +47,27 @@ class MemberModelTests(TestCase):
             js = Joad_sessions.objects.get_or_create(d)
             # js.save()
         self.joad_date = Joad_sessions.objects.filter(state="open")[0]
-        self.mem = {'first_name': 'Emily',
-                    'last_name': 'Conlan',
-                    'street': "1984 Jones Avenue",
-                    'city': 'Hays',
-                    'state': 'NC',
-                    'post_code': 28635,
-                    'phone': '336-696-6307',
-                    'email': 'EmilyNConlan@einrot.com',
-                    'dob': '1995-03-12',
-                    'level': 'standard',
-                    'terms': True}
+        self.mem = {'csrfmiddlewaretoken': ['SQW46AFNMMUdA2MBIRrppw2xImcSwPyiKJr6AWTNy8ZYzrz2puQd4lzIps84GUVp'],
+                    'member_set-TOTAL_FORMS': ['2'],
+                    'member_set-INITIAL_FORMS': ['0'],
+                    'member_set-MIN_NUM_FORMS': ['0'],
+                    'member_set-MAX_NUM_FORMS': ['1000'],
+                    'member_set-0-first_name': ['Pearl'],
+                    'member_set-0-last_name': ['Fafe'],
+                    'member_set-0-dob': ['1978-02-15'],
+                    'member_set-0-joad': [''],
+                    'member_set-1-first_name': [''],
+                    'member_set-1-last_name': [''],
+                    'member_set-1-dob': [''],
+                    'member_set-1-joad': [''],
+                    'street': ['1339 Kelly Drive'],
+                    'city': ['Charlston'],
+                    'state': ['WV'],
+                    'post_code': ['12344'],
+                    'email': ['pear.fafe@example.com'],
+                    'phone': ['123.123.1234'],
+                    'level': ['standard'],
+                    'terms': ['on']}
 
     def add_member(self, mem):
         # submit a registration to be added.
@@ -68,19 +78,15 @@ class MemberModelTests(TestCase):
 
 
     def test_duplicate_member(self):
-        # # submit a registration to be added.
         self.add_member(self.mem)
         self.assertEquals(len(self.member), 1)
-        self.assertEquals(len(self.session.items()), 0)
-        # resubmit a registration to test duplication.
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
         self.client.post(reverse('registration:register'), self.mem, follow=True)
-        session = self.client.session
         with self.assertTemplateUsed('registration/message.html'):
             render_to_string('registration/message.html')
         self.assertEquals(len(Member.objects.all()), 1)
-        for k, v in session.items():
-            logging.debug(f"k = {k} v={v}")
-        self.assertEquals(len(session.items()), 0)
+        self.assertEquals(len(Membership.objects.all()), 1)
 
     def test_invalid_level(self):
         # if javascript is off then the form could be submitted with and invalid value.
@@ -94,8 +100,8 @@ class MemberModelTests(TestCase):
         d = date.fromisoformat("2020-04-18")
         js = Joad_sessions(start_date=d, state='open')
         js.save()
-        self.mem['joad'] = "2020-04-18"
-        self.mem['dob'] = '2010-03-12'
+        self.mem['member_set-0-joad'] = "2020-04-18"
+        self.mem['member_set-0-dob'] = '2010-03-12'
 
         self.client.get(reverse('registration:register'))
         with self.assertTemplateUsed('registration/register.html'):
@@ -110,26 +116,6 @@ class MemberModelTests(TestCase):
         jsr = Joad_session_registration.objects.filter(mem=mem[0])
         self.assertEquals(len(jsr), 1)
         self.assertEquals(len(session.items()), 0)
-
-
-    def test_joad_session_to_old(self):
-        d = date.fromisoformat("2020-04-18")
-        js = Joad_sessions(start_date=d, state='open')
-        js.save()
-        self.mem['level'] = 'joad'
-        self.mem['joad'] = "2020-04-18"
-
-        self.client.get(reverse('registration:register'))
-        with self.assertTemplateUsed('registration/register.html'):
-            render_to_string('registration/register.html')
-
-        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
-        with self.assertTemplateUsed('registration/message.html'):
-            render_to_string('registration/message.html')
-            self.assertContains(response, 'Error on form.')
-
-        mem = Member.objects.all()
-        self.assertEquals(len(mem), 0)
 
     def test_terms_bad(self):
         # submit a registration to be added.
@@ -149,66 +135,43 @@ class MemberModelTests(TestCase):
         js.save()
         # Enter first family member
         self.mem['level'] = 'family'
+        self.mem['member_set-1-first_name'] = 'Janet'
+        self.mem['member_set-1-last_name'] = 'Conlan'
+        self.mem['member_set-1-dob'] = '2010-03-12'
+        self.mem['member_set-1-joad'] = "2020-04-18"
         self.client.post(reverse('registration:register'), self.mem, follow=True)
-        session = self.client.session
-        for k, v in session.items():
-            logging.debug(f"k = {k} v={v}")
-        self.assertEquals(session['family_total'], 40)
-        # self.assertRedirects(response, reverse('registration:register'))
-        with self.assertTemplateUsed('registration/register.html'):
-            render_to_string('registration/register.html')
-        # Enter second family member
-        self.mem['first_name'] = 'Janet'
-        self.mem['last_name'] = 'Conlan'
-        self.mem['dob'] = '2010-03-12'
-        self.mem['joad'] = "2020-04-18"
-        self.client.post(reverse('registration:register'), self.mem, follow=True)
-        session = self.client.session
-        with self.assertTemplateUsed('registration/register.html'):
-            render_to_string('registration/register.html')
-        self.assertEquals(session['family_total'], 135)
 
-        # Complete the family registration
-        self.client.post(reverse('registration:fam_done'), self.mem, follow=True)
-        with self.assertTemplateUsed('registration/message.html'):
-            render_to_string('registration/message.html')
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
 
         member = Member.objects.all()
         self.assertEquals(len(member), 2)
-        for m in member:
-            self.assertEquals(m.fam, 1)
-
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
+        jsr = Joad_session_registration.objects.filter(mem=member[1])
+        self.assertEquals(len(jsr), 1)
 
     def test_family_good(self):
-
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
         # Enter first family member
         self.mem['level'] = 'family'
+        self.mem['member_set-1-first_name'] = 'Janet'
+        self.mem['member_set-1-last_name'] = 'Conlan'
+        self.mem['member_set-1-dob'] = '2010-03-12'
+
         self.client.post(reverse('registration:register'), self.mem, follow=True)
-        session = self.client.session
-        for k, v in session.items():
-            logging.debug(f"k = {k} v={v}")
-        self.assertEquals(session['family_total'], 40)
 
         with self.assertTemplateUsed('registration/register.html'):
             render_to_string('registration/register.html')
-        # Enter second family member
-        self.mem['first_name'] = 'Janet'
-        self.mem['last_name'] = 'Conlan'
-        self.mem['dob'] = '2010-03-12'
-        self.client.post(reverse('registration:register'), self.mem, follow=True)
-        with self.assertTemplateUsed('registration/register.html'):
-            render_to_string('registration/register.html')
-        self.assertEquals(session['family_total'], 40)
-
-        # Complete the family registration
-        self.client.post(reverse('registration:fam_done'), self.mem, follow=True)
-        with self.assertTemplateUsed('registration/message.html'):
-            render_to_string('registration/message.html')
 
         member = Member.objects.all()
         self.assertEquals(len(member), 2)
-        for m in member:
-            self.assertEquals(m.fam, 1)
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
+        jsr = Joad_session_registration.objects.filter(mem=member[1])
+        self.assertEquals(len(jsr), 0)
 
 
     def test_joad_register_invalid_request_method(self):

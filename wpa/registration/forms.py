@@ -1,7 +1,8 @@
 import logging
 
 from django.db import OperationalError
-from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField, formset_factory
+from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField, formset_factory, \
+    inlineformset_factory, modelformset_factory, BaseInlineFormSet
 from registration.models import Member, Membership, Joad_sessions, Pin_shoot, Joad_session_registration
 from registration.widgets import BootstrapDateTimePickerInput
 from django import forms
@@ -18,23 +19,30 @@ def joad_sessions():
             d.append((str(s.start_date), str(s.start_date)))
     except OperationalError as e:  # pragma: no cover
         logging.error(f"Operational Error: {e}")
+    logging.debug(f"session: {d}")
     return d
 
+class CustomInlineFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        # example custom validation across forms in the formset
+        for form in self.forms:
+            logging.debug(form)
 
-# class EmailValidate(ModelForm):
-#     # verification_code = forms.CharField(required=True, widget=TextInput(
-#     #     attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
-#     #            'class': "form-control m-2 not_empty"}))
-#     class Meta:
-#         model = Member
-#         fields = ['email', 'verification_code']
-#         widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
-#                                              'class': "form-control m-2 email"}),
-#                    'email_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
-#                                                   'class': "form-control m-2 not_empty"})}
+class EmailValidate(ModelForm):
+    # verification_code = forms.CharField(required=True, widget=TextInput(
+    #     attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+    #            'class': "form-control m-2 not_empty"}))
+    class Meta:
+        model = Membership
+        fields = ['email', 'verification_code']
+        # widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
+        #                                      'class': "form-control m-2 email"}),
+        #            'email_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+        #                                           'class': "form-control m-2 not_empty"})}
 
 
-class FamilyForm(ModelForm):
+class MembershipForm(ModelForm):
 
     terms = forms.BooleanField(widget=CheckboxInput(attrs={'class': "form-control m-2 custom-control-input"}),
                                required=True)
@@ -57,6 +65,7 @@ class FamilyForm(ModelForm):
                    'level': Select(attrs={'class': "form-control m-2 costs "}),
                    'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input costs"})
                    }
+
 
 class JoadRegistrationForm(ModelForm):
 
@@ -87,41 +96,45 @@ class JoadSessionForm(ModelForm):
                                             'class': "form-control"}),}
 
 
+class SelectChoiceField(forms.ChoiceField):
+    def clean(self, value):
+        logging.debug(value)
+        # super().clean(value)
+        return value
+
+
 class MemberForm(ModelForm):
     # def __init__(self, values, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
 
-    joad = forms.ChoiceField(choices=joad_sessions(), widget=Select(attrs={'class': "form-control m-2 costs"}))
+    joad = SelectChoiceField(choices=joad_sessions(), widget=Select(attrs={'class': "form-control m-2 costs"}))
     joad.required = False
+
+    def clean(self):
+        logging.debug(self.data)
+        super().clean()
+        logging.debug(self.cleaned_data)
+        j = self.cleaned_data.get('joad')
+        logging.debug(j)
+        # self.cleaned_data.update({'joad': (j, j)})
 
     class Meta:
 
         model = Member
         fields = ['first_name', 'last_name', 'dob', 'joad']
-        # widgets = {'first_name': TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off',
-        #                                           'class': "form-control m-2 not_empty"}),
-        #            'last_name': TextInput(attrs={'placeholder': 'Last Name', 'autocomplete': 'off',
-        #                                          'class': "form-control m-2 not_empty"}),
-        #            'street': TextInput(attrs={'placeholder': 'Street', 'autocomplete': 'off',
-        #                                       'class': "form-control m-2 not_empty"}),
-        #            'city': TextInput(attrs={'placeholder': 'City', 'autocomplete': 'off',
-        #                                     'class': "form-control m-2 not_empty"}),
-        #            'state': TextInput(attrs={'placeholder': 'State', 'autocomplete': 'off',
-        #                                      'class': "form-control m-2 not_empty"}),
-        #            'post_code': TextInput(attrs={'placeholder': 'Zip', 'autocomplete': 'off',
-        #                                          'class': "form-control m-2 not_empty"}),
-        #            'phone': TextInput(attrs={'placeholder': 'Phone', 'autocomplete': 'off',
-        #                                      'class': "form-control m-2"}),
-        #            'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
-        #                                      'class': "form-control m-2 email"}),
-        #            'dob': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
-        #                                     'class': "form-control"}),
-        #            'level': Select(attrs={'class': "form-control m-2 costs "}),
-        #            'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input costs"})
-        #            }
+        widgets = {'first_name': TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off',
+                                                  'class': "form-control m-2"}),
+                   'last_name': TextInput(attrs={'placeholder': 'Last Name', 'autocomplete': 'off',
+                                                 'class': "form-control m-2"}),
+                   # 'dob': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
+                   #                          'class': "form-control"})
+                   }
 
 
-MemberFormSet = formset_factory(MemberForm)
+# MemberFormSet = modelformset_factory(Member, MemberForm)
+# MemberFormSet = formset_factory(MemberForm, extra=3, max_num=4, min_num=1)
+MembershipFormSet = inlineformset_factory(Membership, Member, form=MemberForm, can_delete=True, extra=2)
+# MembershipFormSet = ""
 
 
 class PinShootForm(ModelForm):

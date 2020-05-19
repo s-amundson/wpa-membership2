@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 class VerifyEmailView(View):
     def get(self, request):
-        email = request.GET.get('e', '')
-        vcode = request.GET.get('c', '')
-        form = EmailValidate(initial={'email': email, 'verification_code': vcode})
-        return render(request, 'registration/email_verify.html', {'form': form})
+        # email = request.GET.get('e', '')
+        # vcode = request.GET.get('c', '')
+        # form = EmailValidate(initial={'email': email, 'verification_code': vcode})
+        # return render(request, 'registration/email_verify.html', {'form': form})
+        return render(request, 'registration/message.html', {'message': 'Error with form.'})
 
     def post(self, request):
         form = EmailValidate(request.POST)

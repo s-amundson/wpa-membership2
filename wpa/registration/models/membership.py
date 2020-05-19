@@ -2,6 +2,7 @@ from django.db import models
 # from .member import Member
 
 
+
 class Membership(models.Model):
     # fam_id = models.IntegerField()
     street = models.CharField(max_length=150)
@@ -22,4 +23,4 @@ class Membership(models.Model):
     verification_code = models.CharField(max_length=50, null=True)
     status = models.CharField(max_length=50, null=True)
     pay_code = models.CharField(max_length=50, null=True)
-    # member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    # member = models.ForeignKey('registration.Member', on_delete=models.CASCADE)

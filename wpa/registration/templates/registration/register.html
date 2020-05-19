@@ -6,72 +6,99 @@
 
 {% block script %}
     {{ form.media }}
+
 {% endblock %}
 
 {% block main %}
     <!--suppress XmlInvalidId -->
 <div class="row" message_text="{{ message }}" hidden id="message"><h3>"{{ message }}"</h3></div>
+
     <form method="post" action="." autocomplete="off" class="form">
         {% csrf_token %}
-        <div class="row">
-            <div class="input-group input-group-md">
-                {{ form.first_name }}
-                {{ form.last_name }}
+        <input type="hidden" name="member_set-TOTAL_FORMS"
+               v-model="getTotalMemberForms()"
+               id="id_member_set-TOTAL_FORMS">
+        <input type="hidden" name="member_set-INITIAL_FORMS"
+               v-model="getInitialMemberForms()"
+               id="id_member_set-INITIAL_FORMS">
+        <div class="row input-group input-group-md">
+            <div class="col border p-2 mx-auto">
+                First Name
+            </div>
+            <div class="col border p-2 mx-auto">
+                Last Name
+            </div>
+            <div class="col border p-2 mx-auto">
+                Date of Birth
+            </div>
+            <div class="col border p-2 mx-auto">
+                JOAD Session
             </div>
         </div>
-
-        <div class="row">
-                <div class="input-group input-group-md">
-                    {{ form.street }}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="row input-group input-group-md">
+                <div class="col border  mx-auto">
+                    {{ form.first_name }}
                 </div>
-        </div>
-
-        <div class="row">
-                <div class="input-group input-group-md">
-                    {{ form.city }}
-                    {{ form.state }}
-                    {{ form.post_code }}
+                <div class="col border  mx-auto">
+                    {{ form.last_name }}
                 </div>
-        </div>
-
-        <div class="row">
-            <div class="input-group input-group-md">
-                {{ form.email }}
-                {{ form.phone }}
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="input-group input-group-md" id="dob_div">
-                <div class="m-2">
-                    <label for="id_dob">Date of Birth:</label>
+                <div class="col border  mx-auto">
                     {{ form.dob }}
                 </div>
+                <div class="col border  mx-auto">
+                    {{ form.joad }}
+                </div>
             </div>
-            <div class="input-group input-group-md">
-                <label for="id_level">Membersip Level:</label>
-                {{ form.level }}
-            </div>
+        {% endfor %}
+
+<!--        <div class="row">-->
+<!--                <div class="input-group input-group-md">-->
+<!--                    <a href="" v-on:click="addNewBook($event,author_index)" role="button"-->
+<!--                       class="btn btn-outline-primary">Add Family Member</a>-->
+<!--                </div>-->
+<!--        </div>-->
+        <div class="row pt-2">
+                <div class="input-group input-group-md">
+                    {{ membership_form.street }}
+                </div>
+        </div>
+
+        <div class="row">
+                <div class="input-group input-group-md">
+                    {{ membership_form.city }}
+                    {{ membership_form.state }}
+                    {{ membership_form.post_code }}
+                </div>
         </div>
 
         <div class="row">
             <div class="input-group input-group-md">
-                <label for="id_joad">Select a start date to register for a JOAD Session:</label>
-                    {{ form.joad }}
-                <label></label>
+                {{ membership_form.email }}
+                {{ membership_form.phone }}
             </div>
         </div>
+
+        <div class="row">
+
+            <div class="input-group input-group-md">
+                <label for="id_level">Membersip Level:</label>
+                {{ membership_form.level }}
+            </div>
+        </div>
+
 
         <div class="row">
             <div class="custom-control custom-checkbox m-3">
-                {{ form.benefactor }}
+                {{ membership_form.benefactor }}
                 <label class="custom-control-label" for="id_benefactor">Benefactor</label>
             </div>
         </div>
 
         <div class="row" >
             <div class="custom-control custom-checkbox m-3">
-                {{ form.terms }}
+                {{ membership_form.terms }}
                 <label class="custom-control-label" for="id_terms">I agree to the terms and conditions</label>
             </div>
         </div>
@@ -85,7 +112,4 @@
         </div>
     </form>
 
-    <form action="{% url 'registration:fam_done' %}" method="post" class="form" name="form2"></form>
-{% load static %}
-    <script type="text/javascript" src="{% static 'registration/register.js' %}"></script>
 {% endblock %}

@@ -92,7 +92,7 @@ class JoadSessionForm(ModelForm):
     class Meta:
         model = Joad_sessions
         fields = ['start_date', 'state']
-        widgets = {'start_date': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
+        widgets = {'start_date': TextInput(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
                                             'class': "form-control"}),}
 
 
@@ -123,9 +123,12 @@ class MemberForm(ModelForm):
         model = Member
         fields = ['first_name', 'last_name', 'dob', 'joad']
         widgets = {'first_name': TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off',
-                                                  'class': "form-control m-2"}),
+                                                  'class': "form-control m-2 member-required", "form_id": "__prefix__"}),
                    'last_name': TextInput(attrs={'placeholder': 'Last Name', 'autocomplete': 'off',
-                                                 'class': "form-control m-2"}),
+                                                 'class': "form-control m-2 member-required", "form_id": "__prefix__"}),
+                   'dob': forms.DateInput(attrs={'placeholder': 'Date of Birth',
+                                                 'class': 'form-control m-2 member-required dob', "form_id": "__prefix__"})
+
                    # 'dob': DatePicker(attrs={'append': 'fa fa-calendar', 'icon_toggle': True,
                    #                          'class': "form-control"})
                    }
@@ -133,7 +136,8 @@ class MemberForm(ModelForm):
 
 # MemberFormSet = modelformset_factory(Member, MemberForm)
 # MemberFormSet = formset_factory(MemberForm, extra=3, max_num=4, min_num=1)
-MembershipFormSet = inlineformset_factory(Membership, Member, form=MemberForm, can_delete=True, extra=2)
+MembershipFormSet = inlineformset_factory(Membership, Member, form=MemberForm, can_delete=True, extra=0, min_num=0,
+                                          max_num=4)
 # MembershipFormSet = ""
 
 

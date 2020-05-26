@@ -27,7 +27,7 @@ class RegisterFormsetView(View):
 
     # elif request.method == "POST":
     def post(self, request):
-        formset = MemberFormSet(request.POST)
+        # formset = MemberFormSet(request.POST)
 
         form = MemberForm(request.POST)
         j = request.POST.get('joad', None)
@@ -119,6 +119,8 @@ class RegisterFormsetView(View):
 
         else:
             logging.debug("invalid form")
+            c = {'formset': MemberFormSet(initial=request.POST), 'message': "Error on form"}
+            return render(request, 'registration/regform.html', c)
             # logging.debug(form.cleaned_data)
             # logging.debug(form.errors)
 

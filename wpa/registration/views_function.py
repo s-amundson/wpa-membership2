@@ -97,7 +97,8 @@ def joad_session_view(request):
 
         else:
             logging.debug(form.errors)
-        return render(request, 'registration/joad_session.html', {'form': form})
+        return redirect('registration:joad_session')
+        # return render(request, 'registration/joad_session.html', {'form': form})
     else:
         raise Http404('Register Error')
 

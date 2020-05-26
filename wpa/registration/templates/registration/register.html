@@ -7,6 +7,7 @@
 {% block script %}
     {{ form.media }}
 {% load static %}
+
 <script type="text/javascript" src="{% static 'registration/register.js' %}"></script>
 {% endblock %}
 
@@ -70,7 +71,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" id="costs" cost-values="{{ costs }}">
             <h3 id="cost" cost_link="{% url 'registration:cost_values' %}">Total Cost:</h3>
         </div>
 
@@ -90,17 +91,21 @@
                 </div>
                 <div class="col border mx-auto">
                     {{ formset.empty_form.dob }}
+                    <div class="text-danger" id="id_invalid_dob-__prefix__">
+                        Please enter date in the format of YYYY-MM-DD
+                    </div>
                 </div>
-                <button class="btn btn-danger member_button" id="id_member_button-__prefix__" form_id="__prefix__">Delete</button>
 
+                <button class="btn btn-danger delete_member_button" id="id_delete_member_button-__prefix__"
+                        form_id="__prefix__">Delete</button>
             </div>
+
             <div class="row input-group input-group-md border" id="form-div-__prefix__-joad">
 
                 <div class="col">To register for a JOAD session select start date:</div>
                 <div class="col">
                     {{ formset.empty_form.joad }}
                 </div>
-
             </div>
         </div>
     </script>

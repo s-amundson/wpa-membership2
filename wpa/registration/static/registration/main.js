@@ -20,8 +20,17 @@ $(document).ready(function(){
             set_valid($(this), true)
         }
     })
-
-});
+    $(".date_input").datepicker(
+        {
+          format:'yyyy-mm-dd',
+        })
+//    $(function () {
+//            $(".date_input").datepicker(
+//            {
+//              format:'yyyy-mm-dd',
+//            })
+//        })
+})
 
 function reg_check (input) {
     var i = document.getElementById(input)

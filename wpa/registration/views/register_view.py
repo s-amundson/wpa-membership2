@@ -1,4 +1,5 @@
 import logging
+import json
 from uuid import uuid4
 
 from django.conf import settings
@@ -25,7 +26,7 @@ class RegisterView(View):
     # to initialize with data initial = dict of data
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.costs = settings.COSTS
+        self.costs = json.dumps(settings.COSTS)
         self.membership_form = MembershipForm()
         self.formset = MembershipFormSet(initial={})
         self.message = ''
@@ -87,8 +88,12 @@ class RegisterView(View):
                     membership.save()
                 else:
                     logging.debug(self.membership_form.errors)
-                    self.message = 'Error on form'
-                    return render(request, 'registration/register.html', self.context)
+                    self.context['formset'] = MembershipFormSet(initial=request.POST)
+                    self.context['message'] = 'Error on form'
+                    logging.debug(self.context)
+                    r = render(request, 'registration/register.html', self.context)
+                    logging.debug(r)
+                    return r
 
                 if self.formset.is_valid():
                     logging.debug('valid formset')

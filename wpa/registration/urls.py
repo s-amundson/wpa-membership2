@@ -2,8 +2,7 @@ from django.urls import path
 
 from registration import views_function
 
-from .views import JoadRegistrationView, PinShootView, RegisterView, VerifyEmailView
-    # ProcessPaymentView, \
+from .views import JoadRegistrationView, PinShootView, RegisterView, VerifyEmailView, ProcessPaymentView
     # RegisterFormsetView, VerifyEmailView
 
 app_name = 'registration'
@@ -17,7 +16,7 @@ urlpatterns = [
     path('joad_session/', views_function.joad_session_view, name='joad_session'),
     path('message/', views_function.message, name='message'),
     path('pin_shoot/', PinShootView.as_view(), name='pin_shoot'),
-    # path('process_payment/', ProcessPaymentView.as_view(), name='process_payment'),
+    path('process_payment/', ProcessPaymentView.as_view(), name='process_payment'),
     path('register/', RegisterView.as_view(), name='register'),
     # path('register/', RegisterFormsetView.as_view(), name='register'),
 ]

@@ -73,7 +73,6 @@ class RegisterView(View):
 
     def post(self, request):
         logging.debug(request.POST)
-        logging.debug(request.POST)
         self.formset = MembershipFormSet(request.POST)
         self.membership_form = MembershipForm(request.POST)
         email_member = None
@@ -109,7 +108,6 @@ class RegisterView(View):
                             elif not Joad_session_registration.joad_check_date(d['dob']):
                                 self.message = 'Error on form'
                                 return render(request, 'registration/register.html', self.context)
-
 
                     obj = self.formset.save(commit=False)
                     for deleted in self.formset.deleted_objects:

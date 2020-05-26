@@ -14,8 +14,8 @@ class Email:
     def verification_email(member_dict):
         subject = 'Email Verification Code'
         to_address = member_dict['email']
-        logging.debug(settings.DEBUG)
-        if settings.DEBUG:
+        logging.debug(settings.EMAIL_DEBUG)
+        if settings.EMAIL_DEBUG:
             to_address = 'sam.amundson@gmail.com'
 
         htmly = get_template('email/verify.html')

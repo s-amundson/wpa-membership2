@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class EmailVerifyTests(TestCase):
-    fixtures = ['email_verify_fixture.json']
+    fixtures = ['registration_fixture.json']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'email_verify_fixture.json')
+        path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'registration_fixture.json')
         logging.debug(path)
         with open(path) as f:
             data = json.load(f)

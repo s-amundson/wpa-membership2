@@ -22,23 +22,23 @@ class MemberModelTests(TestCase):
         path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'registration_fixture.json')
         logging.debug(path)
         with open(path) as f:
-            data = json.load(f)
+            self.member_data = json.load(f)
 
-        self.member_data = []
-        self.joad_sessions_data = []
-        for r in data:
-            if r['model'] == 'registration.member':
-                f = r['fields']
-                f.pop('reg_date')
-                f.pop('exp_date')
-                f.pop('verification_code')
-                f.pop('status')
-                f.pop('pay_code')
-                f.pop('fam')
-                f['terms'] = True
-                self.member_data.append(f)
-            elif r['model'] == 'registration.joad_sessions':
-                self.joad_sessions_data.append(r['fields'])
+        # self.member_data = []
+        # self.joad_sessions_data = []
+        # for r in data:
+        #     if r['model'] == 'registration.member':
+        #         f = r['fields']
+        #         f.pop('reg_date')
+        #         f.pop('exp_date')
+        #         f.pop('verification_code')
+        #         f.pop('status')
+        #         f.pop('pay_code')
+        #         f.pop('fam')
+        #         f['terms'] = True
+        #         self.member_data.append(f)
+        #     elif r['model'] == 'registration.joad_sessions':
+        #         self.joad_sessions_data.append(r['fields'])
 
     def setUp(self):
         # Every test needs a client.
@@ -181,220 +181,252 @@ class MemberModelTests(TestCase):
         response = self.client.delete(reverse('registration:register'))
         self.assertEqual(response.status_code, 405)
 
+
     def test_member_combinations(self):
         js_count = 0
         family_count = 0
-        index = 0
-        # standard membership
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, False)
+        num_members = 0
+        num_memberships = 0
+        for member in self.member_data:
+            self.add_member(member)
+            forms = int(member['member_set-TOTAL_FORMS'][0])
+            num_members += forms
+            num_memberships += 1
+            logging.debug(num_memberships)
+            self.assertEquals(len(self.member), num_members)
+            self.assertEquals(len(self.membership), num_memberships)
+            self.assertEquals(self.membership[num_memberships - 1].benefactor, (member.get("benefactor", False) == ['on']))
+            for i in range(forms):
+                if member[f"member_set-{i}-joad"][0] != "":
+                    # fn = member[f"member_set-{ i }-first_name"][0]
+                    # ln = member[f"member_set-{ i }-last_name"][0]
+                    # m = Member.objects.filter(first_name=member[f"member_set-{ i }-first_name"][0],
+                    #                           last_name=member[f"member_set-{ i }-last_name"][0])
+                    # logging.debug(f"i = {i} m = {m} fn = {fn} ln = {ln}")
+                    # self.assertEquals(m[0].joad, member[f"member_set-{ i }-joad"][0])
 
-        # standard, joad session;
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.add_member(self.member_data[index])
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
+                    js = Joad_session_registration.objects.filter(
+                        idempotency_key=self.membership[num_memberships - 1].verification_code)
+                    self.assertGreaterEqual(len(js), 1)
 
-        # verification code is supposed to be the same in Joad_session_registration as it is in the member table.
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 1)
-        self.assertEquals(self.member[index - 1].benefactor, False)
+            if forms > 1:
+                self.assertEquals(self.membership[num_memberships - 1].level, 'family')
 
-        # standard, benefactor;
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, True)
 
-        # benefactor, joad session
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.add_member(self.member_data[index])
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-
-        # family,
-        # self.add_member(self.member_data[index])
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        # session = self.client.session
-        index += 1
-        self.assertEquals(len(self.member), index)
-        family_count += 1
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        ik = self.member[index - 1].verification_code
-
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.client.post(reverse('registration:fam_done'))
-        session = self.client.session
-        for k, v in session.items():
-            logging.debug(f"k = {k} v={v}")
-
-        # family, joad session;
-        logging.debug('family, joad session')
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        family_count += 1
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        ik = self.member[index - 1].verification_code
-
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 1)
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-        self.client.post(reverse('registration:fam_done'))
-        session = self.client.session
-        self.assertIsNone(session.get('fam_id', None))
-
-        # family, multiple joad session;
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        family_count += 1
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        ik = self.member[index - 1].verification_code
-
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 2)
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-        self.client.post(reverse('registration:fam_done'))
-        session = self.client.session
-        self.assertIsNone(session.get('fam_id', None))
-
-        # family, benefactor;
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        family_count += 1
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-        ik = self.member[index - 1].verification_code
-
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-        self.client.post(reverse('registration:fam_done'))
-        session = self.client.session
-        self.assertIsNone(session.get('fam_id', None))
-
-        # family, joad session, benefactor;
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        self.assertEquals(len(self.member), index)
-        family_count += 1
-        self.assertEquals(self.member[index - 1].fam, family_count)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-        ik = self.member[index - 1].verification_code
-
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
-        self.member = Member.objects.all()
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].verification_code, ik)
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 1)
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-        self.client.post(reverse('registration:fam_done'))
-        session = self.client.session
-        self.assertIsNone(session.get('fam_id', None))
-
-    # joad;
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        self.assertEquals(self.member[index - 1].level, 'joad')
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-
-    # joad, joad session;
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.add_member(self.member_data[index])
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 1)
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-
-    # joad, benefactor;
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-        self.assertEquals(self.member[index - 1].level, 'joad')
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-
-    # joad, joad session, benefactor;
-        self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
-        self.add_member(self.member_data[index])
-        index += 1
-        js_count += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-        js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
-        self.assertEquals(len(js), 1)
-        js = Joad_session_registration.objects.all()
-        self.assertEquals(len(js), js_count)
-
-    # senior;
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, False)
-        self.assertEquals(self.member[index - 1].level, 'senior')
-
-    # senior, benefactor;
-        self.add_member(self.member_data[index])
-        index += 1
-        self.assertEquals(len(self.member), index)
-        self.assertEquals(self.member[index - 1].benefactor, True)
-        self.assertEquals(self.member[index - 1].level, 'senior')
+    # def test_member_combinations(self):
+    #     js_count = 0
+    #     family_count = 0
+    #     index = 0
+    #     # standard membership
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #
+    #     # standard, joad session;
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #
+    #     # verification code is supposed to be the same in Joad_session_registration as it is in the member table.
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 1)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #
+    #     # standard, benefactor;
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #
+    #     # benefactor, joad session
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #
+    #     # family,
+    #     # self.add_member(self.member_data[index])
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     # session = self.client.session
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     family_count += 1
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     ik = self.member[index - 1].verification_code
+    #
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.client.post(reverse('registration:fam_done'))
+    #     session = self.client.session
+    #     for k, v in session.items():
+    #         logging.debug(f"k = {k} v={v}")
+    #
+    #     # family, joad session;
+    #     logging.debug('family, joad session')
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     family_count += 1
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     ik = self.member[index - 1].verification_code
+    #
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 1)
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #     self.client.post(reverse('registration:fam_done'))
+    #     session = self.client.session
+    #     self.assertIsNone(session.get('fam_id', None))
+    #
+    #     # family, multiple joad session;
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     family_count += 1
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     ik = self.member[index - 1].verification_code
+    #
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 2)
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #     self.client.post(reverse('registration:fam_done'))
+    #     session = self.client.session
+    #     self.assertIsNone(session.get('fam_id', None))
+    #
+    #     # family, benefactor;
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     family_count += 1
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #     ik = self.member[index - 1].verification_code
+    #
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #     self.client.post(reverse('registration:fam_done'))
+    #     session = self.client.session
+    #     self.assertIsNone(session.get('fam_id', None))
+    #
+    #     # family, joad session, benefactor;
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     family_count += 1
+    #     self.assertEquals(self.member[index - 1].fam, family_count)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #     ik = self.member[index - 1].verification_code
+    #
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.client.post(reverse('registration:register'), self.member_data[index], follow=True)
+    #     self.member = Member.objects.all()
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].verification_code, ik)
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 1)
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #     self.client.post(reverse('registration:fam_done'))
+    #     session = self.client.session
+    #     self.assertIsNone(session.get('fam_id', None))
+    #
+    # # joad;
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     self.assertEquals(self.member[index - 1].level, 'joad')
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #
+    # # joad, joad session;
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 1)
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #
+    # # joad, benefactor;
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #     self.assertEquals(self.member[index - 1].level, 'joad')
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #
+    # # joad, joad session, benefactor;
+    #     self.member_data[index]['joad'] = self.joad_date.start_date.isoformat()
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     js_count += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #     js = Joad_session_registration.objects.filter(idempotency_key=self.member[index - 1].verification_code)
+    #     self.assertEquals(len(js), 1)
+    #     js = Joad_session_registration.objects.all()
+    #     self.assertEquals(len(js), js_count)
+    #
+    # # senior;
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, False)
+    #     self.assertEquals(self.member[index - 1].level, 'senior')
+    #
+    # # senior, benefactor;
+    #     self.add_member(self.member_data[index])
+    #     index += 1
+    #     self.assertEquals(len(self.member), index)
+    #     self.assertEquals(self.member[index - 1].benefactor, True)
+    #     self.assertEquals(self.member[index - 1].level, 'senior')

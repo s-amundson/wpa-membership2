@@ -1,6 +1,9 @@
+import json
 import logging
+import os
 import time
 
+from django.conf import settings
 from django.test import LiveServerTestCase
 from registration.models import Member
 
@@ -16,20 +19,24 @@ logger = logging.getLogger(__name__)
 class SeleniumRegisterTests(LiveServerTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.entry_data = {'first_name': 'Emily',
-                           'last_name': 'Conlan',
-                           'street': "1984 Jones Avenue",
-                           'city': 'Hays',
-                           'state': 'NC',
-                           'post_code': "28635",
-                           'phone': '336-696-6307',
-                           'email': 'EmilyNConlan@einrot.com',
-                           'dob': '1995-03-12'}
-
-        self.select_data = {'level': 'Standard'}
-        self.click_data = {'benefactor': True, 'terms': True}
+        path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'registration_fixture.json')
+        logging.debug(path)
+        with open(path) as f:
+            self.member_data = json.load(f)
+        # self.entry_data = {'first_name': 'Emily',
+        #                    'last_name': 'Conlan',
+        #                    'street': "1984 Jones Avenue",
+        #                    'city': 'Hays',
+        #                    'state': 'NC',
+        #                    'post_code': "28635",
+        #                    'phone': '336-696-6307',
+        #                    'email': 'EmilyNConlan@einrot.com',
+        #                    'dob': '1995-03-12'}
+        #
+        # self.select_data = {'level': 'Standard'}
+        # self.click_data = {'benefactor': True, 'terms': True}
         self.url = 'http://127.0.0.1:8000/registration/register/'
-        self.enter_items(self.entry_data, self.select_data)
+        # self.enter_items(self.entry_data, self.select_data)
 
     @classmethod
     def setUpClass(self):
@@ -49,7 +56,7 @@ class SeleniumRegisterTests(LiveServerTestCase):
 
         # self.selenium.get('%s%s' % (self.live_server_url, '/registration/register/'))
         self.selenium.get(self.url)
-        time.sleep(10)
+
 
 
         member = ['street', 'city', 'state', 'post_code', 'phone', 'email']

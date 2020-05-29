@@ -32,16 +32,13 @@ class CustomInlineFormSet(BaseInlineFormSet):
 
 
 class EmailValidate(ModelForm):
-    # verification_code = forms.CharField(required=True, widget=TextInput(
-    #     attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
-    #            'class': "form-control m-2 not_empty"}))
     class Meta:
         model = Membership
         fields = ['email', 'verification_code']
-        # widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
-        #                                      'class': "form-control m-2 email"}),
-        #            'email_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
-        #                                           'class': "form-control m-2 not_empty"})}
+        widgets = {'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
+                                             'class': "form-control m-2 email"}),
+                   'verification_code': TextInput(attrs={'placeholder': 'Verification Code', 'autocomplete': 'off',
+                                                  'class': "form-control m-2 not_empty"})}
 
 
 class JoadRegistrationForm(ModelForm):

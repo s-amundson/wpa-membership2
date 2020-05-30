@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views import View
 
 from registration.forms import EmailValidate, MemberForm
-from registration.models import Member, Joad_session_registration
+from registration.models import Member, Joad_session_registration, Membership
 from registration.src.square_helper import line_item
 
 logger = logging.getLogger(__name__)
@@ -24,8 +24,8 @@ class VerifyEmailView(View):
     def post(self, request):
         form = EmailValidate(request.POST)
         if form.is_valid():
-            rows = Member.objects.filter(email=form.cleaned_data['email'],
-                                         verification_code=form.cleaned_data['verification_code'])
+            rows = Membership.objects.filter(email=form.cleaned_data['email'],
+                                             verification_code=form.cleaned_data['verification_code'])
             logging.debug(form.cleaned_data)
             if len(rows) > 0:
                 # joad_sessions = 0

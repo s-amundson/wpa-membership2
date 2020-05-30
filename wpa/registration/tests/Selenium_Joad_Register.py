@@ -1,3 +1,5 @@
+import time
+
 from registration.models import Member, Membership, Joad_sessions, Joad_session_registration, Pin_shoot
 from django.test import LiveServerTestCase
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -11,15 +13,17 @@ logger = logging.getLogger(__name__)
 # Create your tests here.
 
 class SeleniumJoadRegisterTests(LiveServerTestCase):
+    fixtures = ['membership1.json']
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.entry_data = {'first_name': 'Emily',
-                           'last_name': 'Conlan',
-                           'email': 'EmilyNConlan@einrot.com'}
+        self.entry_data = {'first_name': 'Tanya',
+                           'last_name': 'Denton',
+                           'email': 'TanyaTDenton@gustr.com'}
         # 'level': 'standard',
         # 'terms': True
-        self.select_data = {'joad': '2020-04-19'}
+        self.select_data = {'joad': '2020-05-15'}
         self.click_data = {'terms': True}
         self.url = 'http://127.0.0.1:8000/registration/joad_registration/'
 
@@ -56,7 +60,8 @@ class SeleniumJoadRegisterTests(LiveServerTestCase):
             self.enter_items(sr, self.select_data)
             e = self.selenium.find_element_by_id('id_submit')
             e.click()
-            self.assertEquals(len(Member.objects.all()), 0)
+            self.assertEquals(self.selenium.title, "Membership Project: JOAD Register")
+            # self.assertEquals(len(Member.objects.all()), 0)
 
         keys = list(self.select_data.keys())
         for k in keys:
@@ -65,7 +70,8 @@ class SeleniumJoadRegisterTests(LiveServerTestCase):
             self.enter_items(self.entry_data, sr)
             e = self.selenium.find_element_by_id('id_submit')
             e.click()
-            self.assertEquals(len(Member.objects.all()), 0)
+            # self.assertEquals(len(Member.objects.all()), 0)
+            self.assertEquals(self.selenium.title, "Membership Project: JOAD Register")
 
         self.enter_items(self.entry_data, sr)
 
@@ -74,4 +80,4 @@ class SeleniumJoadRegisterTests(LiveServerTestCase):
 
         e = self.selenium.find_element_by_id('id_submit')
         e.click()
-        self.assertEquals(len(Member.objects.all()), 0)
+        self.assertEquals(self.selenium.title, "Membership Project: JOAD Register")

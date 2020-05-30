@@ -61,108 +61,108 @@ class MemberModelTests(TestCase):
         self.member = Member.objects.all()
         self.membership = Membership.objects.all()
 
-    # def test_duplicate_member(self):
-    #     self.add_member(self.mem)
-    #     self.assertEquals(len(self.member), 1)
-    #     membership = Membership.objects.all()
-    #     self.assertEquals(len(membership), 1)
-    #     self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #     with self.assertTemplateUsed('registration/message.html'):
-    #         render_to_string('registration/message.html')
-    #     self.assertEquals(len(Member.objects.all()), 1)
-    #     self.assertEquals(len(Membership.objects.all()), 1)
-    #
-    # def test_invalid_level(self):
-    #     # if javascript is off then the form could be submitted with and invalid value.
-    #     self.mem['level'] = 'invalid'
-    #     self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #
-    #     with self.assertTemplateUsed('registration/message.html'):
-    #         render_to_string('registration/message.html')
+    def test_duplicate_member(self):
+        self.add_member(self.mem)
+        self.assertEquals(len(self.member), 1)
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
+        with self.assertTemplateUsed('registration/message.html'):
+            render_to_string('registration/message.html')
+        self.assertEquals(len(Member.objects.all()), 1)
+        self.assertEquals(len(Membership.objects.all()), 1)
 
-    # def test_joad_session_good(self):
-    #     d = date.fromisoformat("2020-04-18")
-    #     js = Joad_sessions(start_date=d, state='open')
-    #     js.save()
-    #     self.mem['member_set-0-joad'] = "2020-04-18"
-    #     self.mem['member_set-0-dob'] = '2010-03-12'
-    #
-    #     self.client.get(reverse('registration:register'))
-    #     with self.assertTemplateUsed('registration/register.html'):
-    #         render_to_string('registration/register.html')
-    #
-    #     response = self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #     session = self.client.session
-    #     self.assertRedirects(response, reverse('registration:register'))
-    #     mem = Member.objects.all()
-    #     self.assertEquals(len(mem), 1)
-    #     # self.assertEquals(Member.objects.get(pk=1).joad, d)
-    #     jsr = Joad_session_registration.objects.filter(mem=mem[0])
-    #     self.assertEquals(len(jsr), 1)
-    #     self.assertEquals(len(session.items()), 0)
+    def test_invalid_level(self):
+        # if javascript is off then the form could be submitted with and invalid value.
+        self.mem['level'] = 'invalid'
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
 
-    # def test_terms_bad(self):
-    #     # submit a registration to be added.
-    #     self.mem.pop('terms', None)
-    #     self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #     session = self.client.session
-    #     with self.assertTemplateUsed('registration/register.html'):
-    #         render_to_string('registration/register.html')
-    #     for k, v in session.items():
-    #         logging.debug(f"k = {k} v={v}")
-    #     self.assertEquals(len(Member.objects.all()), 0)
-    #     self.assertEquals(len(session.items()), 0)
+        with self.assertTemplateUsed('registration/message.html'):
+            render_to_string('registration/message.html')
 
-    # def test_family_joad_good(self):
-    #     d = date.fromisoformat("2020-04-18")
-    #     js = Joad_sessions(start_date=d, state='open')
-    #     js.save()
-    #     # Enter first family member
-    #     self.mem['level'] = 'family'
-    #     self.mem['member_set-1-first_name'] = 'Janet'
-    #     self.mem['member_set-1-last_name'] = 'Conlan'
-    #     self.mem['member_set-1-dob'] = '2010-03-12'
-    #     self.mem['member_set-1-joad'] = "2020-04-18"
-    #     self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #
-    #     with self.assertTemplateUsed('registration/register.html'):
-    #         render_to_string('registration/register.html')
-    #
-    #     member = Member.objects.all()
-    #     self.assertEquals(len(member), 2)
-    #     membership = Membership.objects.all()
-    #     self.assertEquals(len(membership), 1)
-    #     jsr = Joad_session_registration.objects.filter(mem=member[1])
-    #     self.assertEquals(len(jsr), 1)
+    def test_joad_session_good(self):
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
+        self.mem['member_set-0-joad'] = "2020-04-18"
+        self.mem['member_set-0-dob'] = '2010-03-12'
 
-    # def test_family_good(self):
-    #     d = date.fromisoformat("2020-04-18")
-    #     js = Joad_sessions(start_date=d, state='open')
-    #     js.save()
-    #     # Enter first family member
-    #     self.mem['level'] = 'family'
-    #     self.mem['member_set-1-first_name'] = 'Janet'
-    #     self.mem['member_set-1-last_name'] = 'Conlan'
-    #     self.mem['member_set-1-dob'] = '2010-03-12'
-    #
-    #     self.client.post(reverse('registration:register'), self.mem, follow=True)
-    #
-    #     with self.assertTemplateUsed('registration/register.html'):
-    #         render_to_string('registration/register.html')
-    #
-    #     member = Member.objects.all()
-    #     self.assertEquals(len(member), 2)
-    #     membership = Membership.objects.all()
-    #     self.assertEquals(len(membership), 1)
-    #     jsr = Joad_session_registration.objects.filter(mem=member[1])
-    #     self.assertEquals(len(jsr), 0)
-    #
-    # def test_joad_register_invalid_request_method(self):
-    #     response = self.client.put(reverse('registration:register'))
-    #     self.assertEqual(response.status_code, 405)
-    #
-    #     response = self.client.delete(reverse('registration:register'))
-    #     self.assertEqual(response.status_code, 405)
+        self.client.get(reverse('registration:register'))
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+
+        response = self.client.post(reverse('registration:register'), self.mem, follow=True)
+        session = self.client.session
+        self.assertRedirects(response, reverse('registration:register'))
+        mem = Member.objects.all()
+        self.assertEquals(len(mem), 1)
+        # self.assertEquals(Member.objects.get(pk=1).joad, d)
+        jsr = Joad_session_registration.objects.filter(mem=mem[0])
+        self.assertEquals(len(jsr), 1)
+        self.assertEquals(len(session.items()), 0)
+
+    def test_terms_bad(self):
+        # submit a registration to be added.
+        self.mem.pop('terms', None)
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
+        session = self.client.session
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+        for k, v in session.items():
+            logging.debug(f"k = {k} v={v}")
+        self.assertEquals(len(Member.objects.all()), 0)
+        self.assertEquals(len(session.items()), 0)
+
+    def test_family_joad_good(self):
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
+        # Enter first family member
+        self.mem['level'] = 'family'
+        self.mem['member_set-1-first_name'] = 'Janet'
+        self.mem['member_set-1-last_name'] = 'Conlan'
+        self.mem['member_set-1-dob'] = '2010-03-12'
+        self.mem['member_set-1-joad'] = "2020-04-18"
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
+
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+
+        member = Member.objects.all()
+        self.assertEquals(len(member), 2)
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
+        jsr = Joad_session_registration.objects.filter(mem=member[1])
+        self.assertEquals(len(jsr), 1)
+
+    def test_family_good(self):
+        d = date.fromisoformat("2020-04-18")
+        js = Joad_sessions(start_date=d, state='open')
+        js.save()
+        # Enter first family member
+        self.mem['level'] = 'family'
+        self.mem['member_set-1-first_name'] = 'Janet'
+        self.mem['member_set-1-last_name'] = 'Conlan'
+        self.mem['member_set-1-dob'] = '2010-03-12'
+
+        self.client.post(reverse('registration:register'), self.mem, follow=True)
+
+        with self.assertTemplateUsed('registration/register.html'):
+            render_to_string('registration/register.html')
+
+        member = Member.objects.all()
+        self.assertEquals(len(member), 2)
+        membership = Membership.objects.all()
+        self.assertEquals(len(membership), 1)
+        jsr = Joad_session_registration.objects.filter(mem=member[1])
+        self.assertEquals(len(jsr), 0)
+
+    def test_register_invalid_request_method(self):
+        response = self.client.put(reverse('registration:register'))
+        self.assertEqual(response.status_code, 405)
+
+        response = self.client.delete(reverse('registration:register'))
+        self.assertEqual(response.status_code, 405)
 
     def test_member_combinations(self):
         num_members = 0
@@ -188,7 +188,7 @@ class MemberModelTests(TestCase):
             if forms > 1:
                 self.assertEquals(self.membership[num_memberships - 1].level, 'family')
 
-        path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'registration_fixture2.json')
-        result = list(serializers.serialize('json', [Membership.objects.all()]))
-        with open(path, 'w') as f:
-            json.dump(result, f)
+        # path = os.path.join(settings.BASE_DIR, 'registration', 'fixtures', 'registration_fixture2.json')
+        # result = list(serializers.serialize('json', [Membership.objects.all()]))
+        # with open(path, 'w') as f:
+        #     json.dump(result, f)

@@ -30,7 +30,7 @@ class JoadRegistrationView(View):
             try:
                 member = Member.objects.filter(first_name=reg_data['first_name'],
                                                last_name=reg_data['last_name'],
-                                               email=reg_data['email'])
+                                               membership__email=reg_data['email'])
             except Member.DoesNotExist:
                 return render(request, 'registration/message.html', {'message': 'Member not found'})
             if not reg.joad_check_date(member[0].dob):

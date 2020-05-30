@@ -1,13 +1,10 @@
 create admin way of bypassing payment for in person payments.
-make way to end family membership
+
 add costs to database
 
-multiple joad students at once.
+upgrade javascript check for phone
 
-fix bug -
-    multiple joad session javascript total cost != 40+95+95, 3rd submission family reset family cost
-    idempotency key not the same for families
-    family id not incrementing.
+
 
 
 coverage run --rcfile=coverage.cfg --source='.' manage.py test registration --settings=wpa.local_settings

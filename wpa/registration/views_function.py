@@ -92,9 +92,8 @@ def joad_session_view(request):
         if j is not None:
             form.fields['state'].choices = [(j, j)]
         if form.is_valid():
-            logging.debug('vaid')
             js = form.save()
-
+            logging.debug('valid ' + js.start_date.isoformat())
         else:
             logging.debug(form.errors)
         return redirect('registration:joad_session')

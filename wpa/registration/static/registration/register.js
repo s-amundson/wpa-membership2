@@ -114,6 +114,8 @@ function update_listener() {
         } else {
             $("#id_btn_add_row").prop('disabled', true)
         }
+        return set_valid($(this), $(this).val() != '')
+
     })
 }
 
@@ -165,6 +167,10 @@ class MemberForm {
         this.level_senior = false
         $("#id_invalid_dob-" + index).hide()
 
+        this.first_name_input.attr('required', '');
+        this.last_name_input.attr('required', '');
+        this.dob_input.attr('required', '');
+
         $(function () {
             $("#id_member_set-" + index + "-dob").datepicker(
             {
@@ -178,6 +184,7 @@ class MemberForm {
         this.joad_input.blur(function() {
             calculate_costs()
         })
+
     }
 
     decrement_form() {

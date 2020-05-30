@@ -17,3 +17,5 @@ email verify
 
     senior;
     senior, benefactor;
+
+python manage.py dumpdata --settings=wpa.local_settings -o=membership1.json --format=json registration

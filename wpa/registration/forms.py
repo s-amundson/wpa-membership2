@@ -132,7 +132,7 @@ class MembershipForm(ModelForm):
                    'post_code': TextInput(attrs={'placeholder': 'Zip', 'autocomplete': 'off',
                                                  'class': "form-control m-2 not_empty"}),
                    'phone': TextInput(attrs={'placeholder': 'Phone', 'autocomplete': 'off',
-                                             'class': "form-control m-2"}),
+                                             'class': "form-control m-2 not_empty"}),
                    'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
                                              'class': "form-control m-2 email"}),
                    'level': Select(attrs={'class': "form-control m-2 costs "}),
@@ -167,5 +167,6 @@ class PinShootForm(ModelForm):
                    'target': Select(attrs={'class': "form-control m-2"}, choices=((60, 60), (40, 40))),
                    'prev_stars': Select(attrs={'class': "form-control m-2"}),
                    'score': TextInput(attrs={'placeholder': 'Score', 'autocomplete': 'off',
-                                             'class': "form-control m-2 numeric"})
+                                             'class': "form-control m-2 numeric", 'required': ""})
                    }
+#

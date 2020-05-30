@@ -29,7 +29,7 @@ class PinShootTests(LiveServerTestCase):
         super().__init__(*args, **kwargs)
         self.entry_data = {'first_name': 'Emily',
                            'last_name': 'Conlan',
-                           'club':'',
+                           'club': '',
                            'shoot_date': date.today().isoformat(),
                            'email': 'EmilyNConlan@einrot.com',
                            'wpa_membership_number':'',
@@ -43,7 +43,7 @@ class PinShootTests(LiveServerTestCase):
         self.click_data = {'terms': True}
         self.url = 'http://127.0.0.1:8000/registration/pin_shoot/'
         self.bow_choices = {'':'---------',
-                            'barebow':'Barebow/Basic Compound/Traditional',
+                            'barebow': 'Barebow/Basic Compound/Traditional',
                             'olympic': 'Olympic Recurve',
                             'compound': 'Compound',
                             }
@@ -51,8 +51,6 @@ class PinShootTests(LiveServerTestCase):
         self.distance_choices = {'': '---------', '18': 18, '9': 9}
         self.target_choices = {'': '---------', '60': 60, '40': 40}
         self.prev_stars_choices = {'': '---------', '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6}
-
-
 
 
     @classmethod
@@ -76,50 +74,42 @@ class PinShootTests(LiveServerTestCase):
             e = Select(self.selenium.find_element_by_id('id_' + k))
             e.select_by_visible_text(v)
 
+    def test_pin_shoot_invalid_entry(self):
+        keys_dict = self.entry_data.copy()
+        keys_dict.pop('club')
+        keys_dict.pop('wpa_membership_number')
+        keys = list(keys_dict.keys())
+        for k in keys:
+            sr = self.entry_data.copy()
+            sr.pop(k)
+            self.enter_items(sr, self.select_data)
+            e = self.selenium.find_element_by_id('id_submit')
+            e.click()
+            logging.info(k)
+            print(self.selenium.title)
+            self.assertEquals(self.selenium.title, "Membership Project: Register")
+
+        keys_dict = self.select_data.copy()
+        keys_dict.pop('distance')
+        keys = list(keys_dict.keys())
+        for k in keys:
+            sr = self.select_data.copy()
+            sr.pop(k)
+            self.enter_items(self.entry_data, sr)
+            e = self.selenium.find_element_by_id('id_submit')
+            e.click()
+            logging.info(k)
+            self.assertEquals(self.selenium.title, "Membership Project: Register")
 
 
-    # def test_pin_shoot_invalid_entry(self):
-    #     keys = list(self.entry_data.keys())
-    #     for k in keys:
-    #         sr = self.entry_data.copy()
-    #         sr.pop(k)
-    #         self.enter_items(sr, self.select_data)
-    #         e = self.selenium.find_element_by_id('id_submit')
-    #         e.click()
-    #         self.assertEquals(len(Pin_shoot.objects.all()), 0)
-    #
-    #     keys = list(self.select_data.keys())
-    #     for k in keys:
-    #         sr = self.select_data.copy()
-    #         sr.pop(k)
-    #         self.enter_items(self.entry_data, sr)
-    #         e = self.selenium.find_element_by_id('id_submit')
-    #         e.click()
-    #         self.assertEquals(len(Pin_shoot.objects.all()), 0)
-    #
-    #     # self.enter_items(self.entry_data, sr)
-    #     #
-    #     # # e = self.selenium.find_element_by_id('id_terms')
-    #     # # self.selenium.execute_script("arguments[0].click();", e)
-    #     #
-    #     # e = self.selenium.find_element_by_id('id_submit')
-    #     # e.click()
-    #     # self.assertEquals(len(Pin_shoot.objects.all()), 0)
 
-    # def test_pin_shoot_valid_entry(self):
-    #     self.enter_items(self.entry_data, self.select_data)
-    #
-    #     e = self.selenium.find_element_by_id('id_submit')
-    #     e.click()
-    #     time.sleep(5)
-    #     self.assertEquals(len(Pin_shoot.objects.all()), 1)
+    def test_pin_shoot_valid_entry(self):
+        self.enter_items(self.entry_data, self.select_data)
+
+        e = self.selenium.find_element_by_id('id_submit')
+        e.click()
+        time.sleep(5)
+        self.assertEquals(self.selenium.title, "Membership Project: Payment Form")
 
     def test_entry(self):
         print(Pin_shoot.objects.all())
-
-
-
-
-
-
-

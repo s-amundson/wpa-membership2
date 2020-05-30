@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Joad_sessions(models.Model):
-    start_date = models.DateField()
+    start_date = models.DateField(unique=True)
     c = [('scheduled', 'scheduled'), ('open', 'open'), ('closed', 'closed')]
     state = models.CharField(max_length=20, null=True, choices=c)
 

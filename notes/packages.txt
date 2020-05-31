@@ -1,7 +1,0 @@
-Packages needed to run installed using pip3 in virtual environment
-
-flask
-flask-session
-pymysql
-squareup
-python-dateutil

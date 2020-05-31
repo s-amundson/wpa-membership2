@@ -4,9 +4,8 @@ from django.db import OperationalError
 from django.forms import ModelForm, TextInput, Select, CheckboxInput, DateTimeField, formset_factory, \
     inlineformset_factory, modelformset_factory, BaseInlineFormSet
 from registration.models import Member, Membership, Joad_sessions, Pin_shoot, Joad_session_registration
-from registration.widgets import FengyuanChenDatePickerInput
 from django import forms
-from tempus_dominus.widgets import DatePicker
+
 
 logger = logging.getLogger(__name__)
 
@@ -169,4 +168,3 @@ class PinShootForm(ModelForm):
                    'score': TextInput(attrs={'placeholder': 'Score', 'autocomplete': 'off',
                                              'class': "form-control m-2 numeric", 'required': ""})
                    }
-#

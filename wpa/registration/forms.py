@@ -18,7 +18,6 @@ def joad_sessions():
             d.append((str(s.start_date), str(s.start_date)))
     except OperationalError as e:  # pragma: no cover
         logging.error(f"Operational Error: {e}")
-    logging.debug(f"session: {d}")
     return d
 
 

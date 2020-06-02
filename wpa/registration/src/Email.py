@@ -29,7 +29,7 @@ class Email:
         msg.content_subtype = "html"
         # msg.attach_alternative(html_content, "text/html")
         logging.debug(f"To: {to_address}, subject: {subject}")
-        # msg.send()
+        msg.send()
 
 
     # def payment_email(self, toaddr, subject, template, table_rows=[], mem=None, fam=[], receipt=''):
@@ -56,3 +56,11 @@ class Email:
     #         # return msg
     #
     #         self.send_mail(toaddr, subject, msg)  # , f"{self.project_directory}/static/header.png", "header.png")
+
+    @staticmethod
+    def renewal_notice(email, exp_date):
+        subject = 'Email Verification Code'
+        to_address = email
+        if settings.EMAIL_DEBUG:
+            to_address = 'sam.amundson@gmail.com'
+        text_content = f"Your membership is due to expire on {exp_date}. Please renew"

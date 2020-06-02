@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils.datetime_safe import date, datetime
 from django.views import View
+from django_q.tasks import async_task
 
 from registration.models import Member
 from registration.forms import MemberForm, MembershipForm, MembershipFormSet
@@ -145,7 +146,8 @@ class RegisterView(View):
         mem_dict = model_to_dict(membership)
         for k, v in email_member.items():
             mem_dict[k] = v
-        Email.verification_email(mem_dict)
+        # Email.verification_email(mem_dict)
+        async_task(Email.verification_email, mem_dict, task_name=mem_dict['email'])
         return HttpResponseRedirect(reverse('registration:register'))
 
 

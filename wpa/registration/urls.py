@@ -18,5 +18,5 @@ urlpatterns = [
     path('pin_shoot/', PinShootView.as_view(), name='pin_shoot'),
     path('process_payment/', ProcessPaymentView.as_view(), name='process_payment'),
     path('register/', RegisterView.as_view(), name='register'),
-    # path('register/', RegisterFormsetView.as_view(), name='register'),
+
 ]

@@ -18,16 +18,17 @@ class Email:
         if settings.EMAIL_DEBUG:
             to_address = 'sam.amundson@gmail.com'
 
+        plaintext = get_template('email/verify.txt')
         htmly = get_template('email/verify.html')
 
         d = {'id': member_dict['id'], 'first_name': member_dict['first_name'],
              'verification_code': member_dict['verification_code'], 'site': ""}
 
-        # text_content = plaintext.render(d)
+        text_content = plaintext.render(d)
         html_content = htmly.render(d)
-        msg = EmailMultiAlternatives(subject, html_content, settings.EMAIL_HOST_USER, [to_address])
-        msg.content_subtype = "html"
-        # msg.attach_alternative(html_content, "text/html")
+        msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [to_address])
+        msg.content_subtype = "text"
+        msg.attach_alternative(html_content, "text/html")
         logging.debug(f"To: {to_address}, subject: {subject}")
         msg.send()
 

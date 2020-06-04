@@ -1,0 +1,1 @@
+This folder contains the configuration files for apache2 to be loaded into the docker image.

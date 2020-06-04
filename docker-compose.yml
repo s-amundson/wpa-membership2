@@ -1,18 +1,30 @@
-version: "3.3"
+#version: "3.3"
+#
+#services:
+#
+#  web:
+#    build: ./wpa
+#    environment:
+#      - TZ=America/Los_Angeles
+#      - DEBIAN_FRONTEND=noninteractive
+#    ports:
+#      - "8000:8000"
+#    command: >
+#      sh -c "python manage.py wait_for_db &&
+#             python manage.py qcluster --settings=wpa.local_settings &&
+#             python manage.py runserver 0.0.0.0:8000 --settings=wpa.local_settings"
+#  redis:
+#    image: "redis:alpine"
+
+version: "2"
 
 services:
-
-  web:
-    build: ./wpa
-    environment:
-      - TZ=America/Los_Angeles
-      - DEBIAN_FRONTEND=noninteractive
+  django-apache2-2:
+    build: .
+    container_name: django-apache2
     ports:
-      - "8000:8000"
-    command: >
-      sh -c "python manage.py wait_for_db &&
-             python manage.py qcluster --settings=wpa.local_settings &&
-             python manage.py runserver 0.0.0.0:8000 --settings=wpa.local_settings"
-  redis:
-    image: "redis:alpine"
-
+      - '8005:80'
+#      - '3500:3500'
+#      - '8006:81'
+    volumes:
+      - .:/var/www/html

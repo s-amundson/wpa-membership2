@@ -16,7 +16,7 @@
 #  redis:
 #    image: "redis:alpine"
 
-version: "2"
+version: "3.3"
 
 services:
   django-apache2-2:
@@ -24,7 +24,10 @@ services:
     container_name: django-apache2
     ports:
       - '8005:80'
-#      - '3500:3500'
-#      - '8006:81'
     volumes:
-      - .:/var/www/html
+      - ./wpa:/var/www/wpa
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - '6379:6379'

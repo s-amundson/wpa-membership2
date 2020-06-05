@@ -26,8 +26,8 @@ services:
       - '8005:80'
     volumes:
       - ./wpa:/var/www/wpa
+    depends_on:
+      - "redis"
 
   redis:
     image: "redis:alpine"
-    ports:
-      - '6379:6379'

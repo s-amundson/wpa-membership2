@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Email:
     @staticmethod
     def verification_email(member_dict):
+        logging.debug(member_dict)
         subject = 'Email Verification Code'
         to_address = member_dict['email']
         logging.debug(settings.EMAIL_DEBUG)

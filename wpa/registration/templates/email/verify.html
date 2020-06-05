@@ -4,7 +4,7 @@
                     Hi,<br>
         </p>
         <p style="margin-bottom: 0in; line-height: 100%; align: left; font-family: arial, sans-serif; color: black; margin: 10px;">
-            Thank you for supporting Woodley Park Archers. Your membership is set to expire on {{ values['expire'] }}
+            Thank you for applying with Woodley Park Archers. Your member number is {{ values['id'] }}.
             Your renewal code is <strong>{{ email_code }}</strong> please click below to complete your renewal.
         </p>
         <a href="{{values['site']}}/renew?e={{ values['email'] }}&c={{ values['renew_code'] }}">

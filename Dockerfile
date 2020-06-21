@@ -12,8 +12,9 @@ RUN ln /usr/bin/pip3 /usr/bin/pip
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 RUN rm  /etc/apache2/sites-available/*
-COPY ./demo_site.conf /etc/apache2/sites-available/000-default.conf
+COPY ./apache2_configuration/sites-available/register.conf /etc/apache2/sites-available/000-default.conf
 #RUN python /var/www/wpa/manage.py qcluster --settings=wpa.local_settings &
-EXPOSE 80
+# RUN python manage.py collectstatic -l --no-input --settings=wpa.local_settings
+EXPOSE 80 443
 CMD ["apache2ctl", "-D", "FOREGROUND"]
 

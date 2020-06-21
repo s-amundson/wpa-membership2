@@ -144,6 +144,7 @@ class RegisterView(View):
 
 
         mem_dict = model_to_dict(membership)
+        mem_dict['verification_code'] = mem_dict['verification_code'][:13]
         for k, v in email_member.items():
             mem_dict[k] = v
         # Email.verification_email(mem_dict)

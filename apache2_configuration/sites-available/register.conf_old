@@ -1,0 +1,80 @@
+WSGIPythonPath /var/www/wpa
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName wp3.amundsonca.com
+    ServerAlias wp3.subdomainserver
+    ServerAlias wp3*
+    ServerAlias www.wp3*
+
+    Alias /static/ /var/www/wpa/registration/static/
+
+    DocumentRoot /var/www/wpa
+    LogLevel debug
+    ErrorLog ${APACHE_LOG_DIR}/dev/stdout
+#    CustomLog ${APACHE_LOG_DIR}/error.log combined
+
+#    <Directory /var/www/wpa/>
+#            AllowOverride All
+#    </Directory>
+
+#    <Directory /var/www/wpa/registration/static>
+#        Require all granted
+#    </Directory>
+
+#    WSGIDaemonProcess wp3p1 python-home=/usr/bin
+    #WSGIDaemonProcess wp3p1 python-home=/var/www/wp3/membership/venv
+
+#    WSGIProcessGroup wp3p1
+#    WSGIApplicationGroup %{GLOBAL}
+
+    WSGIScriptAlias / /var/www/wpa/wpa/wsgi.py
+;     RewriteEngine on
+;     RewriteCond %{SERVER_NAME} =wp3.subdomainserver [OR]
+;     RewriteCond %{SERVER_NAME} =www.wp3* [OR]
+;     RewriteCond %{SERVER_NAME} =wp3* [OR]
+;     RewriteCond %{SERVER_NAME} =wp3.amundsonca.com
+;     RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+</VirtualHost>
+
+; <IfModule mod_ssl.c>
+;     <VirtualHost _default_:443>
+;         #ServerAdmin your_email@example.com
+;         ServerName wp3.amundsonca.com
+;         ServerAlias wp3.subdomainserver
+;         ServerAlias wp3*
+;         serverAlias www.wp3*
+;
+;         Alias /static/ /var/www/wpa/registration/static/
+;
+;         DocumentRoot /var/www/wpa
+;         LogLevel notice
+;         ErrorLog /dev/stderr
+;         CustomLog /dev/stdout
+;
+;         SSLEngine on
+;         WSGIDaemonProcess wp3p1
+;         #WSGIDaemonProcess wp3p1 python-home=/var/www/wp3/membership/venv
+;
+;         WSGIProcessGroup wp3p1
+;         WSGIApplicationGroup %{GLOBAL}
+;
+;         WSGIScriptAlias / /var/www/wpa/wpa/wsgi.py
+;         #WSGIScriptAlias /mem/ /var/www/wp3/membership/wsgy.py/
+;
+;         <FilesMatch "\.(cgi|shtml|phtml|php)$">
+;             SSLOptions +StdEnvVars
+;         </FilesMatch>
+;         <Directory /usr/lib/cgi-bin>
+;             SSLOptions +StdEnvVars
+;         </Directory>
+;
+;         <Directory /var/www/wpa/registration/static>
+;             Require all granted
+;         </Directory>
+;
+; ;         SSLCertificateFile    /etc/letsencrypt/live/wp3.amundsonca.com/fullchain.pem
+; ;         SSLCertificateKeyFile /etc/letsencrypt/live/wp3.amundsonca.com/privkey.pem
+; ;         Include /etc/letsencrypt/options-ssl-apache.conf
+;     </VirtualHost>
+; </IfModule>
+

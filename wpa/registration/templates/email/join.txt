@@ -1,0 +1,39 @@
+Hi {{ first_name }},
+
+Thank you for {{ join }} Woodley Park Archers. Your membership number is {{ id }}.
+This email confirms your purchase and your membership.
+
+{% for f in fam %}
+    {{ f }}<
+{% endfor %}
+
+Item    Quantity    Amount Each Amount
+{% for row in lines %}
+{{ row.name }}   {{ row.quantity }}   {{ row.amount }}    {{ row.cost }}
+{% endfor %}
+
+Total   {{ total }}
+
+{{ receipt }}
+Please read the letter from our president below.
+Sam Amundson<br>
+Membership Chair<br>
+Woodley Park Archers
+http://woodleyparkarchers.org/">WoodleyParkArchers.org
+http://www.facebook.com/pages/Woodley-Park-Archers/131056656971079
+
+On behalf of the officers and members at large of the Board of Directors of the Woodley Park Archers, I would like to welcome you to the club and thank you for your membership.
+
+The Woodley Park Archers have a long and rich history, since the club's formation in 1984. As you may know, the Woodley Park Archery Range was built in 1984 by the Easton Foundation to serve as a practice facility for the 1984 Los Angeles Olympics. At that time, the club was founded to provide fellowship among local archers and service to the City of Los Angeles, the United States Army Corps of Engineers, and the Easton Foundation in the maintenance of the range facility. To this date, the range continues to be regularly maintained by the volunteer efforts of members of the Woodley Park Archers with the support of the Easton Sports Development Foundation.
+
+In addition to maintaining our facility, our club is dedicated to providing a quality archery instruction program to the community, promoting safety, sportsmanship and the highest level of excellence in archery. We are very proud of our club and our successful program, which has received commendation from the Mayor and City Council of the City of Los Angeles. Your membership will provide great support to the club in pursuit of its mission and achievement of its goals.
+
+Please make sure to come by the range to pick up your Membership Card and WPA Member's Quiver Pin.
+
+We look forward to meeting you and thanks again for your support. See you at the range!
+
+Sincerely,
+
+Wayne Shaphran
+
+President, Woodley Park Archers

@@ -1,18 +1,21 @@
 import logging
 from uuid import uuid4
-
+from datetime import timedelta
 from django.conf import settings
 from django.shortcuts import render
 from django.utils.datetime_safe import date
 from django.views.generic.base import View
+from django_q.tasks import async_task
 
-from registration.models import Joad_session_registration, Member, Payment_log
+from registration.models import Joad_session_registration, Member, Payment_log, Membership
+from registration.src.Email import Email
 
 logger = logging.getLogger(__name__)
 
 
 class ProcessPaymentView(View):
     """Shows a payment page for making purchases"""
+
     def get(self, request):
         paydict = {}
         if settings.SQUARE_CONFIG['environment'] == "production":
@@ -79,7 +82,7 @@ class ProcessPaymentView(View):
             for row in session['line_items']:
                 d = {'name': row['name'], 'quantity': int(row['quantity']),
                      'amount_each': int(row['base_price_money']['amount']) / 100,
-                     'amount_total' : int(row['base_price_money']['amount']) * int(row['quantity']) / 100}
+                     'amount_total': int(row['base_price_money']['amount']) * int(row['quantity']) / 100}
                 logging.debug(f"amount {row['base_price_money']['amount']}, {int(row['base_price_money']['amount'])}")
                 rows.append(d)
                 total += int(d['amount_total'])
@@ -87,17 +90,12 @@ class ProcessPaymentView(View):
         return rows, total
 
     def post(self, request):
-        idempotency_key = request.session.get('idempotency_key', str(uuid4()))
-        if idempotency_key is not None:
-            try:
-                mem = Member.objects.filter(email_code=idempotency_key)
-            except Member.DoesNotExist:
-                mem = None
-            try:
-                joad = Joad_session_registration.objects.filter(idempotency_key=idempotency_key)
-            except:
-                joad = None
-        if not settings.DEBUG:
+        idempotency_key = request.session.get('idempotency_key', None)
+
+        if idempotency_key is None:
+            return render(request, 'registration/message.html', {'message': 'payment processing error'})
+
+        if not settings.DEBUG and not settings.TESTING:
             nonce = request.POST.get('nonce')
 
             # environment = square_cfg['environment']
@@ -106,63 +104,84 @@ class ProcessPaymentView(View):
                 return render(request, 'registration/message.html', {'message': 'payment processing error'})
             # if response.is_error():
             logging.debug(f"response type = {type(square_response)} response = {square_response}")
+        else:
+            square_response = {'created_at': date.today().isoformat(), 'id': "", 'order_id': '', 'location_id': '',
+                               'status': '', 'amount_money': {'amount': '12300'}, 'receipt_url': ''}
 
-        members = ""
-        for m in mem:
-            members = members + f"{m['id']}, "
-        # if 'mem' in request.session:
-        #     mem = request.session['mem']
-        #     if mem["fam"] is None:
-        #         members = f"{mem['id']}, "
-        #     else:
-        #         rows = mdb.find_by_fam(mem["fam"])
-        #         for row in rows:
-        #             members = members + f"{row['id']}, "
-        #     email = mem['email']
-        if 'email' in request.session:
+
+        try:
+            mem = Membership.objects.filter(verification_code=idempotency_key).get()
+        except Membership.DoesNotExist:
             mem = None
-            email = request.session['email']
-        description = request.session['line_items']['name']
-        # if 'description' in session:
-        #     description = session['description']
-        # session['members'] = members
-        subject = ""
-        template = "email/purchase_email.html"
-        # mem = None
-        fam = []
-        receipt = ""
+        try:
+            joad = Joad_session_registration.objects.filter(idempotency_key=idempotency_key,
+                                                            pay_status='new')
+        except Joad_session_registration.DoesNotExist:
+            joad = None
+        logging.debug(mem)
 
-        #     members = models.CharField(max_length=50, null=True)
-        #     reg_date = models.DateField()
-        #     checkout_created_time = models.DateTimeField()
-        #     checkout_id = models.CharField(max_length=50, null=True)
-        #     order_id = models.CharField(max_length=50, null=True)
-        #     location_id = models.CharField(max_length=50, null=True)
-        #     state = models.CharField(max_length=20, null=True)
-        #     total_money = models.CharField(max_length=50, null=True)
-        #     description = models.CharField(max_length=50, null=True)
-        #     idempotency_key = models.UUIDField()
-        #     receipt = models.CharField(max_length=100, null=True)
+        members = mem.id
+        email_address = mem.email
+        mem.exp_date = mem.exp_date + timedelta(days=365)
+        mem.status = 'member'
+        mem.verification_code = ""
+        mem.save()
 
-        if not settings.DEBUG:
-            # cd = dateutil.parser.parse(square_response['created_at']).strftime('%Y-%m-%d %H:%M:%S')
-            cd = date.fromisoformat(square_response['created_at'])
-            Payment_log.objects.create(members=members,
-                                       checkout_created_time=cd,
-                                       checkout_id=square_response['id'],
-                                       order_id=square_response['order_id'],
-                                       location_id=square_response['location_id'],
-                                       state=square_response['status'],
-                                       total_money=square_response['amount_money']['amount'],
-                                       description=description,
-                                       idempotency_key=idempotency_key,
-                                       receipt=square_response['receipt_url']
-                                       )
+        for j in joad:
+            j.pay_status = 'paid'
+            j.save()
 
-            receipt = f"Link to reciept: {square_response['receipt_url']}"
+        description = request.session['line_items'][0]['name']
+        cd = date.fromisoformat(square_response['created_at'])
+        log = Payment_log.objects.create(members=members,
+                                         checkout_created_time=cd,
+                                         checkout_id=square_response['id'],
+                                         order_id=square_response['order_id'],
+                                         location_id=square_response['location_id'],
+                                         state=square_response['status'],
+                                         total_money=square_response['amount_money']['amount'],
+                                         description=description,
+                                         idempotency_key=idempotency_key,
+                                         receipt=square_response['receipt_url'],
+                                         email_address=email_address)
 
-        if description[:len("JOAD Pin Shoot")] == 'JOAD Pin Shoot':
-            subject = 'Pin Shoot Payment Confirmation'
+        # async_task(Email.payment_email, log, request.session['line_items'], mem, task_name=f"payment_{email_address}")
+
+        Email.payment_email(log, request.session['line_items'], mem)
+
+        # receipt = ""
+        #
+        # #     members = models.CharField(max_length=50, null=True)
+        # #     reg_date = models.DateField()
+        # #     checkout_created_time = models.DateTimeField()
+        # #     checkout_id = models.CharField(max_length=50, null=True)
+        # #     order_id = models.CharField(max_length=50, null=True)
+        # #     location_id = models.CharField(max_length=50, null=True)
+        # #     state = models.CharField(max_length=20, null=True)
+        # #     total_money = models.CharField(max_length=50, null=True)
+        # #     description = models.CharField(max_length=50, null=True)
+        # #     idempotency_key = models.UUIDField()
+        # #     receipt = models.CharField(max_length=100, null=True)
+
+        # if not settings.DEBUG:
+        #     # cd = dateutil.parser.parse(square_response['created_at']).strftime('%Y-%m-%d %H:%M:%S')
+        #     cd = date.fromisoformat(square_response['created_at'])
+        #     Payment_log.objects.create(members=members,
+        #                                checkout_created_time=cd,
+        #                                checkout_id=square_response['id'],
+        #                                order_id=square_response['order_id'],
+        #                                location_id=square_response['location_id'],
+        #                                state=square_response['status'],
+        #                                total_money=square_response['amount_money']['amount'],
+        #                                description=description,
+        #                                idempotency_key=idempotency_key,
+        #                                receipt=square_response['receipt_url']
+        #                                )
+        #
+        #     receipt = f"Link to receipt: {square_response['receipt_url']}"
+
+        # if description[:len("JOAD Pin Shoot")] == 'JOAD Pin Shoot':
+        #     subject = 'Pin Shoot Payment Confirmation'
 
         # elif description[:len('JOAD Session')] == 'JOAD Session':
         #     if 'joad_session' in session:
@@ -201,6 +220,6 @@ class ProcessPaymentView(View):
         #     else:
         #         subject = 'Welcome To Wooldley Park Archers'
 
-            # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
+        # mdb.send_email(path, "Welcome To Wooldley Park Archers", fam)
         # email_helper.payment_email(email, subject, template, table_rows(), mem, fam, receipt)
         return render(request, 'registration/message.html', {'message': 'payment successful'})

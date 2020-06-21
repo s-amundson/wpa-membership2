@@ -4,7 +4,7 @@ add costs to database
 
 upgrade javascript check for phone
 
-
+shorten verification code
 
 
 coverage run --rcfile=coverage.cfg --source='.' manage.py test registration --settings=wpa.local_settings

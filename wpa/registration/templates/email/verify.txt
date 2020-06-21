@@ -1,7 +1,7 @@
 Hi {{ first_name }},
 
 Thank you for applying with Woodley Park Archers. Your member number is {{ id }}.
-Your email verification code is  {{ email_code }} you can go to
+Your email verification code is  {{ verification_code }} you can go to
 https://WoodleyParkArchers.org/email_verify and enter your code.
 
 Sam Amundson

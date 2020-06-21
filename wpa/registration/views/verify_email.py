@@ -23,14 +23,17 @@ class VerifyEmailView(View):
 
     def post(self, request):
         form = EmailValidate(request.POST)
-        if form.is_valid():
+        if form.is_valid() and len(form.cleaned_data['verification_code']) > 12:
             rows = Membership.objects.filter(email=form.cleaned_data['email'],
-                                             verification_code=form.cleaned_data['verification_code'])
+                                             verification_code__startswith=form.cleaned_data['verification_code'],
+                                             status='new')
+            # headline__startswith='What'
             logging.debug(form.cleaned_data)
             if len(rows) > 0:
                 # joad_sessions = 0
                 benefactor = False
                 for row in rows:
+                    ik = row.verification_code
                     if row.benefactor:
                         benefactor = True
                 if benefactor:
@@ -40,7 +43,7 @@ class VerifyEmailView(View):
                     cost = settings.COSTS[f"{rows[0].level}_membership"]
                     lines = [line_item("Membership", 1, cost)]
 
-                js = Joad_session_registration.objects.filter(idempotency_key=form.cleaned_data['verification_code'])
+                js = Joad_session_registration.objects.filter(idempotency_key=ik, pay_status='new')
                 if len(js) > 0:
                     logging.debug(js[0].session)
                     cost = settings.COSTS['joad_session']
@@ -48,7 +51,7 @@ class VerifyEmailView(View):
                     logging.debug(lines)
 
                 request.session['line_items'] = lines
-                request.session['idempotency_key'] = form.cleaned_data['verification_code']
+                request.session['idempotency_key'] = ik
                 return HttpResponseRedirect(reverse('registration:process_payment'))
         else:
             logging.debug(form.errors)

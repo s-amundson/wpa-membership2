@@ -1,8 +1,7 @@
 import logging
 from datetime import timedelta, date
 
-
-from models import Membership
+from registration.models import Membership
 
 logger = logging.getLogger(__name__)
 

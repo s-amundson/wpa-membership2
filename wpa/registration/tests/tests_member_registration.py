@@ -2,11 +2,10 @@ import json
 import os
 
 from django.conf import settings
-from django.core import serializers
 from django.template.loader import render_to_string
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.utils.datetime_safe import datetime, date
+from django.utils.datetime_safe import date
 from registration.models import Member, Membership, Joad_sessions, Joad_session_registration
 
 import logging

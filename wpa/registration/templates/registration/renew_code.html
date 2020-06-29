@@ -1,0 +1,25 @@
+{% extends 'registration/base.html' %}
+
+
+{% block title %}
+    Verify Email
+{% endblock %}
+
+{% block main %}
+    <form method="post" action="." autocomplete="off" class="form">
+        {% csrf_token %}
+        <div class="row">
+            <div class="input-group input-group-md">
+                {{ form.email }}
+            </div>
+            <div class="input-group input-group-md">
+                {{ form.verification_code }}
+            </div>
+        </div>
+
+        <div class="row">
+                <button class="btn btn-primary m-2" type="submit" id="id_submit">Submit </button>
+        </div>
+    </form>
+
+{% endblock %}

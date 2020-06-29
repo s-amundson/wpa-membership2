@@ -5,18 +5,17 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Max
-from django.forms import model_to_dict, modelformset_factory
-from django.http import HttpResponseRedirect, Http404
+from django.forms import model_to_dict
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.datetime_safe import date, datetime
+from django.utils.datetime_safe import datetime
 from django.views import View
 from django_q.tasks import async_task
 
 from registration.models import Member
-from registration.forms import MemberForm, MembershipForm, MembershipFormSet
-from registration.models import Membership, Joad_session_registration, Joad_sessions
+from registration.forms import MembershipForm, MembershipFormSet
+from registration.models import Joad_session_registration, Joad_sessions
 from registration.src.Email import Email
 
 
@@ -33,6 +32,7 @@ class RegisterView(View):
         self.message = ''
         self.context = {'formset': self.formset, 'costs': self.costs, 'message': self.message,
                         'membership_form': self.membership_form}
+        self.email_member = None
 
     def check_duplicate(self, form_data, membership):
         # check for duplicate
@@ -74,117 +74,87 @@ class RegisterView(View):
 
     def post(self, request):
         logging.debug(request.POST)
-        self.formset = MembershipFormSet(request.POST)
         self.membership_form = MembershipForm(request.POST)
-        email_member = None
+        self.formset = MembershipFormSet(request.POST)
 
         try:
-            with transaction.atomic():  # TODO check duplicate
-                if self.membership_form.is_valid():
-                    membership = self.membership_form.save(commit=False)
-                    membership.reg_date = membership.exp_date = datetime.now()
-                    membership.verification_code = str(uuid4())
-                    membership.status = 'new'
-                    membership.save()
-                else:
-                    logging.debug(self.membership_form.errors)
-                    self.context['formset'] = MembershipFormSet(initial=request.POST)
-                    self.context['message'] = 'Error on form'
-                    logging.debug(self.context)
-                    r = render(request, 'registration/register.html', self.context)
-                    logging.debug(r)
-                    return r
-
-                if self.formset.is_valid():
-                    logging.debug('valid formset')
-                    logging.debug(self.formset.cleaned_data)
-                    for d in self.formset.cleaned_data:
-                        if len(d) > 0:
-                            if self.check_duplicate(d, membership):
-                                Ex = ValueError()
-                                Ex.strerror = "Duplicate Found."
-                                raise Ex
-                            if d['joad'] == '':
-                                d['joad'] = None
-                            elif not Joad_session_registration.joad_check_date(d['dob']):
-                                self.message = 'Error on form'
-                                return render(request, 'registration/register.html', self.context)
-
-                    obj = self.formset.save(commit=False)
-                    for deleted in self.formset.deleted_objects:
-                        logging.debug(deleted)
-                    #     deleted.delete()
-                    for form in obj:
-                        form.membership = membership
-                        form.save()
-                        if email_member is None:
-                            email_member = model_to_dict(form)
-
-                        # check if member is in JOAD
-                        for d in self.formset.cleaned_data:
-                            if len(d) > 0:
-                                logging.debug(d['joad'])
-                                if d['joad'] is not None:
-                                    if d['first_name'] == form.first_name and d['last_name'] == form.last_name:
-                                        try:
-                                            js = Joad_sessions.objects.get(start_date=d['joad'])
-                                            Joad_session_registration.add_from_member(form, js)
-                                        except ValidationError as e:
-                                            logging.error(f"Registration error with joad: {e}")
-                                            # this error occured after selecting a joad session and then selecting none
-                else:
-                    logging.debug(self.formset.errors)
-                    self.message = 'Error on form'
-                    return render(request, 'registration/register.html', self.context)
-
+            membership = self.process_membership(request, None)
 
         except ValueError as e:
-            logging.error(e.strerror)
-            return render(request, 'registration/register.html', self.context)
-
+            # logging.error(e.strerror)
+            return self.return_form(request)
 
         mem_dict = model_to_dict(membership)
         mem_dict['verification_code'] = mem_dict['verification_code'][:13]
-        for k, v in email_member.items():
+        for k, v in self.email_member.items():
             mem_dict[k] = v
         # Email.verification_email(mem_dict)
         async_task(Email.verification_email, mem_dict, task_name=mem_dict['email'])
         return HttpResponseRedirect(reverse('registration:register'))
 
 
+    def return_form(self, request):
+        self.context['formset'] = self.formset
+        self.context['membership_form'] = self.membership_form
+        return render(request, 'registration/register.html', self.context)
 
-        #     else:
-        #         joad = None
-        #         logging.debug("joad not in request.POST")
-        #
-        #     if member.level != 'family':
-        #         # Clear the session for the next user
-        #         request.session.flush()
-        #
-        #
-        #     else:  # Family registration
-        #
-        #         # Calculate the running cost for the membership with the possibility of adding JOAD sessions in.
-        #         if request.session.get('family_total', None) is None:
-        #             request.session['family_total'] = costs['family_membership']
-        #         if joad is not None:
-        #             request.session['family_total'] = request.session['family_total'] + costs['joad_session']
-        #             request.session['joad_session'] = joad
-        #         costs['family_total'] = request.session['family_total']
-        #         logging.debug(request.session['family_total'])
-        #         initial = form.cleaned_data.copy()
-        #         keys = ['first_name', 'last_name', 'dob', 'joad', 'terms']
-        #         for k in keys:
-        #             initial.pop(k, None)
-        #         form = MemberForm(initial=initial)
-        #         context = {'form': form, 'costs': costs, 'message': ''}
-        #
-        #         return render(request, 'registration/register.html', context)
-        #
-        # else:
-        #     logging.debug("invalid form")
-        #     logging.debug(form.cleaned_data)
-        #     logging.debug(form.errors)
-        #
-        # return HttpResponseRedirect(reverse('registration:register'))
+    def process_membership(self, request, membership_id):
+        with transaction.atomic():
+            if self.membership_form.is_valid():
+                logging.debug('membership valid')
+                membership = self.membership_form.save(commit=False)
+                if membership_id is None:
+                    membership.reg_date = membership.exp_date = datetime.now()
+                    membership.verification_code = str(uuid4())
+                    membership.status = 'new'
 
+                membership.save()
+            else:
+                logging.debug(self.membership_form.errors)
+                # self.context['formset'] = MembershipFormSet(initial=request.POST)
+                self.context['message'] = 'Error on form'
+                raise ValueError('Error on form')
+
+
+            if self.formset.is_valid():
+                logging.debug('valid formset')
+                # logging.debug(self.formset.cleaned_data)
+                for d in self.formset.cleaned_data:
+                    if len(d) > 0:
+                        if membership_id is None:
+                            if self.check_duplicate(d, membership):
+                                Ex = ValueError()
+                                Ex.strerror = "Duplicate Found."
+                                raise Ex
+                        if d['joad'] == '':
+                            d['joad'] = None
+                        elif not Joad_session_registration.joad_check_date(d['dob']):
+                            self.message = 'Error on form'
+                            return render(request, 'registration/register.html', self.context)
+
+                obj = self.formset.save(commit=False)
+
+                for form in obj:
+                    form.membership = membership
+                    form.save()
+                    if self.email_member is None:
+                        self.email_member = model_to_dict(form)
+
+                    # check if member is in JOAD
+                    for d in self.formset.cleaned_data:
+                        if len(d) > 0:
+                            logging.debug(d['joad'])
+                            if d['joad'] is not None:
+                                if d['first_name'] == form.first_name and d['last_name'] == form.last_name:
+                                    try:
+                                        js = Joad_sessions.objects.get(start_date=d['joad'])
+                                        Joad_session_registration.add_from_member(form, js)
+                                    except ValidationError as e:
+                                        logging.error(f"Registration error with joad: {e}")
+                                        # this error occured after selecting a joad session and then selecting none
+            else:
+                logging.debug(self.formset.errors)
+                self.message = 'Error on form'
+                raise ValueError('Error on form')
+                # return render(request, 'registration/register.html', self.context)
+        return membership

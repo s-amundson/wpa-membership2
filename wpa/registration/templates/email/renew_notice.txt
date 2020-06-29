@@ -1,0 +1,11 @@
+Hi {{ first_name }},
+
+Thank you for being a Woodley Park Archers member. Your membership is set to expire on {{ date }}, your membership number is {{ id }}.
+Your renewal verification code is {{ verification_code }} please click below to complete your registration.
+
+Or you can go to WoodleyParkArchers.org/renew_code and enter your code.
+
+Sam Amundson
+Membership Chair
+Woodley Park Archers
+WoodleyParkArchers.org

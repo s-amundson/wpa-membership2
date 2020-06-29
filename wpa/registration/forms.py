@@ -67,6 +67,16 @@ class JoadSessionForm(ModelForm):
                                                         'class': 'form-control m-2 date_input'}), }
 
 
+# class LoginForm(ModelForm):
+#     class Meta:
+#         model = Membership
+#         fields = ['username', 'password']
+#         widgets = {'username': TextInput(attrs={'placeholder': 'Username', 'autocomplete': 'off', 'name': 'email',
+#                                              'class': "form-control m-2 email"}),
+#                    'password': TextInput(attrs={'placeholder': 'Password', 'autocomplete': 'off',
+#                                                   'class': "form-control m-2 not_empty"})}
+
+
 class SelectChoiceField(forms.ChoiceField):
     def clean(self, value):
         logging.debug(value)
@@ -80,6 +90,11 @@ class MemberForm(ModelForm):
 
     joad = SelectChoiceField(choices=joad_sessions(), widget=Select(attrs={'class': "form-control m-2 costs"}))
     joad.required = False
+    DELETE = forms.BooleanField(widget=CheckboxInput(attrs={'class': "form-control m-2 custom-control-input"}),
+                               )
+
+        # forms.BooleanField(widget=CheckboxInput(attrs={
+        # 'class': "form-control m-2 custom-control-input delete_check", "form_id": "__prefix__"}))
 
     # dob = forms.DateTimeField(input_formats=['%d/%m/%Y'])
     # dob.widget_attrs({'placeholder': 'Date of Birth YYYY-MM-DD',
@@ -95,7 +110,7 @@ class MemberForm(ModelForm):
 
     class Meta:
         model = Member
-        fields = ['first_name', 'last_name', 'dob', 'joad']
+        fields = ['id', 'first_name', 'last_name', 'dob', 'joad', 'DELETE']
         widgets = {'first_name': TextInput(attrs={'placeholder': 'First Name', 'autocomplete': 'off',
                                                   'class': "form-control m-2 member-required",
                                                   "form_id": "__prefix__"}),
@@ -109,9 +124,6 @@ class MemberForm(ModelForm):
 
 MembershipFormSet = inlineformset_factory(Membership, Member, form=MemberForm, can_delete=True, extra=0, min_num=0,
                                           max_num=4)
-
-
-# MembershipFormSet = ""
 
 
 class MembershipForm(ModelForm):
@@ -131,7 +143,7 @@ class MembershipForm(ModelForm):
                                                  'class': "form-control m-2 not_empty"}),
                    'phone': TextInput(attrs={'placeholder': 'Phone', 'autocomplete': 'off',
                                              'class': "form-control m-2 not_empty"}),
-                   'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off', 'name': 'email',
+                   'email': TextInput(attrs={'placeholder': 'Email', 'autocomplete': 'off',
                                              'class': "form-control m-2 email"}),
                    'level': Select(attrs={'class': "form-control m-2 costs "}),
                    'benefactor': CheckboxInput(attrs={'class': "form-control m-2 custom-control-input costs"})

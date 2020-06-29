@@ -20,8 +20,42 @@
         {{ formset.management_form }}
 
 
-        <div class="row" id="app">
+        <div id="app">
+            {% for form in formset %}
+            <div class="row" id="form-div-{{ forloop.counter0 }}">
+                <div class="row input-group input-group-md">
+                    <div class="col border mx-auto">
+                        {{ form.id }}
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col border mx-auto">
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col border mx-auto">
+                        {{ form.dob }}
+                        <div class="text-danger" id="id_invalid_dob-{{ forloop.counter0 }}">
+                            Please enter date in the format of YYYY-MM-DD
+                        </div>
+                    </div>
+                    <div class="col border mx-auto">
+                        <div class="custom-control custom-checkbox m-3">
+                            {{ form.DELETE}}
+                            <label class="custom-control-label" for="id_member_set-{{ forloop.counter0 }}-DELETE">Remove</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row input-group input-group-md border" id="form-div-{{ forloop.counter0 }}-joad">
+
+                    <div class="col">To register for a JOAD session select start date:</div>
+                    <div class="col">
+                        {{ form.joad }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
             <div id="before_me"></div>
+
         </div>
         <div class="row" id="add_button_div">
             <button class="btn btn-primary m-2" type="button" id="id_btn_add_row">Add Member</button>
@@ -30,6 +64,7 @@
         <div class="row pt-2">
                 <div class="input-group input-group-md">
                     {{ membership_form.street }}
+<!--                    <input type="text" name="id" hidden disabled value="{{ membership_id }}">-->
                 </div>
         </div>
 
@@ -51,7 +86,7 @@
         <div class="row">
 
             <div class="input-group input-group-md">
-                <label for="id_level">Membersip Level:</label>
+                <label class= "m-2" for="id_level">Membersip Level:</label>
                 {{ membership_form.level }}
             </div>
         </div>
@@ -72,7 +107,7 @@
         </div>
 
         <div class="row" id="costs" cost-values="{{ costs }}">
-            <h3 id="cost" cost_link="{% url 'registration:cost_values' %}">Total Cost:</h3>
+            <h3 id="cost" >Total Cost:</h3>
         </div>
 
         <div class="row">
@@ -84,6 +119,7 @@
         <div class="row" id="form-div-__prefix__">
             <div class="row input-group input-group-md">
                 <div class="col border  mx-auto">
+                    {{ formset.empty_form.id }}
                     {{ formset.empty_form.first_name }}
                 </div>
                 <div class="col border  mx-auto">
@@ -95,9 +131,14 @@
                         Please enter date in the format of YYYY-MM-DD
                     </div>
                 </div>
-
-                <button class="btn btn-danger delete_member_button" id="id_delete_member_button-__prefix__"
-                        form_id="__prefix__">Delete</button>
+                <div class="col border mx-auto ">
+                    <div class="custom-control custom-checkbox m-3">
+                        {{ formset.empty_form.DELETE }}
+                        <label class="custom-control-label" for="id_member_set-__prefix__-DELETE">Remove</label>
+                    </div>
+                </div>
+<!--                <button class="btn btn-danger delete_member_button" id="id_delete_member_button-__prefix__"-->
+<!--                        form_id="__prefix__">Delete</button>-->
             </div>
 
             <div class="row input-group input-group-md border" id="form-div-__prefix__-joad">

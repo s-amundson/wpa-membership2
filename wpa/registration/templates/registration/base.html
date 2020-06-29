@@ -40,14 +40,33 @@
             </button>
             <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav ml-auto mt-2">
-<!--                    <li class="nav-item"><a class="nav-link" href="{{parent_site}}">Home</a></li>-->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registration:email_verify' %}">Verify Email</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registration:register' %}">Membership Registration</a></li>
-<!--                    <li class="nav-item"><a class="nav-link" href="/renew">Renew</a></li>-->
-<!--                        <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>-->
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registration:joad_registration' %}">JOAD Registration</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registration:joad_session' %}">JOAD Sessions</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registration:pin_shoot' %}">Pin Shoot</a></li>
+
+                    {% if user.is_authenticated %}
+<!--                        <li class="nav-item">-->
+<!--                            <a class="nav-link" href="{% url 'registration:logout' %}">Admin Logout</a>-->
+<!--                        </li>-->
+<!--                        <li class="nav-item">-->
+<!--                            <a class="nav-link" href="{% url 'registration:joad_session' %}">JOAD Sessions</a>-->
+<!--                        </li>-->
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'registration:login' %}">Admin Login</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registration:email_verify' %}">Verify Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registration:register' %}">Membership Registration</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registration:joad_registration' %}">JOAD Registration</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'registration:pin_shoot' %}">Pin Shoot</a>
+                    </li>
+
                 </ul>
             </div>
         </nav>
@@ -60,6 +79,18 @@
                     {% block main %}{% endblock %}
                 </div>
                 <div class="col-md-2">
+                    <div class="row bg-warning text-dark">
+                        {% if user.is_authenticated %}
+                            <ul>
+                                <li>
+                                    <a href="{% url 'registration:logout' %}">Admin Logout</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'registration:joad_session' %}">JOAD Sessions</a>
+                                </li>
+                            </ul>
+                        {% endif %}
+                    </div>
                     {% block right %}{% endblock %}
                 </div>
             </div>

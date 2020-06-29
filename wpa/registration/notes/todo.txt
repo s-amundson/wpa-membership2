@@ -1,10 +1,10 @@
-create admin way of bypassing payment for in person payments.
 
 add costs to database
 
 upgrade javascript check for phone
 
-shorten verification code
+verify renewal email gets sent
 
+add min year to joad registration in register.js and check view.
 
 coverage run --rcfile=coverage.cfg --source='.' manage.py test registration --settings=wpa.local_settings

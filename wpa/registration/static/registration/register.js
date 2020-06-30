@@ -31,7 +31,11 @@ function add_member(is_new) {
 
     calculate_costs()
 }
+function dob_check(obj) {
+    console.log("main dob check" + obj)
+    member_forms[obj.attr('form_id')].dob_check()
 
+}
 function calculate_costs() {
     if($("#id_level").val() == "") {
         $("#cost").html("Total Cost: Error")
@@ -125,6 +129,10 @@ function set_levels() {
 function update_listener() {
     console.log('update_listner')
     $(".member-required").blur(function () {
+        if($(this).hasClass('dob')) {
+            console.log('member required dob')
+            return
+        }
         let this_form = $(this).attr("form_id")
 
         if(is_members_valid() && member_forms.length < max_forms) {
@@ -249,18 +257,25 @@ class MemberForm {
             $("#id_member_set-" + index + "-dob").datepicker(
             {
               format:'yyyy-mm-dd',
+              onSelect: function(dateText) { set_levels }
             })
         })
-        this.dob_input.blur(function() {
-
-//            console.log($(":focus"))
-////            member_forms[$(this).attr('form_id')].dob_check()
-//            dob_check()
-            set_levels()
+        this.dob_input.change(function() {
+            dob_check($(this))
         })
-        this.joad_input.blur(function() {
-            calculate_costs()
-        })
+//        $('.selector').datepicker({
+//    onSelect: function(dateText) { /* validation here */ }
+//});
+//        this.dob_input.blur(function() {
+//
+////            console.log($(":focus"))
+//////            member_forms[$(this).attr('form_id')].dob_check()
+////            dob_check()
+//            set_levels()
+//        })
+//        this.joad_input.blur(function() {
+//            calculate_costs()
+//        })
 
     }
 
@@ -277,10 +292,11 @@ class MemberForm {
     dob_check() {
         console.log('dob blur')
         console.log(this.dob_input.val())
-        if(this.dob_input.val() == ''){
-            return
-        }
+//        if(this.dob_input.val() == ''){
+//            return
+//        }
         var bd = Date.parse(this.dob_input.val())
+        let valid = false
 
         if(isNaN(bd)) {
             $("#id_invalid_dob-" + this.form_index).show()
@@ -307,6 +323,15 @@ class MemberForm {
                 this.level_senior  = false
             }
             $("#id_invalid_dob-" + this.form_index).hide()
+            valid = true
+        }
+        console.log(valid)
+        if (valid) {
+            this.dob_input.attr("style", 'border: 3px solid Green;');
+            return true;
+        } else {
+            this.dob_input.attr("style", 'border: 3px solid Tomato;');
+            return false;
         }
     }
 

@@ -1,11 +1,7 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from .views import *
-# from .views import JoadRegistrationView, JoadSessionView, IndexView, LoginView, MessageView, PinShootView, \
-#     ProcessPaymentView, RegisterView, RenewCodeView, RenewMembershipView, VerifyEmailView
 
-
-# RegisterFormsetView, VerifyEmailView
 
 app_name = 'registration'
 urlpatterns = [
@@ -15,6 +11,7 @@ urlpatterns = [
     path('joad_registration/', JoadRegistrationView.as_view(), name='joad_registration'),
     path('joad_session/', JoadSessionView.as_view(), name='joad_session'),
     path('login/', LoginView.as_view(), name='login'),
+    path('member_list/', MemberListView.as_view(), name='member_list'),
     path('message/', MessageView.as_view(), name='message'),
     path('pin_shoot/', PinShootView.as_view(), name='pin_shoot'),
     path('process_payment/', ProcessPaymentView.as_view(), name='process_payment'),

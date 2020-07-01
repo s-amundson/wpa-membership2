@@ -182,7 +182,6 @@ $(document).ready(function() {
             $("#id_member_set-" + i + "-dob").attr('form_id', i)
             $("#id_member_set-" + i + "-DELETE").attr('form_id', i)
             add_member(false)
-
         }
     }
 
@@ -263,20 +262,6 @@ class MemberForm {
         this.dob_input.change(function() {
             dob_check($(this))
         })
-//        $('.selector').datepicker({
-//    onSelect: function(dateText) { /* validation here */ }
-//});
-//        this.dob_input.blur(function() {
-//
-////            console.log($(":focus"))
-//////            member_forms[$(this).attr('form_id')].dob_check()
-////            dob_check()
-//            set_levels()
-//        })
-//        this.joad_input.blur(function() {
-//            calculate_costs()
-//        })
-
     }
 
 //    decrement_form() {

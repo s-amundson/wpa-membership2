@@ -92,7 +92,6 @@ class RegisterView(View):
         async_task(Email.verification_email, mem_dict, task_name=mem_dict['email'])
         return HttpResponseRedirect(reverse('registration:register'))
 
-
     def return_form(self, request):
         self.context['formset'] = self.formset
         self.context['membership_form'] = self.membership_form

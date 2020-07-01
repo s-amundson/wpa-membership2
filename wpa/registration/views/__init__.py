@@ -5,6 +5,7 @@ from .process_payment_view import ProcessPaymentView
 from .register_view import RegisterView
 from .login_view import LoginView
 from .message_view import MessageView
+from .member_list_view import MemberListView
 from .joad_session_view import JoadSessionView
 from .index_view import IndexView
 from .renewal_code_view import RenewCodeView
